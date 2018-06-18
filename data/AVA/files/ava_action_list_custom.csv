@@ -1,0 +1,54 @@
+label_id,label_name,label_type
+1,bend/bow (at the waist),PERSON_MOVEMENT
+2,crawl,PERSON_MOVEMENT
+3,crouch/kneel,PERSON_MOVEMENT
+4,dance,PERSON_MOVEMENT
+5,fall down,PERSON_MOVEMENT
+6,get up,PERSON_MOVEMENT
+7,jump/leap,PERSON_MOVEMENT
+8,lie/sleep,PERSON_MOVEMENT
+9,martial art,PERSON_MOVEMENT
+10,run/jog,PERSON_MOVEMENT
+11,sit,PERSON_MOVEMENT
+12,stand,PERSON_MOVEMENT
+13,swim,PERSON_MOVEMENT
+14,walk,PERSON_MOVEMENT
+15,answer phone,OBJECT_MANIPULATION
+16,carry/hold (an object),OBJECT_MANIPULATION
+17,"close (e.g., a door, a box)",OBJECT_MANIPULATION
+18,cut,OBJECT_MANIPULATION
+19,dress/put on clothing,OBJECT_MANIPULATION
+20,drink,OBJECT_MANIPULATION
+21,"drive (e.g., a car, a truck)",OBJECT_MANIPULATION
+22,eat,OBJECT_MANIPULATION
+23,lift/pick up,OBJECT_MANIPULATION
+24,"listen (e.g., to music)",OBJECT_MANIPULATION
+25,"open (e.g., a window, a car door)",OBJECT_MANIPULATION
+26,play musical instrument,OBJECT_MANIPULATION
+27,pull (an object),OBJECT_MANIPULATION
+28,push (an object),OBJECT_MANIPULATION
+29,put down,OBJECT_MANIPULATION
+30,read,OBJECT_MANIPULATION
+31,"ride (e.g., a bike, a car, a horse)",OBJECT_MANIPULATION
+32,sail boat,OBJECT_MANIPULATION
+33,smoke,OBJECT_MANIPULATION
+34,text on/look at a cellphone,OBJECT_MANIPULATION
+35,throw,OBJECT_MANIPULATION
+36,touch (an object),OBJECT_MANIPULATION
+37,"turn (e.g., a screwdriver)",OBJECT_MANIPULATION
+38,"watch (e.g., TV)",OBJECT_MANIPULATION
+39,write,OBJECT_MANIPULATION
+40,fight/hit (a person),PERSON_INTERACTION
+41,give/serve (an object) to (a person),PERSON_INTERACTION
+42,grab (a person),PERSON_INTERACTION
+43,hand clap,PERSON_INTERACTION
+44,hand shake,PERSON_INTERACTION
+45,hug (a person),PERSON_INTERACTION
+46,kiss (a person),PERSON_INTERACTION
+47,lift (a person),PERSON_INTERACTION
+48,listen to (a person),PERSON_INTERACTION
+49,push (another person),PERSON_INTERACTION
+50,"sing to (e.g., self, a person, a group)",PERSON_INTERACTION
+51,take (an object) from (a person),PERSON_INTERACTION
+52,"talk to (e.g., self, a person, a group)",PERSON_INTERACTION
+53,watch (a person),PERSON_INTERACTION
