@@ -1,8 +1,8 @@
 import numpy as np
 import utils
 from keras.utils import to_categorical
-from flow_training_model import flow_create_model, compile_model
-from flow_training_data import get_AVA_classes, get_AVA_set, get_AVA_labels, load_split
+from flow_model import flow_create_model, compile_model
+from flow_data import get_AVA_set, get_AVA_labels, load_split
 
 from keras import backend as K
 import csv
@@ -16,34 +16,36 @@ import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 def main():
-    root_dir = '../../data/AVA/files/'
+    root_dir = 'AVA2.1/'
     # Erase previous models from GPU memory
     K.clear_session()
 
     sendmail = False
     soft_sigmoid = True
     # Load list of action classes and separate them (from utils_stream)
-    classes = get_AVA_classes(root_dir + 'ava_action_list_custom.csv')
+    classes = utils.get_AVA_classes('AVA2.1/ava_action_list_custom.csv')
 
     # Parameters for training (batch size 32 is supposed to be the best?)
     params = {'dim': (224, 224), 'batch_size': 64,
               'n_classes': len(classes['label_id']), 'n_channels': 20,
-              'shuffle': False, 'nb_epochs': 120, 'model': "resnet50"}
+              'shuffle': False, 'nb_epochs': 200, 'model': "resnet50"}
 
     # Get ID's and labels from the actual dataset
     partition = {}
-    partition['train'] = get_AVA_set(classes=classes, filename=root_dir + "ava_mini_split_train_big.csv", soft_sigmoid=soft_sigmoid)  # IDs for training
-    partition['validation'] = get_AVA_set(classes=classes, filename=root_dir + "ava_mini_split_val_big.csv", soft_sigmoid=soft_sigmoid)  # IDs for validation
+    partition['train'] = get_AVA_set(classes=classes, filename=root_dir + "AVA_Train_Custom_Corrected.csv", soft_sigmoid=soft_sigmoid)  # IDs for training
+    partition['validation'] = get_AVA_set(classes=classes, filename=root_dir + "AVA_Val_Custom_Corrected.csv", soft_sigmoid=soft_sigmoid)  # IDs for validation
 
     # Labels
-    labels_train = get_AVA_labels(classes, partition, "train", filename=root_dir + "ava_mini_split_train_big.csv", soft_sigmoid=soft_sigmoid)
-    labels_val = get_AVA_labels(classes, partition, "validation", filename=root_dir + "ava_mini_split_val_big.csv", soft_sigmoid=soft_sigmoid)
+    labels_train = get_AVA_labels(classes, partition, "train", filename=root_dir + "AVA_Train_Custom_Corrected.csv", soft_sigmoid=soft_sigmoid)
+    labels_val = get_AVA_labels(classes, partition, "validation", filename=root_dir + "AVA_Val_Custom_Corrected.csv", soft_sigmoid=soft_sigmoid)
 
     # Create + compile model, load saved weights if they exist
     # saved_weights = "saved_models/RGB_Stream_Softmax_inceptionv3.hdf5"
     saved_weights = None
     model_name = "resnet50"
-    ucf_weights = "models/keras-ucf101-TVL1flow-" + model_name + "-split1.hdf5"
+    ucf_weights = "keras-ucf101-TVL1flow-" + model_name + "-split1-custom.hdf5"
+
+    #ucf_weights = None
     model = flow_create_model(classes=classes['label_id'], model_name=model_name, soft_sigmoid=soft_sigmoid, image_shape=(224, 224), opt_flow_len=20)
     model = compile_model(model, soft_sigmoid=soft_sigmoid)
     # Try to train on more than 1 GPU if possible
@@ -57,29 +59,29 @@ def main():
         model.load_weights(saved_weights)
     else:
         if ucf_weights is None:
-            print "Loading MConvNet weights: "
+            print("Loading MConvNet weights: ")
             if model_name == 'vgg16':
-                ucf_weights = utils.loadmat("models/ucf101-TVL1flow-vgg16-split1.mat")
+                ucf_weights = utils.loadmat("ucf101-TVL1flow-vgg16-split1.mat")
                 utils.convert_vgg(model, ucf_weights)
-                model.save("keras-ucf101-TVL1flow-vgg16-split1.hdf5")
+                model.save("keras-ucf101-TVL1flow-vgg16-split-custom.hdf5")
             elif model_name == "resnet50":
-                ucf_weights = utils.loadmat("models/ucf101-TVL1flow-resnet-50-split1.mat")
+                ucf_weights = utils.loadmat("ucf101-TVL1flow-resnet-50-split1.mat")
                 utils.convert_resnet(model, ucf_weights)
-                model.save("keras-ucf101-TVL1flow-resnet50-split1.hdf5")
+                model.save("keras-ucf101-TVL1flow-resnet50-split1-custom.hdf5")
         else:
             model.load_weights(ucf_weights)
     print("Training set size: " + str(len(partition['train'])))
 
     # Load first train_size of partition{'train'}
     train_splits = utils.make_chunks(original_list=partition['train'], size=2**15, chunk_size=2**12)
-    val_splits = utils.make_chunks(original_list=partition['train'], size=2**12, chunk_size=2**10)
+    val_splits = utils.make_chunks(original_list=partition['validation'], size=2**12, chunk_size=2**10)
     num_val_chunks = len(val_splits)
 
     minValLoss = 0.0
     time_str = time.strftime("%y%m%d%H%M", time.localtime())
-    bestModelPath = "flow_" + params['model'] + "_" + time_str + ".hdf5"
-    traincsvPath = "flow_train_plot_" + params['model'] + "_" + time_str + ".csv"
-    valcsvPath = "flow_val_plot_" + params['model'] + "_" + time_str + ".csv"
+    bestModelPath = "flow_customcsv_" + params['model'] + "_" + time_str + ".hdf5"
+    traincsvPath = "flow_customcsv_train_plot_" + params['model'] + "_" + time_str + ".csv"
+    valcsvPath = "flow_customcsv_val_plot_" + params['model'] + "_" + time_str + ".csv"
     first_epoch = True
 
     # with tf.device('/gpu:0'):
@@ -88,6 +90,7 @@ def main():
         if epoch > 0:
             first_epoch = False
         for trainIDS in train_splits:
+
             if soft_sigmoid is False:
                 x_val = y_val = x_train = y_train = None  # can do this because None is a singleton, yay
                 x_train, y_train = load_split(trainIDS, labels_train, params['dim'], params['n_channels'], "train", 10)
@@ -97,6 +100,8 @@ def main():
             else:
                 start_time = timeit.default_timer()
                 # -----------------------------------------------------------
+                print(len(trainIDS))
+                print(len(labels_train))
                 x_val = y_val_pose = y_val_object = y_val_human = x_train = y_train_pose = y_train_object = y_train_human = None
                 x_train, y_train_pose, y_train_object, y_train_human = load_split(trainIDS, labels_train, params['dim'], params['n_channels'], "train", 10, first_epoch, soft_sigmoid=soft_sigmoid)
 
@@ -105,7 +110,7 @@ def main():
                 y_t.append(utils.to_binary_vector(y_train_object, size=utils.OBJ_HUMAN_CLASSES, labeltype='object-human'))
                 y_t.append(utils.to_binary_vector(y_train_human, size=utils.HUMAN_HUMAN_CLASSES, labeltype='human-human'))
                 history = model.fit(x_train, y_t, batch_size=params['batch_size'], epochs=1, verbose=0)
-                utils.learning_rate_schedule(model, epoch, params['nb_epochs'])
+                #utils.learning_rate_schedule(model, epoch, params['nb_epochs'])
                 elapsed = timeit.default_timer() - start_time
                 # ------------------------------------------------------------
                 print("Epoch " + str(epoch) + " chunk " + str(epoch_chunks_count) + " (" + str(elapsed) + ") acc[pose,obj,human] = [" + str(history.history['pred_pose_categorical_accuracy']) + "," +

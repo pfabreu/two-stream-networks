@@ -1,14 +1,19 @@
-# Multiple Stream Action Recognition
+# Three Stream Action Recognition
 
 ### Prerequisites
 
-* opencv 2.4 with ffmpeg (for gpu_flow)
-* cuda + cudnn
-* openpose (and thus caffe (all dependencies) + opencv, can be the previous one)
-* tensorflow
-* pillow
+* python2 or 3
+* OpenCV 2.X or 3.X with ffmpeg
+* CUDA + cuDNN (we used 9 and 7, respectively)
+* OpenPose (and thus Caffe (all dependencies) + OpenCV, can be the previous one)
+* Tensorflow (with Keras 2.15)
+* Pillow
 * numpy
-* csv
+
+### Custom Libraries
+
+* gpu-flow (requires OpenCV 2.X)
+* foveated-yolt (requires python2)
 
 ### Data
 

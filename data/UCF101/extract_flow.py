@@ -8,8 +8,6 @@ import glob
 
 _VID_DIR = '/media/pedro/actv3/UCF101/videos/'
 _OUT_DIR = "/media/pedro/actv3/UCF101/pose/"
-OPENPOSE_DIR = "/home/pedro/openpose/"
-MODELS_DIR = "../../arch/pose_stream/models"
 
 # Load video
 vid_count = 0
