@@ -10,6 +10,7 @@ import utils
 
 
 
+
 def print_params(model):
     trainable_count = int(np.sum([K.count_params(p) for p in set(model.trainable_weights)]))
     non_trainable_count = int(np.sum([K.count_params(p) for p in set(model.non_trainable_weights)]))

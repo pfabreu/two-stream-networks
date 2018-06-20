@@ -10,7 +10,6 @@ from rgb_data import load_split, get_AVA_set, get_AVA_labels
 
 
 def main():
-    root_dir = '../../data/AVA/files/'
     # Erase previous models from GPU memory
     K.clear_session()
 
@@ -18,7 +17,8 @@ def main():
     soft_sigmoid = True
 
     # Load list of action classes and separate them
-    classes = utils.get_AVA_classes(root_dir + 'ava_action_list_custom.csv')
+    classes = utils.get_AVA_classes(
+        'AVA2.1/ava_action_list_custom.csv')
 
     # Parameters for training
     params = {'dim': (224, 224), 'batch_size': 32,
@@ -27,14 +27,15 @@ def main():
 
     # Get ID's and labels from the actual dataset
     partition = {}
-    partition['train'] = get_AVA_set(classes=classes, filename=root_dir +"AVA_Train_Custom_Corrected.csv", soft_sigmoid=soft_sigmoid)  # IDs for training
-
-    partition['validation'] = get_AVA_set(classes=classes, filename=root_dir +"AVA_Val_Custom_Corrected.csv", soft_sigmoid=soft_sigmoid)  # IDs for validation
+    partition['train'] = get_AVA_set(
+        classes=classes, filename="AVA2.1/AVA_Train_Custom_Corrected.csv", soft_sigmoid=soft_sigmoid)  # IDs for training
+    partition['validation'] = get_AVA_set(
+        classes=classes, filename="AVA2.1/AVA_Val_Custom_Corrected.csv", soft_sigmoid=soft_sigmoid)  # IDs for validation
     # Labels
     labels_train = get_AVA_labels(
-        classes, partition, "train", filename=root_dir +"ava_mini_split_train_big.csv", soft_sigmoid=soft_sigmoid)
+        classes, partition, "train", filename="AVA2.1/AVA_Train_Custom_Corrected.csv", soft_sigmoid=soft_sigmoid)
     labels_val = get_AVA_labels(classes, partition, "validation",
-                                filename=root_dir +"AVA_Val_Custom_Corrected.csv", soft_sigmoid=soft_sigmoid)
+                                filename="AVA2.1/AVA_Val_Custom_Corrected.csv", soft_sigmoid=soft_sigmoid)
 
     # Create + compile model, load saved weights if they exist
     saved_weights = None
@@ -52,18 +53,16 @@ def main():
 
     # Load first train_size of partition{'train'}
 
-    train_splits = utils.make_chunks(
-        original_list=partition['train'], size=2**15, chunk_size=2**12)
-    val_splits = utils.make_chunks(
-        original_list=partition['validation'], size=2**15, chunk_size=2**12)
+    train_splits = utils.make_chunks(original_list=partition['train'], size=len(partition['train']), chunk_size=2**12)
+    val_splits = utils.make_chunks(original_list=partition['validation'], size=len(partition['validation']), chunk_size=2**12)
     num_val_chunks = len(val_splits)
 
     minValLoss = 0.0
     time_str = time.strftime("%y%m%d%H%M", time.localtime())
-    bestModelPath = "../models/rgb_" + params['model'] + "_" + time_str + ".hdf5"
-    traincsvPath = "../plots/rgb_train_plot_" + \
+    bestModelPath = "saved_models/rgb_elfov_" + params['model'] + "_" + time_str + ".hdf5"
+    traincsvPath = "plots/rgb_train_plot_" + \
         params['model'] + "_" + time_str + ".csv"
-    valcsvPath = "../plots/rgb_val_plot_" + \
+    valcsvPath = "plots/rgb_val_plot_" + \
         params['model'] + "_" + time_str + ".csv"
     # with tf.device('/gpu:0'):
     for epoch in range(params['nb_epochs']):
@@ -98,12 +97,10 @@ def main():
 
                 history = model.fit(
                     x_train, y_t, batch_size=params['batch_size'], epochs=1, verbose=0)
-                utils.learning_rate_schedule(model, epoch, params['nb_epochs'])
                 elapsed = timeit.default_timer() - start_time
+                utils.learning_rate_schedule(model, epoch, params['nb_epochs'])
                 # ------------------------------------------------------------
-                # Rough estimate of time
-                eta_time = (params['nb_epochs'] - epoch) * elapsed * len(train_splits)
-                print("Epoch " + str(epoch) + " chunk " + str(epoch_chunks_count) + " (" + str(elapsed) + ", ETA: )" + str(eta_time) + " acc[pose,obj,human] = [" + str(history.history['pred_pose_categorical_accuracy']) + "," +
+                print("Epoch " + str(epoch) + " chunk " + str(epoch_chunks_count) + " (" + str(elapsed) + ") acc[pose,obj,human] = [" + str(history.history['pred_pose_categorical_accuracy']) + "," +
                       str(history.history['pred_obj_human_categorical_accuracy']) + "," + str(history.history['pred_human_human_categorical_accuracy']) + "] loss: " + str(history.history['loss']))
                 with open(traincsvPath, 'a') as f:
                     writer = csv.writer(f)
@@ -153,7 +150,8 @@ def main():
             writer = csv.writer(f)
             # We consider accuracy as the average accuracy over the three types of accuracy
             acc = (loss_acc_list[4] + loss_acc_list[5] + loss_acc_list[6]) / 3
-            writer.writerow([str(acc), loss_acc_list[4], loss_acc_list[5], loss_acc_list[6],loss_acc_list[0], loss_acc_list[1], loss_acc_list[2], loss_acc_list[3]])
+            writer.writerow([str(acc), loss_acc_list[4], loss_acc_list[5], loss_acc_list[6],
+                             loss_acc_list[0], loss_acc_list[1], loss_acc_list[2], loss_acc_list[3]])
         if loss_acc_list[0] < minValLoss:
             print("New best loss " + str(loss_acc_list[0]))
             model.save(bestModelPath)

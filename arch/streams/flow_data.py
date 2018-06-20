@@ -8,7 +8,7 @@ import utils
 def load_split(ids, labels, dim, n_channels, gen_type, of_len, first_epoch, soft_sigmoid=False):
     'Generates data containing batch_size samples'
 
-    root_dir = "/media/jantunes/actv-ssd/flow_" + gen_type
+    root_dir = "flow_" + gen_type
     # Initialization, assuming its bidimensional (for now)
     X = np.empty([len(ids), dim[0], dim[1], n_channels])
     # Generate data
@@ -22,7 +22,7 @@ def load_split(ids, labels, dim, n_channels, gen_type, of_len, first_epoch, soft
             frame = int(ID.rsplit('_', 1)[1])
             of_volume = np.empty(shape=(dim[0], dim[1], n_channels))
             v = 0
-            for fn in range(-of_len / 2, of_len / 2):
+            for fn in range(-of_len // 2, of_len // 2):
                 of_frame = frame + fn
 
                 x_img_name = root_dir + "/x/" + vid_name + "/frame" + str('{:06}'.format(of_frame)) + ".jpg"
@@ -51,6 +51,7 @@ def load_split(ids, labels, dim, n_channels, gen_type, of_len, first_epoch, soft
         yhuman = []
         # Generate data
         for i, ID in enumerate(ids):
+            #print(ID)
             # Get image from ID (since we are using opencv we get np array)
             split_id = ID.split(sep)
             vid_name = split_id[0]
@@ -61,21 +62,22 @@ def load_split(ids, labels, dim, n_channels, gen_type, of_len, first_epoch, soft
 
             of_volume = np.zeros(shape=(dim[0], dim[1], n_channels))
             v = 0
-            for fn in range(-of_len / 2, of_len / 2):
+            for fn in range(-of_len // 2, of_len // 2):
                 of_frame = frame + fn
 
                 x_img_name = root_dir + "/x/" + vid_name + "/frame" + str('{:06}'.format(of_frame)) + ".jpg"
                 x_img = cv2.imread(x_img_name, cv2.IMREAD_GRAYSCALE)
                 if x_img is None:
-                    # print(x_img_name + " not found. Aborting.")
+                    #print(x_img_name + " not found. Aborting.")
                     if first_epoch:
+                        #print(x_img_name)
                         with open("missing_files.txt", "a") as text_file:
                             text_file.write("%s" % x_img_name)
                     continue
                 y_img_name = root_dir + "/y/" + vid_name + "/frame" + str('{:06}'.format(of_frame)) + ".jpg"
                 y_img = cv2.imread(y_img_name, cv2.IMREAD_GRAYSCALE)
                 if y_img is None:
-                    # print(y_img_name + " not found. Aborting.")
+                    #print(y_img_name + " not found. Aborting.")
                     continue
                 # Put them in img_volume (x then y)
                 of_volume[:, :, v] = x_img
@@ -136,7 +138,7 @@ def get_AVA_labels(classes, partition, set_type, filename, soft_sigmoid=False):
         labels = {}
         # Parse partition and create a correspondence to an integer in classes
         class_ids = classes['label_id']
-        print "Generating labels: " + str(len(class_ids))
+        print("Generating labels: " + str(len(class_ids)))
         # First process the training
         for entry in partition[set_type]:
             labels[entry] = int(entry.split('_')[-2]) - 1

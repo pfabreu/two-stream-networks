@@ -4,13 +4,7 @@ from keras.layers.core import Dense, Activation, Dropout, Flatten
 from keras.layers.convolutional import Conv2D, MaxPooling2D, AveragePooling2D
 # from keras.optimizers import SGD
 from keras.layers.normalization import BatchNormalization
-
-import sys
-sys.path.insert(0, "../utils")
-try:
-    import utils.utils
-except ImportError:
-    print('No Import')
+import utils
 
 
 def compile_model(model, soft_sigmoid=False):
@@ -58,9 +52,9 @@ def flow_create_model(classes, model_name, soft_sigmoid=False, image_shape=(224,
         model = Model(inputs=base_model.input, outputs=predictions)
 
     else:
-        pred_pose = Dense(utils.utils.POSE_CLASSES, activation='softmax', name='pred_pose')(x)
-        pred_obj_human = Dense(utils.utils.OBJ_HUMAN_CLASSES, activation='sigmoid', name='pred_obj_human')(x)
-        pred_human_human = Dense(utils.utils.HUMAN_HUMAN_CLASSES, activation='sigmoid', name='pred_human_human')(x)
+        pred_pose = Dense(utils.POSE_CLASSES, activation='softmax', name='pred_pose')(x)
+        pred_obj_human = Dense(utils.OBJ_HUMAN_CLASSES, activation='sigmoid', name='pred_obj_human')(x)
+        pred_human_human = Dense(utils.HUMAN_HUMAN_CLASSES, activation='sigmoid', name='pred_human_human')(x)
 
         model = Model(inputs=base_model.input, outputs=[pred_pose, pred_obj_human, pred_human_human])
     return model

@@ -43,7 +43,7 @@ def main():
     # saved_weights = "saved_models/RGB_Stream_Softmax_inceptionv3.hdf5"
     saved_weights = None
     model_name = "resnet50"
-    ucf_weights = "keras-ucf101-TVL1flow-" + model_name + "-split1-custom.hdf5"
+    ucf_weights = "three-stream-cnn/arch/models/keras-ucf101-TVL1flow-" + model_name + "-split1-custom.hdf5"
 
     #ucf_weights = None
     model = flow_create_model(classes=classes['label_id'], model_name=model_name, soft_sigmoid=soft_sigmoid, image_shape=(224, 224), opt_flow_len=20)
@@ -73,8 +73,8 @@ def main():
     print("Training set size: " + str(len(partition['train'])))
 
     # Load first train_size of partition{'train'}
-    train_splits = utils.make_chunks(original_list=partition['train'], size=2**15, chunk_size=2**12)
-    val_splits = utils.make_chunks(original_list=partition['validation'], size=2**12, chunk_size=2**10)
+    train_splits = utils.make_chunks(original_list=partition['train'], size=2**15, chunk_size=2**11)
+    val_splits = utils.make_chunks(original_list=partition['validation'], size=2**15, chunk_size=2**11)
     num_val_chunks = len(val_splits)
 
     minValLoss = 0.0
@@ -100,8 +100,8 @@ def main():
             else:
                 start_time = timeit.default_timer()
                 # -----------------------------------------------------------
-                print(len(trainIDS))
-                print(len(labels_train))
+                #print(len(trainIDS))
+                #print(len(labels_train))
                 x_val = y_val_pose = y_val_object = y_val_human = x_train = y_train_pose = y_train_object = y_train_human = None
                 x_train, y_train_pose, y_train_object, y_train_human = load_split(trainIDS, labels_train, params['dim'], params['n_channels'], "train", 10, first_epoch, soft_sigmoid=soft_sigmoid)
 
@@ -132,7 +132,7 @@ def main():
                 loss, acc = model.evaluate(x_val, y_val, batch_size=params['batch_size'])
             else:
                 x_val = y_val_pose = y_val_object = y_val_human = x_train = y_train_pose = y_train_object = y_train_human = None
-                x_val, y_val_pose, y_val_object, y_val_human = load_split(valIDS, labels_val, params['dim'], params['n_channels'], "val", 10, soft_sigmoid=soft_sigmoid)
+                x_val, y_val_pose, y_val_object, y_val_human = load_split(valIDS, labels_val, params['dim'], params['n_channels'], "val", 10, first_epoch,soft_sigmoid=soft_sigmoid)
 
                 y_v = []
                 y_v.append(to_categorical(y_val_pose, num_classes=utils.POSE_CLASSES))

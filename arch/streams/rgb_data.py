@@ -37,7 +37,8 @@ def load_split(ids, labels, dim, n_channels, gen_type, soft_sigmoid=False):
         # conversion to one hot is done after
         return X, y
     else:
-        rgb_dir = "/media/pedro/actv-ssd/"
+        # rgb_dir = "/media/pedro/actv-ssd/"
+        rgb_dir = ""
         ypose = np.empty(len(ids))
         yobject = []
         yhuman = []
@@ -52,21 +53,22 @@ def load_split(ids, labels, dim, n_channels, gen_type, soft_sigmoid=False):
             rgb_frame = split_id[6]
 
             # Is this the correct format? Yes, the format has to use _
-            img_name = rgb_dir + "foveated_" + gen_type + "_gc/" + vid_name + "_" + bbs + "/frames" + rgb_frame + ".jpg"
+            img_name = rgb_dir + "foveated_" + gen_type + "_elipsis/" + vid_name + "_" + bbs + "/frames" + rgb_frame + ".jpg"
+            img = np.zeros((224,224,3))
             if not os.path.exists(img_name):
                 print(img_name)
-                print("[Error] File does not exist!")
+                print("[Error] File does not exist Using a black image")
                 #sys.exit(0)
             else:
                 img = cv2.imread(img_name)
                 if resize is True:
                     img = cv2.resize(img, (224, 224), interpolation=cv2.INTER_NEAREST)
-                # Store sample
-                X[i, ] = img
+            # Store sample
+            X[i, ] = img
 
-                ypose[i] = labels[ID]['pose']
-                yobject.append(labels[ID]['human-object'])
-                yhuman.append(labels[ID]['human-human'])
+            ypose[i] = labels[ID]['pose']
+            yobject.append(labels[ID]['human-object'])
+            yhuman.append(labels[ID]['human-human'])
 
         # conversion to one hot is done after
         return X, ypose, yobject, yhuman
