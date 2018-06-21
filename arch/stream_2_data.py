@@ -27,6 +27,7 @@ def get_AVA_classes(csv_filename):
                 classes[h].append(v)
     return classes
 
+
 def load_split(ids, labels, dim, n_channels, of_len, rgb_dir, flow_dir, train):
     'Generates data containing batch_size samples'
     resize = False

@@ -9,8 +9,6 @@ import numpy as np
 import utils
 
 
-
-
 def print_params(model):
     trainable_count = int(np.sum([K.count_params(p) for p in set(model.trainable_weights)]))
     non_trainable_count = int(np.sum([K.count_params(p) for p in set(model.non_trainable_weights)]))
@@ -30,11 +28,11 @@ def compile_model(model, soft_sigmoid=False):
 
 
 def rgb_create_model(classes, soft_sigmoid=False, model_name='inceptionv3', freeze_all=True):
-    conv_fusion = True
+    conv_fusion = False
     # TODO Make this multi-GPU
     with tf.device('/gpu:0'):
         if model_name == "resnet50":
-            base_model = ResNet50(include_top=False, weights='imagenet', pooling=None, input_shape=(224,224,3))
+            base_model = ResNet50(include_top=False, weights='imagenet', pooling=None, input_shape=(224, 224, 3))
         elif model_name == "inceptionv3":
             base_model = InceptionV3(include_top=False, weights='imagenet', pooling=None)
         elif model_name == "inception_resnet_v2":
@@ -42,7 +40,7 @@ def rgb_create_model(classes, soft_sigmoid=False, model_name='inceptionv3', free
         elif model_name == "shallow":
             base_model = Shallow(include_top=False, input_shape=(224, 224))
 
-        #print base_model.summary()
+        # print base_model.summary()
         if conv_fusion is True:
             x = base_model.layers[-2].output
             x = Conv2D(64, (2, 2), name='ConvFusion')(x)

@@ -1,10 +1,9 @@
 # Learn merged rgb-stream filters (visualize them)
 import tensorflow as tf
-import numpy as np
 import utils
 from keras.utils import to_categorical
-from fusion_training_model import NStreamModel
-from fusion_training_data import get_AVA_set, get_AVA_labels, get_AVA_classes, load_split
+from stream_2_model import NStreamModel
+from stream_2_data import get_AVA_set, get_AVA_labels, get_AVA_classes, load_split
 import time
 import csv
 import timeit
@@ -20,23 +19,16 @@ def main():
     # Parameters for training (batch size 32 is supposed to be the best?)
     params = {'dim': (224, 224), 'batch_size': 64,
               'n_classes': len(classes['label_id']), 'n_channels': 3,
-              'shuffle': False, 'nb_epochs': 150, 'model': 'resnet50'}
+              'shuffle': False, 'nb_epochs': 150, 'model': 'resnet50', 'email': 'sendmail'}
 
-    if train is True:
-        # Get ID's and labels from the actual dataset
-        partition = {}
-        partition['train'] = get_AVA_set(classes=classes, filename="AVA2.1/ava_mini_split_train_big.csv", train)  # IDs for training
-        partition['validation'] = get_AVA_set(classes=classes, filename="AVA2.1/ava_mini_split_val_big.csv", train)  # IDs for validation
+    # Get ID's and labels from the actual dataset
+    partition = {}
+    partition['train'] = get_AVA_set(classes=classes, filename="AVA2.1/ava_mini_split_train_big.csv", train=True)  # IDs for training
+    partition['validation'] = get_AVA_set(classes=classes, filename="AVA2.1/ava_mini_split_val_big.csv", train=True)  # IDs for validation
 
-        # Labels
-        labels_train = get_AVA_labels(classes, partition, "train", filename="AVA2.1/ava_mini_split_train_big.csv")
-        labels_val = get_AVA_labels(classes, partition, "validation", filename="AVA2.1/ava_mini_split_val_big.csv")
-    else:
-        # Get validation set from directory
-        partition['validation'] = get_AVA_set(classes=classes, filename="AVA2.1/ava_mini_split_val_big.csv", train)
-        time_str = time.strftime("%y%m%d%H%M", time.localtime())
-        output_csv = "output_val_" + time_str + ".csv"
-
+    # Labels
+    labels_train = get_AVA_labels(classes, partition, "train", filename="AVA2.1/ava_mini_split_train_big.csv")
+    labels_val = get_AVA_labels(classes, partition, "validation", filename="AVA2.1/ava_mini_split_val_big.csv")
 
     # Create + compile model, load saved weights if they exist
     rgb_weights = "rgb_resnet50_1805290059.hdf5"
@@ -51,9 +43,8 @@ def main():
     train_splits = utils.make_chunks(original_list=partition['train'], size=2**15, chunk_size=2**12)
     val_splits = utils.make_chunks(original_list=partition['train'], size=2**15, chunk_size=2**12)
     num_val_chunks = len(val_splits)
-    gen_type = "train"
-    rgb_dir = "/media/pedro/actv-ssd/foveated_"+gen_type+"_gc/"
-    flow_dir = "test/flow/actv-ssd/flow_" + gen_type
+    rgb_dir = "/media/pedro/actv-ssd/foveated_train_gc/"
+    flow_dir = "test/flow/actv-ssd/flow_train"
     maxValAcc = 0.0
     val_chunks_count = 0
     time_str = time.strftime("%y%m%d%H%M", time.localtime())
@@ -112,7 +103,7 @@ def main():
                     loss_acc_list[5] += vobject_acc
                     loss_acc_list[6] += vhuman_acc
                     # We consider accuracy as the average accuracy over the three types of accuracy
-            if train is False: # We only want to run 1 "epoch" for testing or validation
+            if train is False:  # We only want to run 1 "epoch" for testing or validation
                 break
             loss_acc_list = [x / num_val_chunks for x in loss_acc_list]
             with open(valcsvPath, 'a') as f:

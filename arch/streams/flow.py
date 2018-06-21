@@ -15,6 +15,7 @@ import os
 # Disable tf not built with AVX/FMA warning
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
+
 def main():
     root_dir = 'AVA2.1/'
     # Erase previous models from GPU memory
@@ -100,8 +101,8 @@ def main():
             else:
                 start_time = timeit.default_timer()
                 # -----------------------------------------------------------
-                #print(len(trainIDS))
-                #print(len(labels_train))
+                # print(len(trainIDS))
+                # print(len(labels_train))
                 x_val = y_val_pose = y_val_object = y_val_human = x_train = y_train_pose = y_train_object = y_train_human = None
                 x_train, y_train_pose, y_train_object, y_train_human = load_split(trainIDS, labels_train, params['dim'], params['n_channels'], "train", 10, first_epoch, soft_sigmoid=soft_sigmoid)
 
@@ -132,7 +133,7 @@ def main():
                 loss, acc = model.evaluate(x_val, y_val, batch_size=params['batch_size'])
             else:
                 x_val = y_val_pose = y_val_object = y_val_human = x_train = y_train_pose = y_train_object = y_train_human = None
-                x_val, y_val_pose, y_val_object, y_val_human = load_split(valIDS, labels_val, params['dim'], params['n_channels'], "val", 10, first_epoch,soft_sigmoid=soft_sigmoid)
+                x_val, y_val_pose, y_val_object, y_val_human = load_split(valIDS, labels_val, params['dim'], params['n_channels'], "val", 10, first_epoch, soft_sigmoid=soft_sigmoid)
 
                 y_v = []
                 y_v.append(to_categorical(y_val_pose, num_classes=utils.POSE_CLASSES))
