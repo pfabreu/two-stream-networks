@@ -15,16 +15,15 @@ import os
 # Disable tf not built with AVX/FMA warning
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
-
 def main():
-    root_dir = 'AVA2.1/'
+    root_dir = '../../../AVA2.1/'
     # Erase previous models from GPU memory
     K.clear_session()
 
     sendmail = False
     soft_sigmoid = True
     # Load list of action classes and separate them (from utils_stream)
-    classes = utils.get_AVA_classes('AVA2.1/ava_action_list_custom.csv')
+    classes = utils.get_AVA_classes(root_dir + 'ava_action_list_custom.csv')
 
     # Parameters for training (batch size 32 is supposed to be the best?)
     params = {'dim': (224, 224), 'batch_size': 64,
@@ -44,7 +43,7 @@ def main():
     # saved_weights = "saved_models/RGB_Stream_Softmax_inceptionv3.hdf5"
     saved_weights = None
     model_name = "resnet50"
-    ucf_weights = "three-stream-cnn/arch/models/keras-ucf101-TVL1flow-" + model_name + "-split1-custom.hdf5"
+    ucf_weights = "../models/keras-ucf101-TVL1flow-" + model_name + "-split1-custom.hdf5"
 
     #ucf_weights = None
     model = flow_create_model(classes=classes['label_id'], model_name=model_name, soft_sigmoid=soft_sigmoid, image_shape=(224, 224), opt_flow_len=20)
@@ -78,7 +77,7 @@ def main():
     val_splits = utils.make_chunks(original_list=partition['validation'], size=2**15, chunk_size=2**11)
     num_val_chunks = len(val_splits)
 
-    minValLoss = 0.0
+    minValLoss = 9999990.0
     time_str = time.strftime("%y%m%d%H%M", time.localtime())
     bestModelPath = "flow_customcsv_" + params['model'] + "_" + time_str + ".hdf5"
     traincsvPath = "flow_customcsv_train_plot_" + params['model'] + "_" + time_str + ".csv"
@@ -101,8 +100,8 @@ def main():
             else:
                 start_time = timeit.default_timer()
                 # -----------------------------------------------------------
-                # print(len(trainIDS))
-                # print(len(labels_train))
+                #print(len(trainIDS))
+                #print(len(labels_train))
                 x_val = y_val_pose = y_val_object = y_val_human = x_train = y_train_pose = y_train_object = y_train_human = None
                 x_train, y_train_pose, y_train_object, y_train_human = load_split(trainIDS, labels_train, params['dim'], params['n_channels'], "train", 10, first_epoch, soft_sigmoid=soft_sigmoid)
 
@@ -133,7 +132,7 @@ def main():
                 loss, acc = model.evaluate(x_val, y_val, batch_size=params['batch_size'])
             else:
                 x_val = y_val_pose = y_val_object = y_val_human = x_train = y_train_pose = y_train_object = y_train_human = None
-                x_val, y_val_pose, y_val_object, y_val_human = load_split(valIDS, labels_val, params['dim'], params['n_channels'], "val", 10, first_epoch, soft_sigmoid=soft_sigmoid)
+                x_val, y_val_pose, y_val_object, y_val_human = load_split(valIDS, labels_val, params['dim'], params['n_channels'], "val", 10, first_epoch,soft_sigmoid=soft_sigmoid)
 
                 y_v = []
                 y_v.append(to_categorical(y_val_pose, num_classes=utils.POSE_CLASSES))

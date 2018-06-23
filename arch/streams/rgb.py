@@ -57,7 +57,7 @@ def main():
     val_splits = utils.make_chunks(original_list=partition['validation'], size=len(partition['validation']), chunk_size=2**12)
     num_val_chunks = len(val_splits)
 
-    minValLoss = 0.0
+    minValLoss = 99999999999999990.0
     time_str = time.strftime("%y%m%d%H%M", time.localtime())
     bestModelPath = "saved_models/rgb_elfov_" + params['model'] + "_" + time_str + ".hdf5"
     traincsvPath = "plots/rgb_train_plot_" + \
@@ -161,8 +161,7 @@ def main():
         utils.sendemail(from_addr='pythonscriptsisr@gmail.com',
                         to_addr_list=['pedro_abreu95@hotmail.com',
                                       'joaogamartins@gmail.com'],
-                        cc_addr_list=[],
-                        subject='Finished training RGB-stream (para fazer fusion convolucional) desculpa o spam',
+                        subject='Finished training RGB-stream',
                         message='Training RGB with following params: ' +
                         str(params),
                         login='pythonscriptsisr@gmail.com',
