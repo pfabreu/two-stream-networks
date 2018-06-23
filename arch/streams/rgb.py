@@ -161,8 +161,7 @@ def main():
         utils.sendemail(from_addr='pythonscriptsisr@gmail.com',
                         to_addr_list=['pedro_abreu95@hotmail.com',
                                       'joaogamartins@gmail.com'],
-                        cc_addr_list=[],
-                        subject='Finished training RGB-stream (para fazer fusion convolucional) desculpa o spam',
+                        subject='Finished training RGB-stream',
                         message='Training RGB with following params: ' +
                         str(params),
                         login='pythonscriptsisr@gmail.com',
