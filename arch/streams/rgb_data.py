@@ -54,11 +54,12 @@ def load_split(ids, labels, dim, n_channels, gen_type, soft_sigmoid=False):
 
             # Is this the correct format? Yes, the format has to use _
             img_name = rgb_dir + "foveated_" + gen_type + "_elipsis/" + vid_name + "_" + bbs + "/frames" + rgb_frame + ".jpg"
-            img = np.zeros((224,224,3))
+
             if not os.path.exists(img_name):
+                img = np.zeros((224, 224, 3))
                 print(img_name)
-                print("[Error] File does not exist Using a black image")
-                #sys.exit(0)
+                print("[Error] File does not exist... Using a black image instead")
+                # sys.exit(0)
             else:
                 img = cv2.imread(img_name)
                 if resize is True:

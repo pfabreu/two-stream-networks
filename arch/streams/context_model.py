@@ -1,25 +1,22 @@
-from keras.models import Model
-from keras.layers import Input, Dense, Dropout
+from tensorflow.python.keras.layers import Dense, Dropout, Input
+from tensorflow.python.keras.models import Model
+import utils
 
 
-def context_create_model(classes, model_name="mlp", in_shape=(720,)):
+def context_create_model(NHU1, NHU2, in_shape=(480,)):
 
     inputs = Input(shape=in_shape)
 
     # a layer instance is callable on a tensor, and returns a tensor
-    x = Dense(256, activation='relu')(inputs)
+    x = Dense(NHU1, activation='relu')(inputs)
     x = Dropout(0.5)(x)
-    x = Dense(128, activation='relu')(x)
+    x = Dense(NHU2, activation='relu')(x)
     x = Dropout(0.5)(x)
 
-    POSE_CLASSES = 14
-    OBJ_HUMAN_CLASSES = 49
-    HUMAN_HUMAN_CLASSES = 17
-    pred_pose = Dense(POSE_CLASSES, activation='softmax', name='pred_pose')(x)
-    pred_obj_human = Dense(OBJ_HUMAN_CLASSES, activation='sigmoid', name='pred_obj_human')(x)
-    pred_human_human = Dense(HUMAN_HUMAN_CLASSES, activation='sigmoid', name='pred_human_human')(x)
+    pred_pose = Dense(utils.POSE_CLASSES, activation='softmax')(x)
+    pred_obj_human = Dense(utils.OBJ_HUMAN_CLASSES, activation='sigmoid')(x)
+    pred_human_human = Dense(utils.HUMAN_HUMAN_CLASSES, activation='sigmoid')(x)
     model = Model(inputs=inputs, outputs=[pred_pose, pred_obj_human, pred_human_human])
-
     return model
 
 

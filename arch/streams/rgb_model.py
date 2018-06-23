@@ -1,14 +1,12 @@
+import tensorflow as tf
 from tensorflow.python.keras.applications.inception_resnet_v2 import InceptionResNetV2
 from tensorflow.python.keras.applications.inception_v3 import InceptionV3
 from tensorflow.python.keras.applications.resnet50 import ResNet50
 from tensorflow.python.keras.layers import Dense, Dropout, Activation, Flatten, GlobalAveragePooling2D, Conv2D, MaxPooling2D, BatchNormalization
 from tensorflow.python.keras.models import Model, Sequential
-import tensorflow as tf
 from tensorflow.python.keras import backend as K
 import numpy as np
 import utils
-
-
 
 
 def print_params(model):
@@ -29,12 +27,11 @@ def compile_model(model, soft_sigmoid=False):
     return model
 
 
-def rgb_create_model(classes, soft_sigmoid=False, model_name='inceptionv3', freeze_all=True):
-    conv_fusion = False
+def rgb_create_model(classes, soft_sigmoid=False, model_name='inceptionv3', freeze_all=True, conv_fusion=False):
     # TODO Make this multi-GPU
     with tf.device('/gpu:0'):
         if model_name == "resnet50":
-            base_model = ResNet50(include_top=False, weights='imagenet', pooling=None, input_shape=(224,224,3))
+            base_model = ResNet50(include_top=False, weights='imagenet', pooling=None, input_shape=(224, 224, 3))
         elif model_name == "inceptionv3":
             base_model = InceptionV3(include_top=False, weights='imagenet', pooling=None)
         elif model_name == "inception_resnet_v2":
@@ -42,7 +39,6 @@ def rgb_create_model(classes, soft_sigmoid=False, model_name='inceptionv3', free
         elif model_name == "shallow":
             base_model = Shallow(include_top=False, input_shape=(224, 224))
 
-        #print base_model.summary()
         if conv_fusion is True:
             x = base_model.layers[-2].output
             x = Conv2D(64, (2, 2), name='ConvFusion')(x)
@@ -58,7 +54,6 @@ def rgb_create_model(classes, soft_sigmoid=False, model_name='inceptionv3', free
                 layer.trainable = False
         else:
             if model_name == "resnet50":
-                # print base_model.summary
                 for layer in base_model.layers[:160]:
                     layer.trainable = False
                 for layer in base_model.layers[160:]:

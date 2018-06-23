@@ -51,7 +51,6 @@ def load_split(ids, labels, dim, n_channels, gen_type, of_len, first_epoch, soft
         yhuman = []
         # Generate data
         for i, ID in enumerate(ids):
-            #print(ID)
             # Get image from ID (since we are using opencv we get np array)
             split_id = ID.split(sep)
             vid_name = split_id[0]
@@ -68,16 +67,13 @@ def load_split(ids, labels, dim, n_channels, gen_type, of_len, first_epoch, soft
                 x_img_name = root_dir + "/x/" + vid_name + "/frame" + str('{:06}'.format(of_frame)) + ".jpg"
                 x_img = cv2.imread(x_img_name, cv2.IMREAD_GRAYSCALE)
                 if x_img is None:
-                    #print(x_img_name + " not found. Aborting.")
                     if first_epoch:
-                        #print(x_img_name)
                         with open("missing_files.txt", "a") as text_file:
                             text_file.write("%s" % x_img_name)
                     continue
                 y_img_name = root_dir + "/y/" + vid_name + "/frame" + str('{:06}'.format(of_frame)) + ".jpg"
                 y_img = cv2.imread(y_img_name, cv2.IMREAD_GRAYSCALE)
                 if y_img is None:
-                    #print(y_img_name + " not found. Aborting.")
                     continue
                 # Put them in img_volume (x then y)
                 of_volume[:, :, v] = x_img

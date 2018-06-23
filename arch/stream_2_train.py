@@ -1,7 +1,8 @@
 # Learn merged rgb-stream filters (visualize them)
 import tensorflow as tf
 import utils
-from keras.utils import to_categorical
+from tensorflow.python.keras.utils import to_categorical, multi_gpu_model
+from tensorflow.python.keras import backend as K
 from stream_2_model import NStreamModel
 from stream_2_data import get_AVA_set, get_AVA_labels, get_AVA_classes, load_split
 import time
@@ -86,27 +87,21 @@ def main():
             for valIDS in val_splits:
                 x_val_rgb = x_val_flow = y_val_pose = y_val_object = y_val_human = x_train_rgb = x_train_flow = y_train_pose = y_train_object = y_train_human = None
                 x_val_rgb, x_val_flow, y_val_pose, y_val_object, y_val_human = load_split(valIDS, labels_val, params['dim'], params['n_channels'], 10, rgb_dir, flow_dir, train)
-                if train is False:
-                    predictions = model.predict([x_val_rgb, x_val_flow], batch_size=32, verbose=1)
-                    print("Val chunk " + str(val_chunks_count) + "/" + str(len(val_splits)))
-                    utils.pred2classes(valIDS, predictions, output_csv)
-                    val_chunks_count += 1
-                else:
-                    y_val_pose = to_categorical(y_val_pose, num_classes=utils.POSE_CLASSES)
-                    y_val_object = utils.to_binary_vector(y_val_object, size=utils.OBJ_HUMAN_CLASSES, labeltype='object-human')
-                    y_val_human = utils.to_binary_vector(y_val_human, size=utils.HUMAN_HUMAN_CLASSES, labeltype='human-human')
 
-                    vglobal_loss, vpose_loss, vobject_loss, vhuman_loss, vpose_acc, vobject_acc, vhuman_acc = model.evaluate([x_val_rgb, x_val_flow], [y_val_pose, y_val_object, y_val_human], batch_size=params['batch_size'])
-                    loss_acc_list[0] += vglobal_loss
-                    loss_acc_list[1] += vpose_loss
-                    loss_acc_list[2] += vobject_loss
-                    loss_acc_list[3] += vhuman_loss
-                    loss_acc_list[4] += vpose_acc
-                    loss_acc_list[5] += vobject_acc
-                    loss_acc_list[6] += vhuman_acc
-                    # We consider accuracy as the average accuracy over the three types of accuracy
-            if train is False:  # We only want to run 1 "epoch" for testing or validation
-                break
+                y_val_pose = to_categorical(y_val_pose, num_classes=utils.POSE_CLASSES)
+                y_val_object = utils.to_binary_vector(y_val_object, size=utils.OBJ_HUMAN_CLASSES, labeltype='object-human')
+                y_val_human = utils.to_binary_vector(y_val_human, size=utils.HUMAN_HUMAN_CLASSES, labeltype='human-human')
+
+                vglobal_loss, vpose_loss, vobject_loss, vhuman_loss, vpose_acc, vobject_acc, vhuman_acc = model.evaluate([x_val_rgb, x_val_flow], [y_val_pose, y_val_object, y_val_human], batch_size=params['batch_size'])
+                loss_acc_list[0] += vglobal_loss
+                loss_acc_list[1] += vpose_loss
+                loss_acc_list[2] += vobject_loss
+                loss_acc_list[3] += vhuman_loss
+                loss_acc_list[4] += vpose_acc
+                loss_acc_list[5] += vobject_acc
+                loss_acc_list[6] += vhuman_acc
+                # We consider accuracy as the average accuracy over the three types of accuracy
+
             loss_acc_list = [x / num_val_chunks for x in loss_acc_list]
             with open(valcsvPath, 'a') as f:
                 writer = csv.writer(f)

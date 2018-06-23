@@ -1,9 +1,5 @@
-from keras.models import Model, Sequential
-from keras.layers import add, Input, GlobalAveragePooling2D, GlobalMaxPooling2D, ZeroPadding2D
-from keras.layers.core import Dense, Activation, Dropout, Flatten
-from keras.layers.convolutional import Conv2D, MaxPooling2D, AveragePooling2D
-# from keras.optimizers import SGD
-from keras.layers.normalization import BatchNormalization
+from tensorflow.python.keras.layers import Input, GlobalMaxPooling2D, AveragePooling2D, ZeroPadding2D, add, Dense, Dropout, Activation, Flatten, GlobalAveragePooling2D, Conv2D, MaxPooling2D, BatchNormalization
+from tensorflow.python.keras.models import Model, Sequential
 import utils
 
 
@@ -17,9 +13,7 @@ def compile_model(model, soft_sigmoid=False):
     return model
 
 
-def flow_create_model(classes, model_name, soft_sigmoid=False, image_shape=(224, 224), opt_flow_len=20):
-    conv_fusion = False
-    freeze_all = True
+def flow_create_model(classes, model_name, soft_sigmoid=False, image_shape=(224, 224), opt_flow_len=20, freeze_all=True, conv_fusion=False):
     input_shape = (image_shape[0], image_shape[1], opt_flow_len)  # OF has 2 channels
     if model_name == "resnet50":
         base_model = resnet50_of(input_shape, pooling=None)  # resnet is bae <3

@@ -1,16 +1,15 @@
-import numpy as np
+import tensorflow as tf
+from tensorflow.python.keras.utils import to_categorical, multi_gpu_model
+from tensorflow.python.keras import backend as K
+import csv
+import time
+import timeit
+import os
+
 import utils
-from keras.utils import to_categorical
 from flow_model import flow_create_model, compile_model
 from flow_data import get_AVA_set, get_AVA_labels, load_split
 
-from keras import backend as K
-import csv
-import time
-import random
-from keras.utils import multi_gpu_model
-import timeit
-import os
 
 # Disable tf not built with AVX/FMA warning
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
@@ -21,15 +20,16 @@ def main():
     # Erase previous models from GPU memory
     K.clear_session()
 
-    sendmail = False
-    soft_sigmoid = True
     # Load list of action classes and separate them (from utils_stream)
     classes = utils.get_AVA_classes(root_dir + 'ava_action_list_custom.csv')
 
     # Parameters for training (batch size 32 is supposed to be the best?)
     params = {'dim': (224, 224), 'batch_size': 64,
               'n_classes': len(classes['label_id']), 'n_channels': 20,
-              'shuffle': False, 'nb_epochs': 200, 'model': "resnet50"}
+              'shuffle': False, 'nb_epochs': 200, 'model': "resnet50", 'email': False,
+              'freeze_all': True, 'conv_fusion': False, 'train_chunk_size': 2**11,
+              'validation_chunk_size': 2**11}
+    soft_sigmoid = True
 
     # Get ID's and labels from the actual dataset
     partition = {}
@@ -47,7 +47,7 @@ def main():
     ucf_weights = "../models/keras-ucf101-TVL1flow-" + model_name + "-split1-custom.hdf5"
 
     # ucf_weights = None
-    model = flow_create_model(classes=classes['label_id'], model_name=model_name, soft_sigmoid=soft_sigmoid, image_shape=(224, 224), opt_flow_len=20)
+    model = flow_create_model(classes=classes['label_id'], model_name=model_name, soft_sigmoid=soft_sigmoid, image_shape=(224, 224), opt_flow_len=20, freeze_all=params['freeze_all'], conv_fusion=params['conv_fusion'])
     model = compile_model(model, soft_sigmoid=soft_sigmoid)
 
     if saved_weights is not None:
@@ -65,12 +65,15 @@ def main():
                 model.save("keras-ucf101-TVL1flow-resnet50-split1-custom.hdf5")
         else:
             model.load_weights(ucf_weights)
+    # Try to train on more than 1 GPU if possible
+    # try:
+    #    print("Trying MULTI-GPU")
+    #    model = multi_gpu_model(model)
     print("Training set size: " + str(len(partition['train'])))
 
     # Load first train_size of partition{'train'}
-    train_splits = utils.make_chunks(original_list=partition['train'], size=2**15, chunk_size=2**11)
-    val_splits = utils.make_chunks(original_list=partition['validation'], size=2**15, chunk_size=2**11)
-    num_val_chunks = len(val_splits)
+    train_splits = utils.make_chunks(original_list=partition['train'], size=len(partition['train']), chunk_size=params['train_chunk_size'])
+    val_splits = utils.make_chunks(original_list=partition['validation'], size=len(partition['validation']), chunk_size=params['validation_chunk_size'])
 
     minValLoss = 9999990.0
     time_str = time.strftime("%y%m%d%H%M", time.localtime())
@@ -79,24 +82,14 @@ def main():
     valcsvPath = "flow_customcsv_val_plot_" + params['model'] + "_" + time_str + ".csv"
     first_epoch = True
 
-    # with tf.device('/gpu:0'):
-    for epoch in range(params['nb_epochs']):
-        epoch_chunks_count = 0
-        if epoch > 0:
-            first_epoch = False
-        for trainIDS in train_splits:
-
-            if soft_sigmoid is False:
-                x_val = y_val = x_train = y_train = None  # can do this because None is a singleton, yay
-                x_train, y_train = load_split(trainIDS, labels_train, params['dim'], params['n_channels'], "train", 10)
-                y_train = to_categorical(y_train, num_classes=params['n_classes'])
-                history = model.fit(x_train, y_train, batch_size=params['batch_size'], epochs=1, verbose=0)
-                print("Epoch " + str(epoch) + " chunk " + str(epoch_chunks_count) + " acc: " + str(history.history['acc']) + " loss: " + str(history.history['loss']))
-            else:
+    with tf.device('/gpu:0'):  # TODO Multi GPU
+        for epoch in range(params['nb_epochs']):
+            epoch_chunks_count = 0
+            if epoch > 0:
+                first_epoch = False
+            for trainIDS in train_splits:
                 start_time = timeit.default_timer()
                 # -----------------------------------------------------------
-                # print(len(trainIDS))
-                # print(len(labels_train))
                 x_val = y_val_pose = y_val_object = y_val_human = x_train = y_train_pose = y_train_object = y_train_human = None
                 x_train, y_train_pose, y_train_object, y_train_human = load_split(trainIDS, labels_train, params['dim'], params['n_channels'], "train", 10, first_epoch, soft_sigmoid=soft_sigmoid)
 
@@ -105,9 +98,10 @@ def main():
                 y_t.append(utils.to_binary_vector(y_train_object, size=utils.OBJ_HUMAN_CLASSES, labeltype='object-human'))
                 y_t.append(utils.to_binary_vector(y_train_human, size=utils.HUMAN_HUMAN_CLASSES, labeltype='human-human'))
                 history = model.fit(x_train, y_t, batch_size=params['batch_size'], epochs=1, verbose=0)
-                #utils.learning_rate_schedule(model, epoch, params['nb_epochs'])
-                elapsed = timeit.default_timer() - start_time
+                utils.learning_rate_schedule(model, epoch, params['nb_epochs'])
                 # ------------------------------------------------------------
+                elapsed = timeit.default_timer() - start_time
+
                 print("Epoch " + str(epoch) + " chunk " + str(epoch_chunks_count) + " (" + str(elapsed) + ") acc[pose,obj,human] = [" + str(history.history['pred_pose_categorical_accuracy']) + "," +
                       str(history.history['pred_obj_human_categorical_accuracy']) + "," + str(history.history['pred_human_human_categorical_accuracy']) + "] loss: " + str(history.history['loss']))
                 with open(traincsvPath, 'a') as f:
@@ -115,17 +109,11 @@ def main():
                     avg_acc = (history.history['pred_pose_categorical_accuracy'][0] + history.history['pred_obj_human_categorical_accuracy'][0] + history.history['pred_human_human_categorical_accuracy'][0]) / 3
                     writer.writerow([str(avg_acc), history.history['pred_pose_categorical_accuracy'], history.history['pred_obj_human_categorical_accuracy'], history.history['pred_human_human_categorical_accuracy'], history.history['loss']])
 
-            epoch_chunks_count += 1
-        # Load val_data
-        print("Validating data: ")
-        loss_acc_list = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-        for valIDS in val_splits:
-            if soft_sigmoid is False:
-                x_val = y_val = x_train = y_train = None  # can do this because None is a singleton, yay
-                x_val, y_val = load_split(valIDS, labels_val, params['dim'], params['n_channels'], "validation", 10, soft_sigmoid=soft_sigmoid)
-                y_val = to_categorical(y_val, num_classes=params['n_classes'])
-                loss, acc = model.evaluate(x_val, y_val, batch_size=params['batch_size'])
-            else:
+                epoch_chunks_count += 1
+            # Load val_data
+            print("Validating data: ")
+            loss_acc_list = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+            for valIDS in val_splits:
                 x_val = y_val_pose = y_val_object = y_val_human = x_train = y_train_pose = y_train_object = y_train_human = None
                 x_val, y_val_pose, y_val_object, y_val_human = load_split(valIDS, labels_val, params['dim'], params['n_channels'], "val", 10, first_epoch, soft_sigmoid=soft_sigmoid)
 
@@ -141,20 +129,19 @@ def main():
                 loss_acc_list[4] += vpose_acc
                 loss_acc_list[5] += vobject_acc
                 loss_acc_list[6] += vhuman_acc
-        loss_acc_list = [x / num_val_chunks for x in loss_acc_list]
-        with open(valcsvPath, 'a') as f:
-            writer = csv.writer(f)
-            acc = (loss_acc_list[4] + loss_acc_list[5] + loss_acc_list[6]) / 3
-            writer.writerow([str(acc), loss_acc_list[4], loss_acc_list[5], loss_acc_list[6], loss_acc_list[0], loss_acc_list[1], loss_acc_list[2], loss_acc_list[3]])
-        if loss_acc_list[0] < minValLoss:
-            print("New best loss " + str(loss_acc_list[0]))
-            model.save(bestModelPath)
-            minValLoss = loss_acc_list[0]
+            loss_acc_list = [x / len(val_splits) for x in loss_acc_list]
+            with open(valcsvPath, 'a') as f:
+                writer = csv.writer(f)
+                acc = (loss_acc_list[4] + loss_acc_list[5] + loss_acc_list[6]) / 3
+                writer.writerow([str(acc), loss_acc_list[4], loss_acc_list[5], loss_acc_list[6], loss_acc_list[0], loss_acc_list[1], loss_acc_list[2], loss_acc_list[3]])
+            if loss_acc_list[0] < minValLoss:
+                print("New best loss " + str(loss_acc_list[0]))
+                model.save(bestModelPath)
+                minValLoss = loss_acc_list[0]
 
-    if sendmail:
+    if params['email']:
         utils.sendemail(from_addr='pythonscriptsisr@gmail.com',
                         to_addr_list=['pedro_abreu95@hotmail.com', 'joaogamartins@gmail.com'],
-                        cc_addr_list=[],
                         subject='Finished training OF-stream ',
                         message='Training OF with following params: ' + str(params),
                         login='pythonscriptsisr@gmail.com',
