@@ -102,33 +102,99 @@ def load_test_split(ids, labels, dim, n_channels, gen_type, of_len, context_dict
     return X_rgb, X_flow, X_context, ypose, yobject, yhuman
 
 
-def get_AVA_testset(classes, directory):
+def get_AVA_set(classes, filename, train):
     sep = "@"
     id_list = []
     start_frame = 1
     end_frame = 5
     jump_frames = 1  # Keyframe will be 3
-    # Load all lines of filename
-    for d in glob.glob(directory + "/*"):
-        if d != directory:
-            print d
-            row = d.rsplit("/", 1)[1]
-            row = row.split("_")
-            print row
-            video = "_".join(row[:-5])
-            print video
-            kf_timestamp = row[-5]
-            print kf_timestamp
-            # action = row[6]
-            bb_top_x = row[-4]
-            bb_top_y = row[-3]
-            bb_bot_x = row[-2]
-            bb_bot_y = row[-1]
-            # This is due to the behav of range
-            for frame in range(start_frame, end_frame + jump_frames, jump_frames):
-                # Append to the dictionary
-                ID = video + sep + kf_timestamp.lstrip("0") + \
-                    sep + str(bb_top_x) + sep + str(bb_top_y) + sep + str(bb_bot_x) + sep + str(bb_bot_y) + sep + str(frame)
-                id_list.append(ID)
 
+    # Load all lines of filename
+    # For training we use a csv file
+    if train is True:
+        with open(filename) as csvDataFile:
+            csvReader = csv.reader(csvDataFile)
+            for row in csvReader:
+                video = row[0]
+                kf_timestamp = row[1]
+
+                # action = row[6]
+                bb_top_x = row[2]
+                bb_top_y = row[3]
+                bb_bot_x = row[4]
+                bb_bot_y = row[5]
+                # This is due to the behav of range
+                for frame in range(start_frame, end_frame + jump_frames, jump_frames):
+                    # Append to the dictionary
+                    ID = video + sep + kf_timestamp.lstrip("0") + \
+                        sep + str(bb_top_x) + sep + str(bb_top_y) + sep + \
+                        str(bb_bot_x) + sep + str(bb_bot_y) + sep + str(frame)
+                    id_list.append(ID)
+    # For testing use a directory
+    else:
+        for d in glob.glob(filename + "/*"):
+            if d != filename:
+                row = d.rsplit("/", 1)[1]
+                row = row.split("_")
+                video = "_".join(row[:-5])
+                kf_timestamp = row[-5]
+                # action = row[6]
+                bb_top_x = row[-4]
+                bb_top_y = row[-3]
+                bb_bot_x = row[-2]
+                bb_bot_y = row[-1]
+                # This is due to the behav of range
+                for frame in range(start_frame, end_frame + jump_frames, jump_frames):
+                    # Append to the dictionary
+                    ID = video + sep + kf_timestamp.lstrip("0") + \
+                        sep + str(bb_top_x) + sep + str(bb_top_y) + sep + str(bb_bot_x) + sep + str(bb_bot_y) + sep + str(frame)
+                    id_list.append(ID)
+    id_list = list(set(id_list))
     return id_list
+
+
+def get_AVA_labels(classes, partition, set_type, filename, soft_sigmoid=False):
+    sep = "@"  # Must not exist in any of the IDs
+
+    POSE_CLASSES = 14
+    OBJ_HUMAN_CLASSES = 49
+    # HUMAN_HUMAN_CLASSES = 17
+    labels = {}
+    # Parse partition and create a correspondence to an integer in classes
+    class_ids = classes['label_id']
+    print("Generating labels: " + str(len(class_ids)))
+    # Find entries in the csv that correspond
+    start_frame = 1
+    end_frame = 5
+    jump_frames = 1  # Keyframe will be 3
+    for entry in partition[set_type]:
+        labels[entry] = {}
+        # It might as well be a single entry here and not a list
+        labels[entry]['pose'] = -1
+        labels[entry]['human-object'] = []
+        labels[entry]['human-human'] = []
+    with open(filename) as csvDataFile:
+        csvReader = csv.reader(csvDataFile)
+        for row in csvReader:
+            # Read rows
+            video = row[0]
+            kf = row[1]
+            bb_top_x = row[2]
+            bb_top_y = row[3]
+            bb_bot_x = row[4]
+            bb_bot_y = row[5]
+            bbs = str(bb_top_x) + sep + str(bb_top_y) + \
+                sep + str(bb_bot_x) + sep + str(bb_bot_y)
+            action = int(row[6])
+            # Construct IDs
+            for frame in range(start_frame, end_frame + jump_frames, jump_frames):
+                label_ID = video + sep + \
+                    kf.lstrip("0") + sep + bbs + sep + str(frame)
+                if action <= POSE_CLASSES:
+                    labels[label_ID]['pose'] = action - 1
+                elif action > POSE_CLASSES and action <= POSE_CLASSES + OBJ_HUMAN_CLASSES:
+                    labels[label_ID]['human-object'].append(action - 1)
+                else:
+                    labels[label_ID]['human-human'].append(action - 1)
+    return labels
+

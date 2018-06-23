@@ -17,7 +17,6 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 def main():
     root_dir = '../../../AVA2.1/'
-    # Erase previous models from GPU memory
     K.clear_session()
 
     # Load list of action classes and separate them (from utils_stream)
@@ -29,6 +28,7 @@ def main():
               'shuffle': False, 'nb_epochs': 200, 'model': "resnet50", 'email': False,
               'freeze_all': True, 'conv_fusion': False, 'train_chunk_size': 2**11,
               'validation_chunk_size': 2**11}
+    minValLoss = 9999990.0
     soft_sigmoid = True
 
     # Get ID's and labels from the actual dataset
@@ -75,7 +75,6 @@ def main():
     train_splits = utils.make_chunks(original_list=partition['train'], size=len(partition['train']), chunk_size=params['train_chunk_size'])
     val_splits = utils.make_chunks(original_list=partition['validation'], size=len(partition['validation']), chunk_size=params['validation_chunk_size'])
 
-    minValLoss = 9999990.0
     time_str = time.strftime("%y%m%d%H%M", time.localtime())
     bestModelPath = "flow_customcsv_" + params['model'] + "_" + time_str + ".hdf5"
     traincsvPath = "flow_customcsv_train_plot_" + params['model'] + "_" + time_str + ".csv"

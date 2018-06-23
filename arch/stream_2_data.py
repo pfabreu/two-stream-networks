@@ -91,9 +91,10 @@ def load_split(ids, labels, dim, n_channels, of_len, rgb_dir, flow_dir, train):
             ypose[i] = labels[ID]['pose']
             yobject.append(labels[ID]['human-object'])
             yhuman.append(labels[ID]['human-human'])
-
-    return X_rgb, X_flow, ypose, yobject, yhuman
-
+    if train is True:
+        return X_rgb, X_flow, ypose, yobject, yhuman
+    else:
+        return X_rgb, X_flow
 
 def get_AVA_set(classes, filename, train):
     sep = "@"

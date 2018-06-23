@@ -11,27 +11,27 @@ import timeit
 
 
 def main():
+    root_dir = '../../../AVA2.1/'
     K.clear_session()
 
-    sendmail = True
-    train = True
-
     # Load list of action classes and separate them (from utils_stream)
-    classes = get_AVA_classes('AVA2.1/ava_action_list_v2.1.csv')
+    classes = get_AVA_classes(root_dir + 'ava_action_list_v2.1.csv')
 
     # Parameters for training (batch size 32 is supposed to be the best?)
     params = {'dim': (224, 224), 'batch_size': 64,
               'n_classes': len(classes['label_id']), 'n_channels': 3,
-              'shuffle': False, 'nb_epochs': 150, 'model': 'resnet50', 'email': 'sendmail'}
+              'shuffle': False, 'nb_epochs': 150, 'model': 'resnet50', 'email': True,
+              'train_chunk_size': 2**12, 'validation_chunk_size': 2**12}
+    minValLoss = 9999990.0
 
     # Get ID's and labels from the actual dataset
     partition = {}
-    partition['train'] = get_AVA_set(classes=classes, filename="AVA2.1/ava_mini_split_train_big.csv", train=True)  # IDs for training
-    partition['validation'] = get_AVA_set(classes=classes, filename="AVA2.1/ava_mini_split_val_big.csv", train=True)  # IDs for validation
+    partition['train'] = get_AVA_set(classes=classes, filename=root_dir + "ava_mini_split_train_big.csv", train=True)  # IDs for training
+    partition['validation'] = get_AVA_set(classes=classes, filename=root_dir + "ava_mini_split_val_big.csv", train=True)  # IDs for validation
 
     # Labels
-    labels_train = get_AVA_labels(classes, partition, "train", filename="AVA2.1/ava_mini_split_train_big.csv")
-    labels_val = get_AVA_labels(classes, partition, "validation", filename="AVA2.1/ava_mini_split_val_big.csv")
+    labels_train = get_AVA_labels(classes, partition, "train", filename=root_dir + "ava_mini_split_train_big.csv")
+    labels_val = get_AVA_labels(classes, partition, "validation", filename=root_dir + "ava_mini_split_val_big.csv")
 
     # Create + compile model, load saved weights if they exist
     rgb_weights = "rgb_resnet50_1805290059.hdf5"
@@ -42,13 +42,12 @@ def main():
 
     print("Training set size: " + str(len(partition['train'])))
 
-    # Load first train_size of partition{'train'}
-    train_splits = utils.make_chunks(original_list=partition['train'], size=2**15, chunk_size=2**12)
-    val_splits = utils.make_chunks(original_list=partition['train'], size=2**15, chunk_size=2**12)
-    num_val_chunks = len(val_splits)
+    # Load splits
+    train_splits = utils.make_chunks(original_list=partition['train'], size=len(partition['train']), chunk_size=params['train_chunk_size'])
+    val_splits = utils.make_chunks(original_list=partition['train'], size=len(partition['validation']), chunk_size=params['validation_chunk_size'])
     rgb_dir = "/media/pedro/actv-ssd/foveated_train_gc/"
     flow_dir = "test/flow/actv-ssd/flow_train"
-    maxValAcc = 0.0
+    
     val_chunks_count = 0
     time_str = time.strftime("%y%m%d%H%M", time.localtime())
     bestModelPath = "fusion_" + params['model'] + "_" + time_str + ".hdf5"
@@ -69,9 +68,9 @@ def main():
                     y_train_human = utils.to_binary_vector(y_train_human, size=utils.HUMAN_HUMAN_CLASSES, labeltype='human-human')
 
                     history = model.fit([x_train_rgb, x_train_flow], [y_train_pose, y_train_object, y_train_human], batch_size=params['batch_size'], epochs=1, verbose=0)
-                    elapsed = timeit.default_timer() - start_time
-                    # learning_rate_schedule(model, epoch, params['nb_epochs'])
+                    utils.learning_rate_schedule(model, epoch, params['nb_epochs'])
                     # ------------------------------------------------------------
+                    elapsed = timeit.default_timer() - start_time
                     print("Epoch " + str(epoch) + " chunk " + str(epoch_chunks_count) + " (" + str(elapsed) + ") acc[pose,obj,human] = [" + str(history.history['pred_pose_categorical_accuracy']) + "," +
                           str(history.history['pred_obj_human_categorical_accuracy']) + "," + str(history.history['pred_human_human_categorical_accuracy']) + "] loss: " + str(history.history['loss']))
                     with open(traincsvPath, 'a') as f:
@@ -100,23 +99,20 @@ def main():
                 loss_acc_list[4] += vpose_acc
                 loss_acc_list[5] += vobject_acc
                 loss_acc_list[6] += vhuman_acc
-                # We consider accuracy as the average accuracy over the three types of accuracy
-
-            loss_acc_list = [x / num_val_chunks for x in loss_acc_list]
+            loss_acc_list = [x / len(val_splits) for x in loss_acc_list]
             with open(valcsvPath, 'a') as f:
                 writer = csv.writer(f)
-                acc = (pose_acc + object_acc + human_acc) / 3
-                writer.writerow([str(acc), pose_acc, object_acc, human_acc, global_loss, pose_loss, object_loss, human_loss])
-            if acc > maxValAcc:
-                print("New best acc " + str(acc) + " loss " + str(global_loss))
+                acc = (loss_acc_list[4] + loss_acc_list[5] + loss_acc_list[6]) / 3
+                writer.writerow([str(acc), loss_acc_list[4], loss_acc_list[5], loss_acc_list[6], loss_acc_list[0], loss_acc_list[1], loss_acc_list[2], loss_acc_list[3]])
+            if loss_acc_list[0] < minValLoss:
+                print("New best loss " + str(loss_acc_list[0]))
                 model.save(bestModelPath)
-                maxValAcc = acc
+                minValLoss = loss_acc_list[0]
 
-    if sendmail:
+    if params['email']:
         utils.sendemail(from_addr='pythonscriptsisr@gmail.com',
                         to_addr_list=['pedro_abreu95@hotmail.com', 'joaogamartins@gmail.com'],
-                        cc_addr_list=[],
-                        subject='Finished training/validating fusion',
+                        subject='Finished training and validating fusion',
                         message='Training fusion with following params: ' + str(params),
                         login='pythonscriptsisr@gmail.com',
                         password='1!qwerty')

@@ -1,126 +1,166 @@
+import tensorflow as tf
 import csv
+import time
+
+from three_stream_fusion_training_model import NStreamModel
+from three_stream_fusion_test_data import get_AVA_set, get_AVA_classes, load_split
+
 import numpy as np
-import cv2
+from collections import Counter
 import sys
-import os
-import glob
+from keras.utils import multi_gpu_model
 
 
-def get_AVA_classes(csv_filename):
-    """
-    Gets all classes from an AVA csv, format of classes is a dictionary with:
-    classes['label_id'] has all class ids from 1-80
-    classes['label_name'] has all class names (e.g bend/bow (at the waist))
-    classes['label_type'] is either PERSON_MOVEMENT (1-14), OBJECT_MANIPULATION
-    (15-63) or PERSON_INTERACTION (64-80)
-    """
-    classes = []
-    with open(csv_filename) as csvDataFile:
+def majorityVoting(voting_pose, voting_obj, voting_human):
+    # Convert list of list (for obj and human) to list
+    voting_obj = [item for sublist in voting_obj for item in sublist]
+    voting_human = [item for sublist in voting_human for item in sublist]
+    # Pick major vote among the arrays and write to the csv
+    action_list = []
+    obj_counter = Counter(voting_obj)
+    human_counter = Counter(voting_human)
+    pose_counter = Counter(voting_pose)
+    pose_value, count = pose_counter.most_common()[0]  # Get the single most voted pose
+    action_list.append(pose_value)
+    o = obj_counter.most_common()[:3]  # If there are less than 3, it's no problem
+    for tup in o:
+        action_list.append(tup[0])  # tup[0] is value, tup[1] is count
+    h = human_counter.most_common()[:3]
+    for tup in h:
+        action_list.append(tup[0])
+    return action_list
+
+
+def pred2classes(ids, predictions, output_csv):
+    pose_list = []
+    obj_list = []
+    human_list = []
+
+    OBJECT_THRESHOLD = 0.4
+    HUMAN_THRESHOLD = 0.4
+
+    i = 0
+    for entry in predictions:
+        for action_type in entry:
+            arr = np.array(action_type)
+
+            if i == 0:
+                r = arr.argsort()[-1:][::-1]
+                pose_list.append(r[0])
+            elif i == 1:
+                r = arr.argsort()[-3:][::-1]  # Get the three with the highest probabilities
+                # TODO Get top 3 and check if they are above threshold
+                p = r.tolist()
+                prediction_list = []
+                # print p
+                for pred in p:
+                    if arr[pred] > OBJECT_THRESHOLD:
+                        # print arr[pred]
+                        prediction_list.append(pred)
+                # print prediction_list
+                obj_list.append(prediction_list)
+            elif i == 2:
+                r = arr.argsort()[-3:][::-1]
+                # TODO Get top 3 and check if they are above threshold
+                p = r.tolist()
+                # print p
+                for pred in p:
+                    if arr[pred] > HUMAN_THRESHOLD:
+                        prediction_list.append(pred)
+                        # print prediction_list
+                human_list.append(prediction_list)
+        i += 1
+    voting_pose = []
+    voting_obj = []
+    voting_human = []
+    i = 0
+
+    with open(output_csv, "a") as output_file:
+        for entry in ids:
+            idx = entry.split("@")
+            f = int(idx[6]) - 1
+            voting_pose.append(pose_list[i])  # pose was a 1 element list
+            voting_obj.append(obj_list[i])
+            voting_human.append(human_list[i])
+            if f == 4:
+                action_list = majorityVoting(voting_pose, voting_obj, voting_human)
+                # Write csv lines
+                video_name = idx[0]
+                timestamp = idx[1]
+                bb_topx = idx[2]
+                bb_topy = idx[3]
+                bb_botx = idx[4]
+                bb_boty = idx[5]
+
+                for action in action_list:
+                    line = video_name + "," + timestamp + "," + bb_topx + "," + bb_topy + "," + bb_botx + "," + bb_boty + "," + str(action)
+                    output_file.write("%s\n" % line)
+                # Reset the voting arrays
+                voting_pose = []
+                voting_obj = []
+                voting_human = []
+
+        i += 1
+
+
+def main():
+
+    # Load list of action classes and separate them (from utils_stream)
+    classes = get_AVA_classes('../data/AVA/files/ava_action_list_v2.1.csv')
+
+    # Get ID's and labels from the actual dataset
+    partition = {}
+    partition['val'] = get_AVA_set(classes=classes, directory="/media/pedro/actv-ssd/foveated_val_gc/")  # IDs for training
+
+    # Create + compile model, load saved weights if they exist
+    # Create + compile model, load saved weights if they exist
+    rgb_weights = "rgb_stream/models/rgb_resnet50_1805290059.hdf5"
+    flow_weights = "flow_stream/models/flow_resnet50_1805290120.hdf5"
+    context_weights = "context_stream/models/bestModelContext_256.hdf5"
+    nsmodel = NStreamModel(classes['label_id'], rgb_weights, flow_weights, context_weights)
+    nsmodel.compile_model(soft_sigmoid=True)
+    model = nsmodel.model
+    modelpath = "3stfusion_resnet50_1806060359.hdf5"  # Pick up where I left
+    model.load_weights(modelpath)
+    # Try to train on more than 1 GPU if possible
+    # try:
+    #    print("Trying MULTI-GPU")
+    #    model = multi_gpu_model(model)
+    # except:
+    #    print("Multi-GPU failed")
+    #    sys.exit(0)
+    print("Val set size: " + str(len(partition['val'])))
+
+    # Load first train_size of partition{'train'}
+    val_chunk_size = 1025
+    if val_chunk_size % 5 != 0:
+        print(val_chunk_size + " has to be a multiple of 5")
+        sys.exit(0)
+    seq = partition['val']
+    val_splits = [seq[i:i + val_chunk_size] for i in range(0, len(seq), val_chunk_size)]
+    print("Validation splits: " + str(len(val_splits)))
+    val_chunks_count = 0
+    rgb_dir = "/media/pedro/actv-ssd/foveated_val_gc"
+    flow_dir = "test/flow/actv-ssd/flow_val"
+    Xfilename = "starter_list.csv"
+    val_context_rows = {}
+    time_str = time.strftime("%y%m%d%H%M", time.localtime())
+    output_csv = "output_3stream_val_" + time_str + ".csv"
+    with open(Xfilename) as csvDataFile:
         csvReader = csv.reader(csvDataFile)
-        headers = next(csvReader)
-        classes = {}
-        for h in headers:
-            classes[h] = []
-
         for row in csvReader:
-            for h, v in zip(headers, row):
-                classes[h].append(v)
-    return classes
+            rkey = row[0] + "_" + row[1].lstrip("0") + \
+                "@" + str(row[2]) + "@" + str(row[3]) + "@" + str(row[4]) + "@" + str(row[5])
+            val_context_rows[rkey] = row[6]
+    with tf.device('/gpu:0'):
+        for valIDS in val_splits:
+            x_rgb = x_flow = x_context = None
+            x_rgb, x_flow, x_context = load_split(valIDS, (224, 224), 2, 10, rgb_dir, flow_dir, val_context_rows)
+            predictions = model.predict([x_rgb, x_flow, x_context], batch_size=32, verbose=1)
+            print("Val chunk " + str(val_chunks_count) + "/" + str(len(val_splits)))
+            pred2classes(valIDS, predictions, output_csv)
+            val_chunks_count += 1
 
 
-def load_split(ids, dim, n_channels, of_len, rgb_dir, flow_dir, context_dict):
-    'Generates data containing batch_size samples'
-    resize = False
-    sep = "@"
-    # Initialization, assuming its bidimensional (for now)
-    X_rgb = np.empty([len(ids), dim[0], dim[1], 3])
-    X_flow = np.empty([len(ids), dim[0], dim[1], 20])
-    X_context = np.empty([len(ids), 720])
-
-    # Generate data
-    for i, ID in enumerate(ids):
-        # Get image from ID (since we are using opencv we get np array)
-        split_id = ID.split(sep)
-        vid_name = split_id[0]
-        keyframe = split_id[1]
-        bb_top_x = float(split_id[2])
-        bb_top_y = float(split_id[3])
-        bb_bot_x = float(split_id[4])
-        bb_bot_y = float(split_id[5])
-        vid_name = vid_name + "_" + keyframe
-        bbs = str(bb_top_x) + "_" + str(bb_top_y) + "_" + str(bb_bot_x) + "_" + str(bb_bot_y)
-        rgb_frame = split_id[6]
-        # Many names: 12 = 25 = 1, 17 = 35 = 2, 22 = 45 = 3, 27 = 55 = 4, 32 = 65 = 5
-        of_frame = 12 + (int(rgb_frame) - 1) * 5  # conversion of rgb to of name format
-        # Is this the correct format? Yes, the format has to use _
-        img_name = rgb_dir + "/" + vid_name + "_" + bbs + "/frames" + rgb_frame + ".jpg"
-        if not os.path.exists(img_name):
-            print(img_name)
-            print("[Error] File does not exist!")
-            sys.exit(0)
-
-        img = cv2.imread(img_name)
-        if resize is True:
-            img = cv2.resize(img, (224, 224), interpolation=cv2.INTER_NEAREST)
-        # Store sample
-        X_rgb[i, ] = img
-
-        context_key = vid_name + \
-            "@" + str(bb_top_x) + "@" + str(bb_top_y) + "@" + str(bb_bot_x) + "@" + str(bb_bot_y)
-        context_str = context_dict[context_key]
-        X_context[i, ] = np.array(context_str.split(" "))
-
-        of_volume = np.zeros(
-            shape=(dim[0], dim[1], 20))
-        v = 0
-        for fn in range(-of_len // 2, of_len // 2):
-            of_frame = of_frame + fn
-
-            x_img_name = flow_dir + "/x/" + vid_name + "/frame" + str('{:06}'.format(of_frame)) + ".jpg"
-            x_img = cv2.imread(x_img_name, cv2.IMREAD_GRAYSCALE)
-            if x_img is None:
-                continue
-            y_img_name = flow_dir + "/y/" + vid_name + "/frame" + str('{:06}'.format(of_frame)) + ".jpg"
-            y_img = cv2.imread(y_img_name, cv2.IMREAD_GRAYSCALE)
-            if y_img is None:
-                continue
-            # Put them in img_volume (x then y)
-            of_volume[:, :, v] = x_img
-            v += 1
-            of_volume[:, :, v] = y_img
-            v += 1
-        X_flow[i, ] = of_volume
-
-    return X_rgb, X_flow, X_context
-
-
-def get_AVA_set(classes, directory):
-    sep = "@"
-    id_list = []
-    start_frame = 1
-    end_frame = 5
-    jump_frames = 1  # Keyframe will be 3
-    # Load all lines of filename
-    for d in glob.glob(directory + "/*"):
-        if d != directory:
-            print d
-            row = d.rsplit("/", 1)[1]
-            row = row.split("_")
-            print row
-            video = "_".join(row[:-5])
-            print video
-            kf_timestamp = row[-5]
-            print kf_timestamp
-            # action = row[6]
-            bb_top_x = row[-4]
-            bb_top_y = row[-3]
-            bb_bot_x = row[-2]
-            bb_bot_y = row[-1]
-            # This is due to the behav of range
-            for frame in range(start_frame, end_frame + jump_frames, jump_frames):
-                # Append to the dictionary
-                ID = video + sep + kf_timestamp.lstrip("0") + \
-                    sep + str(bb_top_x) + sep + str(bb_top_y) + sep + str(bb_bot_x) + sep + str(bb_bot_y) + sep + str(frame)
-                id_list.append(ID)
-
-    return id_list
+if __name__ == '__main__':
+    main()

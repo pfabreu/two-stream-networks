@@ -86,9 +86,9 @@ class NStreamModel():
         x = Dense(512, activation='relu')(x)
         x = Dropout(0.5)(x)
         # Add final sigmoid/softsigmoid layer
-        pred_pose = Dense(utils.utils.POSE_CLASSES, activation='softmax', name='pred_pose')(x)
-        pred_obj_human = Dense(utils.utils.OBJ_HUMAN_CLASSES, activation='sigmoid', name='pred_obj_human')(x)
-        pred_human_human = Dense(utils.utils.HUMAN_HUMAN_CLASSES, activation='sigmoid', name='pred_human_human')(x)
+        pred_pose = Dense(utils.POSE_CLASSES, activation='softmax', name='pred_pose')(x)
+        pred_obj_human = Dense(utils.OBJ_HUMAN_CLASSES, activation='sigmoid', name='pred_obj_human')(x)
+        pred_human_human = Dense(utils.HUMAN_HUMAN_CLASSES, activation='sigmoid', name='pred_human_human')(x)
 
         self.model = Model(inputs=[rgb_m.input, flow_m.input, context_m.input], outputs=[pred_pose, pred_obj_human, pred_human_human])
 

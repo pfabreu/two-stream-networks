@@ -8,17 +8,15 @@ Created on Thu May 24 13:18:20 2018
 
 import csv
 import numpy as np
+import utils
 from scipy.spatial import distance
-from keras.utils import to_categorical
+from tensorflow.python.keras.utils import to_categorical
 
 INPATHS = ["AVA_train_Custom_Corrected.csv", "AVA_validation_Custom_Corrected.csv", "AVA_Test_Custom_Corrected.csv"]
 OUTPATHS = ["XContext_train_pastfuture.csv", "XContext_val_pastfuture.csv", "XContext_test_pastfuture.csv"]
 
-POSE_CLASSES = 10
-OBJ_HUMAN_CLASSES = 12
-HUMAN_HUMAN_CLASSES = 8
 NUMBEROFNEIGHBORS = 3
-NCLASSES = POSE_CLASSES + OBJ_HUMAN_CLASSES + HUMAN_HUMAN_CLASSES
+NCLASSES = utils.POSE_CLASSES + utils.OBJ_HUMAN_CLASSES + utils.HUMAN_HUMAN_CLASSES
 LOOKBACK = 1
 LOOKFORWARD = 1
 

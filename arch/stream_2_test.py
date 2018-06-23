@@ -37,7 +37,6 @@ def main():
     flow_dir = "test/flow/actv-ssd/flow_" + params['gen_type']
 
     test_chunks_count = 0
-
     with tf.device('/gpu:0'):
         for testIDS in test_splits:
             x_val_rgb, x_val_flow, y_val_pose, y_val_object, y_val_human = load_split(testIDS, params['dim'], params['n_channels'], 10, rgb_dir, flow_dir, train=False)

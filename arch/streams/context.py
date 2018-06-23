@@ -46,7 +46,7 @@ def main():
         x_train, y_train_pose, y_train_object, y_train_human = load_split(partition['train'], labels_train, params['dim'], params['n_channels'], "train")
 
         y_t = []
-        y_t.append(utils.to_categorical(y_train_pose, num_classes=POSE_CLASSES))
+        y_t.append(to_categorical(y_train_pose, num_classes=POSE_CLASSES))
         y_t.append(utils.to_binary_vector(y_train_object, size=OBJ_HUMAN_CLASSES, labeltype='object-human'))
         y_t.append(utils.to_binary_vector(y_train_human, size=HUMAN_HUMAN_CLASSES, labeltype='human-human'))
 

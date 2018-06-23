@@ -1,8 +1,8 @@
-from keras.layers import concatenate, Dropout, Dense
-from keras.optimizers import Adam
-from keras.models import Model
-from rgb_stream.rgb_training_model import rgb_create_model
-from flow_stream.flow_training_model import flow_create_model
+from tensorflow.python.keras.layers import concatenate, Dropout, Dense
+from tensorflow.python.keras.models import Model
+from tensorflow.python.keras.optimizers import Adam
+from streams.rgb import rgb_create_model
+from streams.flow import flow_create_model
 import sys
 import utils
 
