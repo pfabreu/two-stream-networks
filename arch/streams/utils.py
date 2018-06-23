@@ -6,9 +6,9 @@ from keras import backend as K
 import scipy.io as spio
 from collections import Counter
 
-POSE_CLASSES = 14
-OBJ_HUMAN_CLASSES = 25
-HUMAN_HUMAN_CLASSES = 14
+POSE_CLASSES = 10
+OBJ_HUMAN_CLASSES = 12
+HUMAN_HUMAN_CLASSES = 8
 
 
 def majorityVoting(voting_pose, voting_obj, voting_human):

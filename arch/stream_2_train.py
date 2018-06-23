@@ -10,6 +10,8 @@ import timeit
 
 
 def main():
+    K.clear_session()
+
     sendmail = True
     train = True
 

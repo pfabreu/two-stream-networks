@@ -46,16 +46,10 @@ def main():
     model_name = "resnet50"
     ucf_weights = "three-stream-cnn/arch/models/keras-ucf101-TVL1flow-" + model_name + "-split1-custom.hdf5"
 
-    #ucf_weights = None
+    # ucf_weights = None
     model = flow_create_model(classes=classes['label_id'], model_name=model_name, soft_sigmoid=soft_sigmoid, image_shape=(224, 224), opt_flow_len=20)
     model = compile_model(model, soft_sigmoid=soft_sigmoid)
-    # Try to train on more than 1 GPU if possible
-    # try:
-    #    print("Trying")
-    #    model = multi_gpu_model(model)
-    # except:
-    #    pass
-    # Load previously trained weights
+
     if saved_weights is not None:
         model.load_weights(saved_weights)
     else:
@@ -78,7 +72,7 @@ def main():
     val_splits = utils.make_chunks(original_list=partition['validation'], size=2**15, chunk_size=2**11)
     num_val_chunks = len(val_splits)
 
-    minValLoss = 0.0
+    minValLoss = 99999999999999990.0
     time_str = time.strftime("%y%m%d%H%M", time.localtime())
     bestModelPath = "flow_customcsv_" + params['model'] + "_" + time_str + ".hdf5"
     traincsvPath = "flow_customcsv_train_plot_" + params['model'] + "_" + time_str + ".csv"
