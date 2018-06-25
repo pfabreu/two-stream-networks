@@ -1,5 +1,6 @@
 import tensorflow as tf
-from tensorflow.python.keras.utils import to_categorical, multi_gpu_model
+# from tensorflow.python.keras.utils import multi_gpu_model
+from tensorflow.python.keras.utils import to_categorical
 from tensorflow.python.keras import backend as K
 import csv
 import time

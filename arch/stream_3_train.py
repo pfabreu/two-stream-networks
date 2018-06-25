@@ -3,7 +3,7 @@ import tensorflow as tf
 import numpy as np
 from utils.utils import *
 from keras.utils import to_categorical
-from three_stream_fusion_training_model import NStreamModel
+from three_stream_fusion_training_model import ThreeStreamModel
 from three_stream_fusion_training_data import get_AVA_set, get_AVA_labels, get_AVA_classes, load_split
 import time
 import csv
@@ -66,7 +66,7 @@ def main():
     rgb_weights = "rgb_stream/models/rgb_resnet50_1805290059.hdf5"
     flow_weights = "flow_stream/models/flow_resnet50_1805290120.hdf5"
     context_weights = "context_stream/models/bestModelContext_256.hdf5"
-    nsmodel = NStreamModel(classes['label_id'], rgb_weights, flow_weights, context_weights)
+    nsmodel = ThreeStreamModel(classes['label_id'], rgb_weights, flow_weights, context_weights)
     nsmodel.compile_model(soft_sigmoid=True)
     model = nsmodel.model
     modelpath = "3stfusion_resnet50_1806060359.hdf5"  # Pick up where I left

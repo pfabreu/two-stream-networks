@@ -3,7 +3,7 @@ from tensorflow.python.keras.models import Model, Sequential
 import utils
 
 
-def compile_model(model, soft_sigmoid=False):
+def compile_model(model, soft_sigmoid=True):
     lw = [1.0, 1.0, 1.0]
     if soft_sigmoid is False:
         # optimizer = SGD(lr=1e-2, momentum=0.9, nesterov=True)
@@ -13,7 +13,7 @@ def compile_model(model, soft_sigmoid=False):
     return model
 
 
-def flow_create_model(classes, model_name, soft_sigmoid=False, image_shape=(224, 224), opt_flow_len=20, freeze_all=True, conv_fusion=False):
+def flow_create_model(classes, model_name, soft_sigmoid=True, image_shape=(224, 224), opt_flow_len=20, freeze_all=True, conv_fusion=False):
     input_shape = (image_shape[0], image_shape[1], opt_flow_len)  # OF has 2 channels
     if model_name == "resnet50":
         base_model = resnet50_of(input_shape, pooling=None)  # resnet is bae <3

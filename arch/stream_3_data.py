@@ -4,6 +4,7 @@ import cv2
 import sys
 import os
 import glob
+import streams.utils as utils
 
 
 def get_AVA_classes(csv_filename):
@@ -36,8 +37,7 @@ def load_test_split(ids, labels, dim, n_channels, gen_type, of_len, context_dict
     # Initialization, assuming its bidimensional (for now)
     X_rgb = np.empty([len(ids), dim[0], dim[1], 3])
     X_flow = np.empty([len(ids), dim[0], dim[1], 20])
-    X_context = np.empty([len(ids), 720])
-    #X_context = np.empty([len(ids), 480])
+    X_context = np.empty([len(ids), 720])  # TODO 720 is hardcoded but can be derived from context params
     ypose = np.empty(len(ids))
     yobject = []
     yhuman = []
@@ -156,8 +156,6 @@ def get_AVA_set(classes, filename, train):
 def get_AVA_labels(classes, partition, set_type, filename, soft_sigmoid=False):
     sep = "@"  # Must not exist in any of the IDs
 
-    POSE_CLASSES = 14
-    OBJ_HUMAN_CLASSES = 49
     # HUMAN_HUMAN_CLASSES = 17
     labels = {}
     # Parse partition and create a correspondence to an integer in classes
@@ -190,11 +188,10 @@ def get_AVA_labels(classes, partition, set_type, filename, soft_sigmoid=False):
             for frame in range(start_frame, end_frame + jump_frames, jump_frames):
                 label_ID = video + sep + \
                     kf.lstrip("0") + sep + bbs + sep + str(frame)
-                if action <= POSE_CLASSES:
+                if action <= utils.POSE_CLASSES:
                     labels[label_ID]['pose'] = action - 1
-                elif action > POSE_CLASSES and action <= POSE_CLASSES + OBJ_HUMAN_CLASSES:
+                elif action > utils.POSE_CLASSES and action <= utils.POSE_CLASSES + utils.OBJ_HUMAN_CLASSES:
                     labels[label_ID]['human-object'].append(action - 1)
                 else:
                     labels[label_ID]['human-human'].append(action - 1)
     return labels
-

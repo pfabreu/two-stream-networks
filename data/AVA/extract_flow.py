@@ -1,8 +1,8 @@
 import os
 
-set_type = 'train'
-OUT_DIR = '/media/pedro/actv4/ava-custom/flow_' + set_type + "/"
-DATA_DIR = "/media/pedro/actv4/ava-split/split_segments_" + set_type
+set_type = 'val'
+OUT_DIR = '/media/pedro/actv-ssd/flow_' + set_type + "/"
+DATA_DIR = "/media/pedro/actv-ssd/segments_" + set_type + "/"
 GPU_FLOW_DIR = '../../arch/streams/gpu_flow/build/'
 
 

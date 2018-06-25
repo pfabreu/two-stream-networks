@@ -21,5 +21,6 @@ def context_create_model(NHU1, NHU2, in_shape=(480,)):
 
 
 def compile_model(model):
-    model.compile(optimizer='rmsprop', loss=['categorical_crossentropy', 'binary_crossentropy', 'binary_crossentropy'], metrics=['categorical_accuracy'], loss_weights=[1.0, 1.0, 1.0])
+    # Using the default learning rate
+    model.compile(optimizer='adam', loss=['categorical_crossentropy', 'binary_crossentropy', 'binary_crossentropy'], metrics=['categorical_accuracy'], loss_weights=[1.0, 1.0, 1.0])
     return model

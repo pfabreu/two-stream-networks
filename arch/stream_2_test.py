@@ -1,6 +1,6 @@
 import tensorflow as tf
 import utils
-from stream_2_model import NStreamModel
+from stream_2_model import TwoStreamModel
 from stream_2_data import get_AVA_set, get_AVA_classes, load_split
 import time
 
@@ -24,7 +24,7 @@ def main():
     # Create + compile model, load saved weights if they exist
     rgb_weights = "models/rgb_resnet50_1805290059.hdf5"
     flow_weights = "models/flow_resnet50_1805290120.hdf5"
-    nsmodel = NStreamModel(classes['label_id'], rgb_weights, flow_weights)
+    nsmodel = TwoStreamModel(classes['label_id'], rgb_weights, flow_weights)
     nsmodel.compile_model(soft_sigmoid=True)
     model = nsmodel.model
 

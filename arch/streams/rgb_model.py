@@ -18,7 +18,7 @@ def print_params(model):
     print('Non-trainable params: {:,}'.format(non_trainable_count))
 
 
-def compile_model(model, soft_sigmoid=False):
+def compile_model(model, soft_sigmoid=True):
     lw = [1.0, 1.0, 1.0]
     if soft_sigmoid is False:
         model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
@@ -27,7 +27,7 @@ def compile_model(model, soft_sigmoid=False):
     return model
 
 
-def rgb_create_model(classes, soft_sigmoid=False, model_name='inceptionv3', freeze_all=True, conv_fusion=False):
+def rgb_create_model(classes, soft_sigmoid=True, model_name='inceptionv3', freeze_all=True, conv_fusion=False):
     # TODO Make this multi-GPU
     with tf.device('/gpu:0'):
         if model_name == "resnet50":

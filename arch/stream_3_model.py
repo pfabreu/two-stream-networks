@@ -52,7 +52,7 @@ def prepare_context_stream(classes, context_weights):
         return original_context_stream
 
 
-class NStreamModel():
+class ThreeStreamModel():
 
     def __init__(self, classes, rgb_weights, flow_weights, context_weights):
         # Simple non-time-distributed model

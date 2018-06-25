@@ -8,7 +8,7 @@ import utils
 
 
 def prepare_rgb_stream(classes, rgb_weights, model_name):
-    original_rgb_stream = rgb_create_model(classes, soft_sigmoid=True, model_name=model_name)
+    original_rgb_stream = rgb_create_model(classes, soft_sigmoid=True, model_name=model_name, freeze_all=True, conv_fusion=False)
     # print(original_rgb_stream.summary())
     if rgb_weights is None:
         print("No saved rgb_weights weights file, please use fusion weights!")
@@ -22,7 +22,7 @@ def prepare_rgb_stream(classes, rgb_weights, model_name):
 
 
 def prepare_flow_stream(classes, flow_weights, model_name):
-    original_flow_stream = flow_create_model(classes, model_name=model_name, soft_sigmoid=True, image_shape=(224, 224), opt_flow_len=20)
+    original_flow_stream = flow_create_model(classes, model_name=model_name, soft_sigmoid=True, image_shape=(224, 224), opt_flow_len=20, freeze_all=True, conv_fusion=False)
     # print(original_flow_stream.summary())
     if flow_weights is None:
         print("Aborting, No saved flow_weights weights file, please use fusion weights!")
@@ -37,7 +37,7 @@ def prepare_flow_stream(classes, flow_weights, model_name):
         return original_flow_stream
 
 
-class NStreamModel():
+class TwoStreamModel():
 
     def __init__(self, classes, rgb_weights, flow_weights):
         # Simple non-time-distributed model

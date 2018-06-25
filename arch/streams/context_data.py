@@ -2,28 +2,7 @@ import csv
 import numpy as np
 import os.path
 import sys
-
-
-def get_AVA_classes(csv_filename):
-    """
-    Gets all classes from an AVA csv, format of classes is a dictionary with:
-    classes['label_id'] has all class ids from 1-80
-    classes['label_name'] has all class names (e.g bend/bow (at the waist))
-    classes['label_type'] is either PERSON_MOVEMENT (1-14), OBJECT_MANIPULATION
-    (15-63) or PERSON_INTERACTION (64-80)
-    """
-    classes = []
-    with open(csv_filename) as csvDataFile:
-        csvReader = csv.reader(csvDataFile)
-        headers = next(csvReader)
-        classes = {}
-        for h in headers:
-            classes[h] = []
-
-        for row in csvReader:
-            for h, v in zip(headers, row):
-                classes[h].append(v)
-    return classes
+import utils
 
 
 def load_split(ids, labels, dim, n_channels, gen_type):
@@ -89,9 +68,6 @@ def get_AVA_set(classes, filename):
 
 def get_AVA_labels(classes, partition, set_type, filename):
     sep = "@"  # Must not exist in any of the IDs
-    POSE_CLASSES = 10
-    OBJ_HUMAN_CLASSES = 12
-    HUMAN_HUMAN_CLASSES = 8
     labels = {}
     # Parse partition and create a correspondence to an integer in classes
     class_ids = classes['label_id']
@@ -119,9 +95,9 @@ def get_AVA_labels(classes, partition, set_type, filename):
             action = int(row[6])
             # Construct IDs
             label_ID = video + sep + kf.lstrip("0") + sep + bbs
-            if action <= POSE_CLASSES:
+            if action <= utils.POSE_CLASSES:
                 labels[label_ID]['pose'] = action - 1
-            elif action > POSE_CLASSES and action <= POSE_CLASSES + OBJ_HUMAN_CLASSES:
+            elif action > utils.POSE_CLASSES and action <= utils.POSE_CLASSES + utils.OBJ_HUMAN_CLASSES:
                 labels[label_ID]['human-object'].append(action - 1)
             else:
                 labels[label_ID]['human-human'].append(action - 1)
