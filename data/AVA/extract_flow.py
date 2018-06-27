@@ -1,6 +1,6 @@
 import os
 
-set_type = 'val'
+set_type = 'test'
 OUT_DIR = '/media/pedro/actv-ssd/flow_' + set_type + "/"
 DATA_DIR = "/media/pedro/actv-ssd/segments_" + set_type + "/"
 GPU_FLOW_DIR = '../../arch/streams/gpu_flow/build/'
