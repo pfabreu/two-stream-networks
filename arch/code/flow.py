@@ -1,7 +1,7 @@
 import tensorflow as tf
-# from tensorflow.python.keras.utils import multi_gpu_model
-from tensorflow.python.keras.utils import to_categorical
-from tensorflow.python.keras import backend as K
+# from keras.utils import multi_gpu_model
+from keras.utils import to_categorical
+from keras import backend as K
 import csv
 import time
 import timeit
@@ -34,6 +34,7 @@ def main():
               'validation_chunk_size': 2**11}
     minValLoss = 9999990.0
     soft_sigmoid = True
+    warp = False
     encoding = "rgb"  # TODO Are flows stored as rgb or as 2 grayscales
 
     # Get ID's and labels from the actual dataset
@@ -49,8 +50,8 @@ def main():
     # saved_weights = "saved_models/RGB_Stream_Softmax_inceptionv3.hdf5"
     saved_weights = None
     model_name = "resnet50"
-    # ucf_weights = "../models/keras-ucf101-TVL1flow-" + model_name + "-split1-custom.hdf5" # Outdated model
-    ucf_weights = None
+    ucf_weights = "../models/ucf_keras/keras-ucf101-TVL1flow-" + model_name + "-newsplit.hdf5"  # Outdated model
+    # ucf_weights = None
 
     # ucf_weights = None
     model = flow_create_model(classes=classes['label_id'], model_name=model_name, soft_sigmoid=soft_sigmoid, image_shape=(224, 224), opt_flow_len=20, freeze_all=params['freeze_all'], conv_fusion=params['conv_fusion'])
@@ -66,9 +67,9 @@ def main():
                 utils.convert_vgg(model, ucf_weights)
                 model.save("./models/ucf_keras/keras-ucf101-TVL1flow-vgg16-split-custom.hdf5")
             elif model_name == "resnet50":
-                ucf_weights = utils.loadmat("ucf101-TVL1flow-resnet-50-split1.mat")
+                ucf_weights = utils.loadmat("../models/ucf_matconvnet/ucf101-TVL1flow-resnet-50-split1.mat")
                 utils.convert_resnet(model, ucf_weights)
-                model.save("../models/ucf_keras/keras-ucf101-TVL1flow-resnet50-newsplits.hdf5")
+                model.save("../models/ucf_keras/keras-ucf101-TVL1flow-resnet50-newsplit.hdf5")
         else:
             model.load_weights(ucf_weights)
     # Try to train on more than 1 GPU if possible
@@ -82,9 +83,14 @@ def main():
     val_splits = utils.make_chunks(original_list=partition['validation'], size=len(partition['validation']), chunk_size=params['validation_chunk_size'])
 
     time_str = time.strftime("%y%m%d%H%M", time.localtime())
-    bestModelPath = "../models/flow_customcsv_" + params['model'] + "_" + time_str + ".hdf5"
-    traincsvPath = "../plots/flow_customcsv_train_plot_" + params['model'] + "_" + time_str + ".csv"
-    valcsvPath = "../plots/flow_customcsv_val_plot_" + params['model'] + "_" + time_str + ".csv"
+    if warp is True:
+        bestModelPath = "../models/flow_warp_customcsv_" + params['model'] + "_" + time_str + ".hdf5"
+        traincsvPath = "../plots/flow_warp_customcsv_train_plot_" + params['model'] + "_" + time_str + ".csv"
+        valcsvPath = "../plots/flow_warp_customcsv_val_plot_" + params['model'] + "_" + time_str + ".csv"
+    else:
+        bestModelPath = "../models/flow_customcsv_" + params['model'] + "_" + time_str + ".hdf5"
+        traincsvPath = "../plots/flow_customcsv_train_plot_" + params['model'] + "_" + time_str + ".csv"
+        valcsvPath = "../plots/flow_customcsv_val_plot_" + params['model'] + "_" + time_str + ".csv"
     first_epoch = True
 
     with tf.device('/gpu:0'):  # TODO Multi GPU
@@ -146,7 +152,7 @@ def main():
 
     if params['email']:
         utils.sendemail(from_addr='pythonscriptsisr@gmail.com',
-                        to_addr_list=['pedro_abreu95@hotmail.com', 'joaogamartins@gmail.com'],
+                        to_addr_list=['pedro_abreu95@hotmail.com'],
                         subject='Finished training OF-stream ',
                         message='Training OF with following params: ' + str(params),
                         login='pythonscriptsisr@gmail.com',

@@ -1,6 +1,6 @@
 # Three Stream Action Recognition
 
-We also provide code for Two Stream Action Recognition.
+We also provide code for Two Stream Action Recognition in Keras for the AVA and UCF101 datasets.
 
 ### Prerequisites
 
@@ -8,7 +8,8 @@ We also provide code for Two Stream Action Recognition.
 * OpenCV 2.X or 3.X built with ffmpeg and gstreamer
 * CUDA + cuDNN (we used 9 and 7, respectively)
 * OpenPose (and thus Caffe (all dependencies) + OpenCV, can be the previous one)
-* Tensorflow (with Keras 2.15)
+* Tensorflow (for backend) (`pip install tensorflow-gpu`)
+* Keras >= 2.1.6 (`pip install keras`)
 * Pillow
 * numpy
 
@@ -19,13 +20,11 @@ We also provide code for Two Stream Action Recognition.
 
 ### Data
 
-We made our own smaller split of the AVA dataset for quickly testing the architecture, you can download it
-here:
+For the AVA dataset due to computational power constraints and for quickly testing the architecture, we made our own split of the dataset called mini-AVA, you can download it here:
 
-For the AHA dataset you can download it here:
-https://drive.google.com/drive/folders/11sfLyjtmtakF9kDzWEpAVwD5k4zjDkdV
+For the AHA dataset you can download our provided data it here: https://drive.google.com/drive/folders/11sfLyjtmtakF9kDzWEpAVwD5k4zjDkdV
 
-For the UCF101 dataset you can get it here (only flow, rgb and pose)
+For the UCF101 dataset you can download our provided data here (only flow (as rgb images), rgb (rescaled to 224x224) and pose (original and rescaled to 224x224)):
 
 ## License
 

@@ -1,5 +1,5 @@
-from tensorflow.python.keras.layers import Input, GlobalMaxPooling2D, AveragePooling2D, ZeroPadding2D, add, Dense, Dropout, Activation, Flatten, GlobalAveragePooling2D, Conv2D, MaxPooling2D, BatchNormalization
-from tensorflow.python.keras.models import Model, Sequential
+from keras.layers import Input, GlobalMaxPooling2D, AveragePooling2D, ZeroPadding2D, add, Dense, Dropout, Activation, Flatten, GlobalAveragePooling2D, Conv2D, MaxPooling2D, BatchNormalization
+from keras.models import Model, Sequential
 import utils
 
 

@@ -10,7 +10,7 @@ import csv
 import numpy as np
 import utils
 from scipy.spatial import distance
-from tensorflow.python.keras.utils import to_categorical
+from keras.utils import to_categorical
 
 INPATHS = ["AVA_train_Custom_Corrected.csv", "AVA_validation_Custom_Corrected.csv", "AVA_Test_Custom_Corrected.csv"]
 OUTPATHS = ["XContext_train_pastfuture.csv", "XContext_val_pastfuture.csv", "XContext_test_pastfuture.csv"]

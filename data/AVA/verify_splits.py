@@ -6,7 +6,6 @@ set_type = "validation"
 _DATA_DIR = "/media/pedro/actv4/AVA-split/" + set_type + "/rgb/"
 
 i = 0
-
 print "Checking if all folders exist"
 with open('ava_mini_split_' + set_type + '.csv') as csvDataFile:
     csvReader = csv.reader(csvDataFile)
@@ -16,7 +15,6 @@ with open('ava_mini_split_' + set_type + '.csv') as csvDataFile:
             # Save them to a file
             print _DATA_DIR + vidname
         i += 1
-
 
 i = 0
 print "Checking if all folders have correct number of files"

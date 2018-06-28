@@ -1,10 +1,10 @@
 import tensorflow as tf
-from tensorflow.python.keras.applications.inception_resnet_v2 import InceptionResNetV2
-from tensorflow.python.keras.applications.inception_v3 import InceptionV3
-from tensorflow.python.keras.applications.resnet50 import ResNet50
-from tensorflow.python.keras.layers import Dense, Dropout, Activation, Flatten, GlobalAveragePooling2D, Conv2D, MaxPooling2D, BatchNormalization
-from tensorflow.python.keras.models import Model, Sequential
-from tensorflow.python.keras import backend as K
+from keras.applications.inception_resnet_v2 import InceptionResNetV2
+from keras.applications.inception_v3 import InceptionV3
+from keras.applications.resnet50 import ResNet50
+from keras.layers import Dense, Dropout, Activation, Flatten, GlobalAveragePooling2D, Conv2D, MaxPooling2D, BatchNormalization
+from keras.models import Model, Sequential
+from keras import backend as K
 import numpy as np
 import utils
 

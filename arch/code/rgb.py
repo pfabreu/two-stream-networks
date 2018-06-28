@@ -1,7 +1,7 @@
 import tensorflow as tf
-# from tensorflow.python.keras.utils import multi_gpu_model
-from tensorflow.python.keras.utils import to_categorical
-from tensorflow.python.keras import backend as K
+# from keras.utils import multi_gpu_model
+from keras.utils import to_categorical
+from keras import backend as K
 import csv
 import time
 import timeit
@@ -127,8 +127,7 @@ def main():
 
     if params['email']:
         utils.sendemail(from_addr='pythonscriptsisr@gmail.com',
-                        to_addr_list=['pedro_abreu95@hotmail.com',
-                                      'joaogamartins@gmail.com'],
+                        to_addr_list=['pedro_abreu95@hotmail.com'],
                         subject='Finished training RGB-stream',
                         message='Training RGB with following params: ' +
                         str(params),

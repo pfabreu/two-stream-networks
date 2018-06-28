@@ -1,5 +1,5 @@
-from tensorflow.python.keras.layers import Dense, Dropout, Input
-from tensorflow.python.keras.models import Model
+from keras.layers import Dense, Dropout, Input
+from keras.models import Model
 import utils
 
 

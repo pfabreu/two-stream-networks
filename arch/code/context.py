@@ -1,5 +1,5 @@
-from tensorflow.python.keras.utils import to_categorical
-from tensorflow.python.keras.callbacks import ModelCheckpoint
+from keras.utils import to_categorical
+from keras.callbacks import ModelCheckpoint
 
 from context_model import context_create_model, compile_model
 from context_data import load_split, get_AVA_set, get_AVA_labels

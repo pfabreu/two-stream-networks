@@ -17,19 +17,20 @@ def main():
     K.clear_session()
 
     # Load list of action classes and separate them (from _stream)
-    classes = utils.get_AVA_classes(root_dir + 'ava_action_list_v2.1.csv')
+    classes = utils.get_AVA_classes(root_dir + 'ava_action_list_custom.csv')
 
     # Parameters for training (batch size 32 is supposed to be the best?)
     params = {'dim': (224, 224), 'batch_size': 64,
               'n_classes': len(classes['label_id']), 'n_channels': 3,
               'shuffle': False, 'nb_epochs': 150, 'model': 'resnet50', 'email': True,
-              'train_chunk_size': 2**12, 'validation_chunk_size': 2**12}
+              'train_chunk_size': 2**11, 'validation_chunk_size': 2**11}
     minValLoss = 9999990.0
+    encoding = "rgb"
 
     # Get ID's and labels from the actual dataset
     partition = {}
-    partition['train'] = get_AVA_set(classes=classes, filename=root_dir + "ava_mini_split_train_big.csv")  # IDs for training
-    partition['validation'] = get_AVA_set(classes=classes, filename=root_dir + "ava_mini_split_val_big.csv")  # IDs for validation
+    partition['train'] = get_AVA_set(classes=classes, filename=root_dir + "ava_mini_split_train_big.csv", train=True)  # IDs for training
+    partition['validation'] = get_AVA_set(classes=classes, filename=root_dir + "ava_mini_split_val_big.csv", train=True)  # IDs for validation
 
     # Labels
     labels_train = get_AVA_labels(classes, partition, "train", filename=root_dir + "ava_mini_split_train_big.csv")
@@ -46,8 +47,8 @@ def main():
     if modelpath is not None:
         print("Loading previous weights")
         model.load_weights(modelpath)
-    rgb_dir =
-    flow_dir =
+    rgb_dir = "/media/pedro/actv-ssd/foveated_train_gc/"
+    flow_dir = "test/flow/actv-ssd/flow_train"
 
     print("Training set size: " + str(len(partition['train'])))
 
@@ -56,11 +57,13 @@ def main():
     val_splits = utils.make_chunks(original_list=partition['train'], size=len(partition['validation']), chunk_size=params['validation_chunk_size'])
 
     time_str = time.strftime("%y%m%d%H%M", time.localtime())
-    bestModelPath = "3stfusion_" + params['model'] + "_" + time_str + ".hdf5"
-    traincsvPath = "3stfusion_train_plot_" + params['model'] + "_" + time_str + ".csv"
-    valcsvPath = "3stfusion_val_plot_" + params['model'] + "_" + time_str + ".csv"
+    filter_type = "gauss"
+    # TODO Change this for joao's paths
+    bestModelPath = "../models/three_stream_fusion_" + filter_type + "_" + params['model'] + "_" + time_str + ".hdf5"
+    traincsvPath = "../plots/three_stream_fusion_train_" + filter_type + "_plot_" + params['model'] + "_" + time_str + ".csv"
+    valcsvPath = "../plots/three_stream_fusion_val_" + filter_type + "_plot_" + params['model'] + "_" + time_str + ".csv"
 
-    print("Building context dictionaries...")
+    print("Building context dictionaries from context files (these should be generated)...")
     Xfilename = "context_files/XContext_train_pastfuture.csv"
     train_context_rows = {}
     with open(Xfilename) as csvDataFile:
@@ -106,54 +109,41 @@ def main():
 
                 epoch_chunks_count += 1
             print("Validating data: ")
-            global_loss = 0.0
-            pose_loss = 0.0
-            object_loss = 0.0
-            human_loss = 0.0
-            pose_acc = 0.0
-            object_acc = 0.0
-            human_acc = 0.0
-            for val_idx in range(num_val_chunks):
+            loss_acc_list = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+            for valIDS in val_splits:
                 x_val_rgb = x_val_flow = x_val_context = y_val_pose = y_val_object = y_val_human = x_train_rgb = x_train_flow = y_train_pose = y_train_object = y_train_human = None
-                x_val_rgb, x_val_flow, x_val_context, y_val_pose, y_val_object, y_val_human = load_split(val_splits[val_idx][:val_chunk_size], labels_val, params['dim'], params['n_channels'], "val", 10, val_context_rows)
+                x_val_rgb, x_val_flow, x_val_context, y_val_pose, y_val_object, y_val_human = load_split(valIDS, labels_val, params['dim'], params['n_channels'], "val", 10, val_context_rows)
 
-                y_val_pose = to_categorical(y_val_pose, num_classes=POSE_CLASSES)
-                y_val_object = to_binary_vector(y_val_object, size=OBJ_HUMAN_CLASSES, labeltype='object-human')
-                y_val_human = to_binary_vector(y_val_human, size=HUMAN_HUMAN_CLASSES, labeltype='human-human')
+                y_val_pose = to_categorical(y_val_pose, num_classes=utils.POSE_CLASSES)
+                y_val_object = utils.to_binary_vector(y_val_object, size=utils.OBJ_HUMAN_CLASSES, labeltype='object-human')
+                y_val_human = utils.to_binary_vector(y_val_human, size=utils.HUMAN_HUMAN_CLASSES, labeltype='human-human')
 
                 vglobal_loss, vpose_loss, vobject_loss, vhuman_loss, vpose_acc, vobject_acc, vhuman_acc = model.evaluate([x_val_rgb, x_val_flow, x_val_context], [y_val_pose, y_val_object, y_val_human], batch_size=params['batch_size'])
-                global_loss += vglobal_loss
-                pose_loss += vpose_loss
-                object_loss += vobject_loss
-                human_loss += vhuman_loss
-                pose_acc += vpose_acc
-                object_acc += vobject_acc
-                human_acc += vhuman_acc
-                # We consider accuracy as the average accuracy over the three types of accuracy
-            global_loss /= num_val_chunks
-            pose_loss /= num_val_chunks
-            object_loss /= num_val_chunks
-            human_loss /= num_val_chunks
-            pose_acc /= num_val_chunks
-            object_acc /= num_val_chunks
-            human_acc /= num_val_chunks
+                loss_acc_list[0] += vglobal_loss
+                loss_acc_list[1] += vpose_loss
+                loss_acc_list[2] += vobject_loss
+                loss_acc_list[3] += vhuman_loss
+                loss_acc_list[4] += vpose_acc
+                loss_acc_list[5] += vobject_acc
+                loss_acc_list[6] += vhuman_acc
+            loss_acc_list = [x / len(val_splits) for x in loss_acc_list]
             with open(valcsvPath, 'a') as f:
                 writer = csv.writer(f)
-                acc = (pose_acc + object_acc + human_acc) / 3
-                writer.writerow([str(acc), pose_acc, object_acc, human_acc, global_loss, pose_loss, object_loss, human_loss])
-            if acc > maxValAcc:
-                print("New best acc " + str(acc) + " loss " + str(global_loss))
+                acc = (loss_acc_list[4] + loss_acc_list[5] + loss_acc_list[6]) / 3
+                writer.writerow([str(acc), loss_acc_list[4], loss_acc_list[5], loss_acc_list[6], loss_acc_list[0], loss_acc_list[1], loss_acc_list[2], loss_acc_list[3]])
+            if loss_acc_list[0] < minValLoss:
+                print("New best loss " + str(loss_acc_list[0]))
                 model.save(bestModelPath)
-                maxValAcc = acc
+                minValLoss = loss_acc_list[0]
 
-    if sendmail:
-        sendemail(from_addr='pythonscriptsisr@gmail.com',
-                  to_addr_list=['pedro_abreu95@hotmail.com', 'joaogamartins@gmail.com'],
-                  cc_addr_list=[],
-                  subject='Finished training 3-stream fusion',
-                  message='Training fusion with following params: ' + str(params),
-                  login='pythonscriptsisr@gmail.com',
-                  password='1!qwerty')
+    if params['email']:
+        utils.sendemail(from_addr='pythonscriptsisr@gmail.com',
+                        to_addr_list=['pedro_abreu95@hotmail.com', 'joaogamartins@gmail.com'],
+                        cc_addr_list=[],
+                        subject='Finished training 3-stream fusion',
+                        message='Training fusion with following params: ' + str(params),
+                        login='pythonscriptsisr@gmail.com',
+                        password='1!qwerty')
 
 
 if __name__ == '__main__':

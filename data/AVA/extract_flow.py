@@ -1,9 +1,9 @@
 import os
 
 set_type = 'test'
-OUT_DIR = '/media/pedro/actv-ssd/flow_' + set_type + "/"
+OUT_DIR = '/media/pedro/actv-ssd/flow_' + set_type + "_warp/"
 DATA_DIR = "/media/pedro/actv-ssd/segments_" + set_type + "/"
-GPU_FLOW_DIR = '../../arch/streams/gpu_flow/build/'
+GPU_FLOW_DIR = '../../arch/code/gpu_flow/build/'
 
 
 def _process_dataset():

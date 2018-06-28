@@ -6,7 +6,7 @@ import csv
 import numpy as np
 from scipy.spatial import distance
 import stream.utils as utils
-from tensorflow.python.keras.utils import to_categorical
+from keras.utils import to_categorical
 
 snippets_video = []
 snippets_time = []

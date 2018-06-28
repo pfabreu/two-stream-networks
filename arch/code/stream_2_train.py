@@ -1,9 +1,9 @@
 # Learn merged rgb-stream filters (visualize them)
 import tensorflow as tf
 import utils
-# from tensorflow.python.keras.utils import multi_gpu_model
-from tensorflow.python.keras.utils import to_categorical
-from tensorflow.python.keras import backend as K
+# from keras.utils import multi_gpu_model
+from keras.utils import to_categorical
+from keras import backend as K
 from stream_2_model import TwoStreamModel
 from stream_2_data import get_AVA_set, get_AVA_labels, load_split
 import time
@@ -23,7 +23,7 @@ def main():
     params = {'dim': (224, 224), 'batch_size': 64,
               'n_classes': len(classes['label_id']), 'n_channels': 3,
               'shuffle': False, 'nb_epochs': 150, 'model': 'resnet50', 'email': True,
-              'train_chunk_size': 2**12, 'validation_chunk_size': 2**12}
+              'train_chunk_size': 2**11, 'validation_chunk_size': 2**11}
     minValLoss = 9999990.0
     encoding = "rgb"
 
