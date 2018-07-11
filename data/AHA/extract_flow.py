@@ -2,7 +2,7 @@ import os
 
 OUT_DIR = '/media/pedro/actv3/AHA/flow/'
 DATA_DIR = "/media/pedro/actv3/AHA/videos/original/"
-GPU_FLOW_DIR = '../../arch/flow_stream/gpu_flow/build/'
+GPU_FLOW_DIR = '../../arch/utils/gpu_flow/build/'
 
 
 def _process_dataset():

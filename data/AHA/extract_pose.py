@@ -6,7 +6,7 @@ import glob
 _VID_DIR = '/media/pedro/actv3/AHA/videos/original/'
 _OUT_DIR = "/media/pedro/actv3/AHA/pose/"
 OPENPOSE_DIR = "/home/pedro/openpose/"
-MODELS_DIR = "../../arch/pose_stream/models"
+MODELS_DIR = "../../arch/models/openpose_models/"
 
 # Load video
 vid_count = 0

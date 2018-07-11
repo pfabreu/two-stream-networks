@@ -1,9 +1,8 @@
-from tensorflow.python.keras.layers import concatenate, Dropout, Dense
-from tensorflow.python.keras.models import Model
-from tensorflow.python.keras.optimizers import Adam
+from keras.layers import concatenate, Dropout, Dense
+from keras.models import Model
+from keras.optimizers import Adam
 from rgb_model import rgb_create_model
 from flow_model import flow_create_model
-from context_model import context_create_model
 import sys
 import utils
 
@@ -38,23 +37,9 @@ def prepare_flow_stream(classes, flow_weights, model_name):
         return original_flow_stream
 
 
-def prepare_context_stream(classes, context_weights):
-    original_context_stream = context_create_model(classes, model_name="mlp", in_shape=(720,))
-    if context_weights is None:
-        print("Aborting, No saved flow_weights weights file, please use fusion weights!")
-        sys.exit(1)
-    else:
-        original_context_stream.load_weights(context_weights)
-        for layer in original_context_stream.layers:
-            # Change layer names (add an of for the optical flow layers)
-            layer.name = layer.name + "ctx"
-            layer.trainable = False
-        return original_context_stream
+class TwoStreamModel():
 
-
-class ThreeStreamModel():
-
-    def __init__(self, classes, rgb_weights, flow_weights, context_weights):
+    def __init__(self, classes, rgb_weights, flow_weights):
         # Simple non-time-distributed model
         rgb_m = prepare_rgb_stream(classes, rgb_weights, "resnet50")
         rgb_m.layers.pop()
@@ -64,16 +49,10 @@ class ThreeStreamModel():
         flow_m.layers.pop()
         flow_m.layers.pop()
         flow_m.layers.pop()
-        context_m = prepare_context_stream(classes, context_weights)
-        print context_m.summary()
-        context_m.layers.pop()
-        context_m.layers.pop()
-        context_m.layers.pop()
-        # TODO Maybe not so many pops
         # print(flow_m.summary())
         # print(rgb_m.summary())
         # Since mode is concat the next conv layer after will learn rgb+flow filters
-        m = concatenate([rgb_m.layers[-1].output, flow_m.layers[-1].output, context_m.layers[-1].output, ], axis=-1)
+        m = concatenate([rgb_m.layers[-1].output, flow_m.layers[-1].output, ], axis=-1)
         # Convolutional fusion layer
         # x = Conv2D(64, (3, 3), strides=(1, 1), activation='relu')(m)
         # Dense fusion layer
@@ -90,7 +69,7 @@ class ThreeStreamModel():
         pred_obj_human = Dense(utils.OBJ_HUMAN_CLASSES, activation='sigmoid', name='pred_obj_human')(x)
         pred_human_human = Dense(utils.HUMAN_HUMAN_CLASSES, activation='sigmoid', name='pred_human_human')(x)
 
-        self.model = Model(inputs=[rgb_m.input, flow_m.input, context_m.input], outputs=[pred_pose, pred_obj_human, pred_human_human])
+        self.model = Model(inputs=[rgb_m.input, flow_m.input], outputs=[pred_pose, pred_obj_human, pred_human_human])
 
     def compile_model(self, soft_sigmoid=False):
         if soft_sigmoid is False:

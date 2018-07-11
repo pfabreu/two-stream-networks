@@ -2,8 +2,8 @@
 import tensorflow as tf
 import utils
 # from tensorflow.python.keras.utils import multi_gpu_model
-from tensorflow.python.keras.utils import to_categorical
-from tensorflow.python.keras import backend as K
+from keras.utils import to_categorical
+from keras import backend as K
 from stream_3_model import ThreeStreamModel
 from stream_3_data import get_AVA_set, get_AVA_labels, load_split
 import time
@@ -12,8 +12,8 @@ import timeit
 
 
 def main():
-    # root_dir = '../../../AVA2.1/' # root_dir for the files
-    root_dir = '../../data/AVA/files/'
+    root_dir = '../../../AVA2.1/'  # root_dir for the files
+    # root_dir = '../../data/AVA/files/'
     K.clear_session()
 
     # Load list of action classes and separate them (from _stream)
@@ -25,46 +25,43 @@ def main():
               'shuffle': False, 'nb_epochs': 150, 'model': 'resnet50', 'email': True,
               'train_chunk_size': 2**11, 'validation_chunk_size': 2**11}
     minValLoss = 9999990.0
-    encoding = "rgb"
 
     # Get ID's and labels from the actual dataset
     partition = {}
-    partition['train'] = get_AVA_set(classes=classes, filename=root_dir + "ava_mini_split_train_big.csv", train=True)  # IDs for training
-    partition['validation'] = get_AVA_set(classes=classes, filename=root_dir + "ava_mini_split_val_big.csv", train=True)  # IDs for validation
+    partition['train'] = get_AVA_set(classes=classes, filename=root_dir + "AVA_Train_Custom_Corrected.csv", train=True)  # IDs for training
+    partition['validation'] = get_AVA_set(classes=classes, filename=root_dir + "AVA_Val_Custom_Corrected.csv", train=True)  # IDs for validation
 
     # Labels
-    labels_train = get_AVA_labels(classes, partition, "train", filename=root_dir + "ava_mini_split_train_big.csv")
-    labels_val = get_AVA_labels(classes, partition, "validation", filename=root_dir + "ava_mini_split_val_big.csv")
+    labels_train = get_AVA_labels(classes, partition, "train", filename=root_dir + "AVA_Train_Custom_Corrected.csv")
+    labels_val = get_AVA_labels(classes, partition, "validation", filename=root_dir + "AVA_Val_Custom_Corrected.csv")
 
     # Create + compile model, load saved weights if they exist
-    rgb_weights = "rgb_stream/models/rgb_resnet50_1805290059.hdf5"
-    flow_weights = "flow_stream/models/flow_resnet50_1805290120.hdf5"
-    context_weights = "context_stream/models/bestModelContext_256.hdf5"
+    rgb_weights = "saved_models/rgb_fovea_resnet50_1806301953.hdf5"
+    flow_weights = "saved_models/flow_resnet50_1806281901.hdf5"
+    context_weights = "saved_models/bestModelcontext128.hdf5"
     nsmodel = ThreeStreamModel(classes['label_id'], rgb_weights, flow_weights, context_weights)
     nsmodel.compile_model(soft_sigmoid=True)
     model = nsmodel.model
-    modelpath = "3stfusion_resnet50_1806060359.hdf5"  # Pick up where I left
+    modelpath = None
     if modelpath is not None:
         print("Loading previous weights")
         model.load_weights(modelpath)
-    rgb_dir = "/media/pedro/actv-ssd/foveated_train_gc/"
-    flow_dir = "test/flow/actv-ssd/flow_train"
 
     print("Training set size: " + str(len(partition['train'])))
 
     # Load splits
     train_splits = utils.make_chunks(original_list=partition['train'], size=len(partition['train']), chunk_size=params['train_chunk_size'])
-    val_splits = utils.make_chunks(original_list=partition['train'], size=len(partition['validation']), chunk_size=params['validation_chunk_size'])
+    val_splits = utils.make_chunks(original_list=partition['validation'], size=len(partition['validation']), chunk_size=params['validation_chunk_size'])
+    rgb_dir = "../../../foveated_"
+    flow_dir = "../../../flow_"
 
     time_str = time.strftime("%y%m%d%H%M", time.localtime())
-    filter_type = "gauss"
-    # TODO Change this for joao's paths
-    bestModelPath = "../models/three_stream_fusion_" + filter_type + "_" + params['model'] + "_" + time_str + ".hdf5"
-    traincsvPath = "../plots/three_stream_fusion_train_" + filter_type + "_plot_" + params['model'] + "_" + time_str + ".csv"
-    valcsvPath = "../plots/three_stream_fusion_val_" + filter_type + "_plot_" + params['model'] + "_" + time_str + ".csv"
+    bestModelPath = "three_stream_fusion_elfov" + params['model'] + "_" + time_str + ".hdf5"
+    traincsvPath = "three_stream_train_elfov_plot_" + params['model'] + "_" + time_str + ".csv"
+    valcsvPath = "three_stream_val_elfov_plot_" + params['model'] + "_" + time_str + ".csv"
 
     print("Building context dictionaries from context files (these should be generated)...")
-    Xfilename = "context_files/XContext_train_pastfuture.csv"
+    Xfilename = root_dir + "context_files/XContext_train_pastfuture.csv"
     train_context_rows = {}
     with open(Xfilename) as csvDataFile:
         csvReader = csv.reader(csvDataFile)
@@ -73,7 +70,7 @@ def main():
                 "@" + str(row[2]) + "@" + str(row[3]) + "@" + str(row[4]) + "@" + str(row[5])
             train_context_rows[rkey] = row[6]
 
-    Xfilename = "context_files/XContext_val_pastfuture.csv"
+    Xfilename = root_dir + "context_files/XContext_val_pastfuture.csv"
     val_context_rows = {}
     with open(Xfilename) as csvDataFile:
         csvReader = csv.reader(csvDataFile)
@@ -90,7 +87,7 @@ def main():
                 start_time = timeit.default_timer()
                 # -----------------------------------------------------------
                 x_val_rgb = x_val_flow = x_val_context = y_val_pose = y_val_object = y_val_human = x_train_rgb = x_train_flow = y_train_pose = y_train_object = y_train_human = None
-                x_train_rgb, x_train_flow, x_train_context, y_train_pose, y_train_object, y_train_human = load_split(trainIDS, labels_train, params['dim'], params['n_channels'], "train", 10, train_context_rows)
+                x_train_rgb, x_train_flow, x_train_context, y_train_pose, y_train_object, y_train_human = load_split(trainIDS, labels_train, params['dim'], params['n_channels'], "train", 10, train_context_rows, rgb_dir, flow_dir)
 
                 y_train_pose = to_categorical(y_train_pose, num_classes=utils.POSE_CLASSES)
                 y_train_object = utils.to_binary_vector(y_train_object, size=utils.OBJ_HUMAN_CLASSES, labeltype='object-human')
@@ -112,7 +109,7 @@ def main():
             loss_acc_list = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
             for valIDS in val_splits:
                 x_val_rgb = x_val_flow = x_val_context = y_val_pose = y_val_object = y_val_human = x_train_rgb = x_train_flow = y_train_pose = y_train_object = y_train_human = None
-                x_val_rgb, x_val_flow, x_val_context, y_val_pose, y_val_object, y_val_human = load_split(valIDS, labels_val, params['dim'], params['n_channels'], "val", 10, val_context_rows)
+                x_val_rgb, x_val_flow, x_val_context, y_val_pose, y_val_object, y_val_human = load_split(valIDS, labels_val, params['dim'], params['n_channels'], "val", 10, val_context_rows, rgb_dir, flow_dir)
 
                 y_val_pose = to_categorical(y_val_pose, num_classes=utils.POSE_CLASSES)
                 y_val_object = utils.to_binary_vector(y_val_object, size=utils.OBJ_HUMAN_CLASSES, labeltype='object-human')

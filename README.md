@@ -20,11 +20,11 @@ We also provide code for Two Stream Action Recognition in Keras for the AVA and 
 
 ### Data
 
-For the AVA dataset due to computational power constraints and for quickly testing the architecture, we made our own split of the dataset called mini-AVA, you can download it here:
+For the AVA dataset due to computational power constraints and for quickly testing the architecture, we made our own split of the dataset called mini-AVA, you can download it here: https://drive.google.com/open?id=1CfXJVxekmAtdxX6ng_j6Ed-XfBy6Bpk2
 
 For the AHA dataset you can download our provided data it here: https://drive.google.com/drive/folders/11sfLyjtmtakF9kDzWEpAVwD5k4zjDkdV
 
-For the UCF101 dataset you can download our provided data here (only flow (as rgb images), rgb (rescaled to 224x224) and pose (original and rescaled to 224x224)):
+For the UCF101 dataset you can download our provided data here (only flow (as rgb images), rgb (rescaled to 224x224) and pose (original and rescaled to 224x224)): https://drive.google.com/open?id=16DXjG9J5YNQoXKPRaHaLU20MHcQijAs-
 
 ## License
 

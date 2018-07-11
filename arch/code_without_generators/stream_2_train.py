@@ -17,44 +17,45 @@ def main():
     K.clear_session()
 
     # Load list of action classes and separate them (from utils_stream)
-    classes = utils.get_AVA_classes(root_dir + 'ava_action_list_v2.1.csv')
+    classes = utils.get_AVA_classes(root_dir + 'ava_action_list_custom.csv')
 
     # Parameters for training (batch size 32 is supposed to be the best?)
     params = {'dim': (224, 224), 'batch_size': 64,
               'n_classes': len(classes['label_id']), 'n_channels': 3,
               'shuffle': False, 'nb_epochs': 150, 'model': 'resnet50', 'email': True,
-              'train_chunk_size': 2**11, 'validation_chunk_size': 2**11}
+              'train_chunk_size': 2**10, 'validation_chunk_size': 2**10}
     minValLoss = 9999990.0
     encoding = "rgb"
 
     # Get ID's and labels from the actual dataset
     partition = {}
-    partition['train'] = get_AVA_set(classes=classes, filename=root_dir + "ava_mini_split_train_big.csv", train=True)  # IDs for training
-    partition['validation'] = get_AVA_set(classes=classes, filename=root_dir + "ava_mini_split_val_big.csv", train=True)  # IDs for validation
+    partition['train'] = get_AVA_set(classes=classes, filename=root_dir + "AVA_Train_Custom_Corrected.csv", train=True)  # IDs for training
+    partition['validation'] = get_AVA_set(classes=classes, filename=root_dir + "AVA_Val_Custom_Corrected.csv", train=True)  # IDs for validation
 
     # Labels
-    labels_train = get_AVA_labels(classes, partition, "train", filename=root_dir + "ava_mini_split_train_big.csv")
-    labels_val = get_AVA_labels(classes, partition, "validation", filename=root_dir + "ava_mini_split_val_big.csv")
+    labels_train = get_AVA_labels(classes, partition, "train", filename=root_dir + "AVA_Train_Custom_Corrected.csv")
+    labels_val = get_AVA_labels(classes, partition, "validation", filename=root_dir + "AVA_Val_Custom_Corrected.csv")
 
     # Create + compile model, load saved weights if they exist
-    rgb_weights = "rgb_resnet50_1805290059.hdf5"
-    flow_weights = "flow_resnet50_1805290120.hdf5"
+    rgb_weights = "../models/rgb_gauss_resnet50_1806290918.hdf5"
+    flow_weights = "../models/flow_resnet50_1806281901.hdf5"
+
+    # Model
     nsmodel = TwoStreamModel(classes['label_id'], rgb_weights, flow_weights)
     nsmodel.compile_model(soft_sigmoid=True)
     model = nsmodel.model
 
     print("Training set size: " + str(len(partition['train'])))
 
-    # Load splits
+    # Load splits as chunks (see utils)
     train_splits = utils.make_chunks(original_list=partition['train'], size=len(partition['train']), chunk_size=params['train_chunk_size'])
     val_splits = utils.make_chunks(original_list=partition['train'], size=len(partition['validation']), chunk_size=params['validation_chunk_size'])
-    rgb_dir = "/media/pedro/actv-ssd/foveated_train_gc/"
-    flow_dir = "test/flow/actv-ssd/flow_train"
-
-    time_str = time.strftime("%y%m%d%H%M", time.localtime())
-
     filter_type = "gauss"
-    # TODO Change this for joao's paths
+    rgb_dir = "/media/pedro/actv-ssd/" + filter_type + "_"
+    flow_dir = "/media/pedro/actv-ssd/flow_"
+
+    # Paths for saving model and plots
+    time_str = time.strftime("%y%m%d%H%M", time.localtime())
     bestModelPath = "../models/two_stream_fusion_" + filter_type + "_" + params['model'] + "_" + time_str + ".hdf5"
     traincsvPath = "../plots/two_stream_fusion_train_" + filter_type + "_plot_" + params['model'] + "_" + time_str + ".csv"
     valcsvPath = "../plots/two_stream_fusion_val_" + filter_type + "_plot_" + params['model'] + "_" + time_str + ".csv"
@@ -66,7 +67,7 @@ def main():
                 start_time = timeit.default_timer()
                 # -----------------------------------------------------------
                 x_val_rgb = x_val_flow = y_val_pose = y_val_object = y_val_human = x_train_rgb = x_train_flow = y_train_pose = y_train_object = y_train_human = None
-                x_train_rgb, x_train_flow, y_train_pose, y_train_object, y_train_human = load_split(trainIDS, labels_train, params['dim'], params['n_channels'], 10, rgb_dir, flow_dir, filter_type, encoding, train=True)
+                x_train_rgb, x_train_flow, y_train_pose, y_train_object, y_train_human = load_split(trainIDS, labels_train, params['dim'], params['n_channels'], 10, rgb_dir, flow_dir, "train", encoding, train=True)
 
                 y_train_pose = to_categorical(y_train_pose, num_classes=utils.POSE_CLASSES)
                 y_train_object = utils.to_binary_vector(y_train_object, size=utils.OBJ_HUMAN_CLASSES, labeltype='object-human')
@@ -90,7 +91,7 @@ def main():
 
             for valIDS in val_splits:
                 x_val_rgb = x_val_flow = y_val_pose = y_val_object = y_val_human = x_train_rgb = x_train_flow = y_train_pose = y_train_object = y_train_human = None
-                x_val_rgb, x_val_flow, y_val_pose, y_val_object, y_val_human = load_split(valIDS, labels_val, params['dim'], params['n_channels'], 10, rgb_dir, flow_dir, filter_type, encoding, train=True)
+                x_val_rgb, x_val_flow, y_val_pose, y_val_object, y_val_human = load_split(valIDS, labels_val, params['dim'], params['n_channels'], 10, rgb_dir, flow_dir, "val", encoding, train=True)
 
                 y_val_pose = to_categorical(y_val_pose, num_classes=utils.POSE_CLASSES)
                 y_val_object = utils.to_binary_vector(y_val_object, size=utils.OBJ_HUMAN_CLASSES, labeltype='object-human')

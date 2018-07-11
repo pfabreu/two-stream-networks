@@ -21,7 +21,7 @@ def augment_aha():
     #label_names = ['2-minute-step']
     label_names = ['2-minute-step', '30-second-chair-stand',
                    '8-feet-up-and-go', 'unipedal-stance']
-    root_dir = '/media/pedro/actv4/AHA_FMH/'
+    root_dir = '/media/pedro/actv3/AHA/'
 
     i_width = 224
     i_height = 224

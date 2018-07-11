@@ -32,16 +32,21 @@ def main():
 
     # Get ID's and labels from the actual dataset
     partition = {}
-    partition['train'] = get_AVA_set(classes=classes, filename=root_dir + "AVA_Train_Custom_Corrected.csv", soft_sigmoid=soft_sigmoid)  # IDs for training
-    partition['validation'] = get_AVA_set(classes=classes, filename=root_dir + "AVA_Val_Custom_Corrected.csv", soft_sigmoid=soft_sigmoid)  # IDs for validation
+    partition['train'] = get_AVA_set(classes=classes, filename=root_dir +
+                                     "AVA_Train_Custom_Corrected.csv", soft_sigmoid=soft_sigmoid)  # IDs for training
+    partition['validation'] = get_AVA_set(
+        classes=classes, filename=root_dir + "AVA_Val_Custom_Corrected.csv", soft_sigmoid=soft_sigmoid)  # IDs for validation
 
     # Labels
-    labels_train = get_AVA_labels(classes, partition, "train", filename=root_dir + "AVA_Train_Custom_Corrected.csv", soft_sigmoid=soft_sigmoid)
-    labels_val = get_AVA_labels(classes, partition, "validation", filename=root_dir + "AVA_Val_Custom_Corrected.csv", soft_sigmoid=soft_sigmoid)
+    labels_train = get_AVA_labels(classes, partition, "train", filename=root_dir +
+                                  "AVA_Train_Custom_Corrected.csv", soft_sigmoid=soft_sigmoid)
+    labels_val = get_AVA_labels(classes, partition, "validation", filename=root_dir +
+                                "AVA_Val_Custom_Corrected.csv", soft_sigmoid=soft_sigmoid)
 
     # Create + compile model, load saved weights if they exist
     saved_weights = None
-    model = rgb_create_model(classes=classes['label_id'], soft_sigmoid=soft_sigmoid, model_name=params['model'], freeze_all=params['freeze_all'], conv_fusion=params['conv_fusion'])
+    model = rgb_create_model(classes=classes['label_id'], soft_sigmoid=soft_sigmoid, model_name=params[
+                             'model'], freeze_all=params['freeze_all'], conv_fusion=params['conv_fusion'])
     model = compile_model(model, soft_sigmoid=soft_sigmoid)
     if saved_weights is not None:
         model.load_weights(saved_weights)
@@ -53,15 +58,20 @@ def main():
     print("Training set size: " + str(len(partition['train'])))
 
     # Make spltis
-    train_splits = utils.make_chunks(original_list=partition['train'], size=len(partition['train']), chunk_size=params['train_chunk_size'])
-    val_splits = utils.make_chunks(original_list=partition['validation'], size=len(partition['validation']), chunk_size=params['validation_chunk_size'])
+    train_splits = utils.make_chunks(original_list=partition['train'], size=len(
+        partition['train']), chunk_size=params['train_chunk_size'])
+    val_splits = utils.make_chunks(original_list=partition['validation'], size=len(
+        partition['validation']), chunk_size=params['validation_chunk_size'])
 
     time_str = time.strftime("%y%m%d%H%M", time.localtime())
-    filter_type = "gauss"
+    filter_type = "rgb"
     # TODO Change this for joao's paths
-    bestModelPath = "../models/rgb_" + filter_type + "_" + params['model'] + "_" + time_str + ".hdf5"
-    traincsvPath = "../plots/rgb_train_" + filter_type + "_plot_" + params['model'] + "_" + time_str + ".csv"
-    valcsvPath = "../plots/rgb_val_" + filter_type + "_plot_" + params['model'] + "_" + time_str + ".csv"
+    bestModelPath = "../models/rgb_" + filter_type + \
+        "_" + params['model'] + "_" + time_str + ".hdf5"
+    traincsvPath = "../plots/rgb_train_" + filter_type + \
+        "_plot_" + params['model'] + "_" + time_str + ".csv"
+    valcsvPath = "../plots/rgb_val_" + filter_type + \
+        "_plot_" + params['model'] + "_" + time_str + ".csv"
 
     with tf.device('/gpu:0'):
         for epoch in range(params['nb_epochs']):
@@ -71,14 +81,19 @@ def main():
                 start_time = timeit.default_timer()
                 # -----------------------------------------------------------
                 x_val = y_val_pose = y_val_object = y_val_human = x_train = y_train_pose = y_train_object = y_train_human = None
-                x_train, y_train_pose, y_train_object, y_train_human = load_split(trainIDS, labels_train, params['dim'], params['n_channels'], "train", filter_type, soft_sigmoid=soft_sigmoid)
+                x_train, y_train_pose, y_train_object, y_train_human = load_split(trainIDS, labels_train, params[
+                                                                                  'dim'], params['n_channels'], "train", filter_type, soft_sigmoid=soft_sigmoid)
 
                 y_t = []
-                y_t.append(to_categorical(y_train_pose, num_classes=utils.POSE_CLASSES))
-                y_t.append(utils.to_binary_vector(y_train_object, size=utils.OBJ_HUMAN_CLASSES, labeltype='object-human'))
-                y_t.append(utils.to_binary_vector(y_train_human, size=utils.HUMAN_HUMAN_CLASSES, labeltype='human-human'))
+                y_t.append(to_categorical(
+                    y_train_pose, num_classes=utils.POSE_CLASSES))
+                y_t.append(utils.to_binary_vector(
+                    y_train_object, size=utils.OBJ_HUMAN_CLASSES, labeltype='object-human'))
+                y_t.append(utils.to_binary_vector(
+                    y_train_human, size=utils.HUMAN_HUMAN_CLASSES, labeltype='human-human'))
 
-                history = model.fit(x_train, y_t, batch_size=params['batch_size'], epochs=1, verbose=0)
+                history = model.fit(x_train, y_t, batch_size=params[
+                                    'batch_size'], epochs=1, verbose=0)
                 utils.learning_rate_schedule(model, epoch, params['nb_epochs'])
                 # ------------------------------------------------------------
                 elapsed = timeit.default_timer() - start_time
@@ -98,26 +113,34 @@ def main():
             loss_acc_list = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
             for valIDS in val_splits:
                 x_val = y_val_pose = y_val_object = y_val_human = x_train = y_train_pose = y_train_object = y_train_human = None
-                x_val, y_val_pose, y_val_object, y_val_human = load_split(valIDS, labels_val, params['dim'], params['n_channels'], "val", filter_type, soft_sigmoid=soft_sigmoid)
+                x_val, y_val_pose, y_val_object, y_val_human = load_split(valIDS, labels_val, params[
+                                                                          'dim'], params['n_channels'], "val", filter_type, soft_sigmoid=soft_sigmoid)
                 y_v = []
-                y_v.append(to_categorical(y_val_pose, num_classes=utils.POSE_CLASSES))
-                y_v.append(utils.to_binary_vector(y_val_object, size=utils.OBJ_HUMAN_CLASSES, labeltype='object-human'))
-                y_v.append(utils.to_binary_vector(y_val_human, size=utils.HUMAN_HUMAN_CLASSES, labeltype='human-human'))
+                y_v.append(to_categorical(
+                    y_val_pose, num_classes=utils.POSE_CLASSES))
+                y_v.append(utils.to_binary_vector(
+                    y_val_object, size=utils.OBJ_HUMAN_CLASSES, labeltype='object-human'))
+                y_v.append(utils.to_binary_vector(
+                    y_val_human, size=utils.HUMAN_HUMAN_CLASSES, labeltype='human-human'))
 
-                vglobal_loss, vpose_loss, vobject_loss, vhuman_loss, vpose_acc, vobject_acc, vhuman_acc = model.evaluate(x_val, y_v, batch_size=params['batch_size'])
+                vglobal_loss, vpose_loss, vobject_loss, vhuman_loss, vpose_acc, vobject_acc, vhuman_acc = model.evaluate(
+                    x_val, y_v, batch_size=params['batch_size'])
                 loss_acc_list[0] += vglobal_loss
                 loss_acc_list[1] += vpose_loss
                 loss_acc_list[2] += vobject_loss
                 loss_acc_list[3] += vhuman_loss
                 loss_acc_list[4] += vpose_acc
                 loss_acc_list[5] += vobject_acc
+
                 loss_acc_list[6] += vhuman_acc
             # Average over all validation chunks
             loss_acc_list = [x / len(val_splits) for x in loss_acc_list]
             with open(valcsvPath, 'a') as f:
                 writer = csv.writer(f)
-                # We consider accuracy as the average accuracy over the three types of accuracy
-                acc = (loss_acc_list[4] + loss_acc_list[5] + loss_acc_list[6]) / 3
+                # We consider accuracy as the average accuracy over the three
+                # types of accuracy
+                acc = (loss_acc_list[4] +
+                       loss_acc_list[5] + loss_acc_list[6]) / 3
                 writer.writerow([str(acc), loss_acc_list[4], loss_acc_list[5], loss_acc_list[6],
                                  loss_acc_list[0], loss_acc_list[1], loss_acc_list[2], loss_acc_list[3]])
             if loss_acc_list[0] < minValLoss:

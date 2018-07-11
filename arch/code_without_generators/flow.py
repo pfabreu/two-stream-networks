@@ -30,8 +30,8 @@ def main():
     params = {'dim': (224, 224), 'batch_size': 64,
               'n_classes': len(classes['label_id']), 'n_channels': 20,
               'shuffle': False, 'nb_epochs': 200, 'model': "resnet50", 'email': False,
-              'freeze_all': True, 'conv_fusion': False, 'train_chunk_size': 2**11,
-              'validation_chunk_size': 2**11}
+              'freeze_all': True, 'conv_fusion': False, 'train_chunk_size': 2**10,
+              'validation_chunk_size': 2**10}
     minValLoss = 9999990.0
     soft_sigmoid = True
     warp = False
@@ -84,11 +84,11 @@ def main():
 
     time_str = time.strftime("%y%m%d%H%M", time.localtime())
     if warp is True:
-        bestModelPath = "../models/flow_warp_customcsv_" + params['model'] + "_" + time_str + ".hdf5"
+        bestModelPath = "../models/flow_warp_" + params['model'] + "_" + time_str + ".hdf5"
         traincsvPath = "../plots/flow_warp_customcsv_train_plot_" + params['model'] + "_" + time_str + ".csv"
         valcsvPath = "../plots/flow_warp_customcsv_val_plot_" + params['model'] + "_" + time_str + ".csv"
     else:
-        bestModelPath = "../models/flow_customcsv_" + params['model'] + "_" + time_str + ".hdf5"
+        bestModelPath = "../models/flow__" + params['model'] + "_" + time_str + ".hdf5"
         traincsvPath = "../plots/flow_customcsv_train_plot_" + params['model'] + "_" + time_str + ".csv"
         valcsvPath = "../plots/flow_customcsv_val_plot_" + params['model'] + "_" + time_str + ".csv"
     first_epoch = True

@@ -13,9 +13,11 @@ def main():
     # Load list of action classes and separate them (from utils_stream)
     classes = get_AVA_classes('../data/AVA/files/ava_action_list_v2.1.csv')
 
+    root_dir = '../../data/AVA/files/'
+
     # Get ID's and labels from the actual dataset
     partition = {}
-    partition['val'] = get_AVA_set(classes=classes, directory="/media/pedro/actv-ssd/foveated_val_gc/")  # IDs for training
+    partition['test'] = get_AVA_set(classes=classes, directory="/media/pedro/actv-ssd/foveated_val_gc/")  # IDs for training
 
     # Create + compile model, load saved weights if they exist
     # Create + compile model, load saved weights if they exist
@@ -28,7 +30,7 @@ def main():
     modelpath = "3stfusion_resnet50_1806060359.hdf5"  # Pick up where I left
     model.load_weights(modelpath)
 
-    print("Val set size: " + str(len(partition['val'])))
+    print("Testing set size: " + str(len(partition['val'])))
 
     # Load first train_size of partition{'train'}
     val_chunk_size = 1025
@@ -36,7 +38,7 @@ def main():
         print(val_chunk_size + " has to be a multiple of 5")
         sys.exit(0)
     seq = partition['val']
-    val_splits = [seq[i:i + val_chunk_size] for i in range(0, len(seq), val_chunk_size)]
+    test_splits = [seq[i:i + val_chunk_size] for i in range(0, len(seq), val_chunk_size)]
     print("Validation splits: " + str(len(val_splits)))
     val_chunks_count = 0
     rgb_dir = "/media/pedro/actv-ssd/foveated_val_gc"
@@ -44,7 +46,7 @@ def main():
     Xfilename = "starter_list.csv"
     val_context_rows = {}
     time_str = time.strftime("%y%m%d%H%M", time.localtime())
-    output_csv = "output_3stream_val_" + time_str + ".csv"
+    output_csv = "output_3stream_test_" + time_str + ".csv"
     with open(Xfilename) as csvDataFile:
         csvReader = csv.reader(csvDataFile)
         for row in csvReader:

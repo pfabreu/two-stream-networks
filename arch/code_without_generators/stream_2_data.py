@@ -7,36 +7,32 @@ import glob
 import utils
 
 
-def load_test_split(ids, labels, dim, n_channels, gen_type, of_len, context_dict):
+def load_split(ids, labels, dim, n_channels, of_len, rgb_dir, flow_dir, set_type, encoding, train):
     'Generates data containing batch_size samples'
     resize = False
     sep = "@"
-    root_dir = "/media/pedro/actv-ssd/flow_" + gen_type
     # Initialization, assuming its bidimensional (for now)
     X_rgb = np.empty([len(ids), dim[0], dim[1], 3])
     X_flow = np.empty([len(ids), dim[0], dim[1], 20])
-    X_context = np.empty([len(ids), 720])  # TODO 720 is hardcoded but can be derived from context params
     ypose = np.empty(len(ids))
     yobject = []
     yhuman = []
-
     # Generate data
     for i, ID in enumerate(ids):
         # Get image from ID (since we are using opencv we get np array)
         split_id = ID.split(sep)
         vid_name = split_id[0]
         keyframe = split_id[1]
-        bb_top_x = float(split_id[2])
-        bb_top_y = float(split_id[3])
-        bb_bot_x = float(split_id[4])
-        bb_bot_y = float(split_id[5])
         vid_name = vid_name + "_" + keyframe
-        bbs = str(bb_top_x) + "_" + str(bb_top_y) + "_" + str(bb_bot_x) + "_" + str(bb_bot_y)
+        bbs = str(float(split_id[2])) + "_" + str(float(split_id[3])) + \
+            "_" + str(float(split_id[4])) + "_" + str(float(split_id[5]))
         rgb_frame = split_id[6]
-        # Many names: 12 = 25 = 1, 17 = 35 = 2, 22 = 45 = 3, 27 = 55 = 4, 32 = 65 = 5
-        of_frame = 12 + (int(rgb_frame) - 1) * 5  # conversion of rgb to of name format
+        # 12 = 25 = 1, 17 = 35 = 2, 22 = 45 = 3, 27 = 55 = 4, 32 = 65 = 5
+        # conversion of rgb to of name format
+        optical_flow_frame = 12 + (int(rgb_frame) - 1) * 5
         # Is this the correct format? Yes, the format has to use _
-        img_name = "/media/pedro/actv-ssd/foveated_" + gen_type + "_gc/" + vid_name + "_" + bbs + "/frames" + rgb_frame + ".jpg"
+        img_name = rgb_dir + set_type + "/" + \
+            vid_name + "_" + bbs + "/frames" + rgb_frame + ".jpg"
         if not os.path.exists(img_name):
             print(img_name)
             print("[Error] File does not exist!")
@@ -48,36 +44,43 @@ def load_test_split(ids, labels, dim, n_channels, gen_type, of_len, context_dict
         # Store sample
         X_rgb[i, ] = img
 
-        context_key = vid_name + \
-            "@" + str(bb_top_x) + "@" + str(bb_top_y) + "@" + str(bb_bot_x) + "@" + str(bb_bot_y)
-        context_str = context_dict[context_key]
-        X_context[i, ] = np.array(context_str.split(" "))
-
         of_volume = np.zeros(
             shape=(dim[0], dim[1], 20))
         v = 0
         for fn in range(-of_len // 2, of_len // 2):
-            of_frame = of_frame + fn
+            of_frame = optical_flow_frame + fn
+            if encoding == "grayscale":
+                x_img_name = flow_dir + set_type + "/x/" + vid_name + \
+                    "/frame" + str('{:06}'.format(of_frame)) + ".jpg"
+                x_img = cv2.imread(x_img_name, cv2.IMREAD_GRAYSCALE)
+                if x_img is None:
+                    continue
+                y_img_name = flow_dir + set_type + "/y/" + vid_name + \
+                    "/frame" + str('{:06}'.format(of_frame)) + ".jpg"
+                y_img = cv2.imread(y_img_name, cv2.IMREAD_GRAYSCALE)
+                if y_img is None:
+                    continue
+            elif encoding == "rgb":
+                f_img_name = flow_dir + set_type + "/" + vid_name + "/frame" + str('{:06}'.format(of_frame)) + ".jpg"
+                # print(f_img_name)
+                f_img = cv2.imread(f_img_name)
+                x_img = f_img[:, :, 0]
+                y_img = f_img[:, :, 1]
 
-            x_img_name = root_dir + "/x/" + vid_name + "/frame" + str('{:06}'.format(of_frame)) + ".jpg"
-            x_img = cv2.imread(x_img_name, cv2.IMREAD_GRAYSCALE)
-            if x_img is None:
-                continue
-            y_img_name = root_dir + "/y/" + vid_name + "/frame" + str('{:06}'.format(of_frame)) + ".jpg"
-            y_img = cv2.imread(y_img_name, cv2.IMREAD_GRAYSCALE)
-            if y_img is None:
-                continue
             # Put them in img_volume (x then y)
             of_volume[:, :, v] = x_img
             v += 1
             of_volume[:, :, v] = y_img
             v += 1
         X_flow[i, ] = of_volume
-        ypose[i] = labels[ID]['pose']
-        yobject.append(labels[ID]['human-object'])
-        yhuman.append(labels[ID]['human-human'])
-
-    return X_rgb, X_flow, X_context, ypose, yobject, yhuman
+        if train is True:
+            ypose[i] = labels[ID]['pose']
+            yobject.append(labels[ID]['human-object'])
+            yhuman.append(labels[ID]['human-human'])
+    if train is True:
+        return X_rgb, X_flow, ypose, yobject, yhuman
+    else:
+        return X_rgb, X_flow
 
 
 def get_AVA_set(classes, filename, train):
@@ -134,7 +137,6 @@ def get_AVA_set(classes, filename, train):
 def get_AVA_labels(classes, partition, set_type, filename, soft_sigmoid=False):
     sep = "@"  # Must not exist in any of the IDs
 
-    # HUMAN_HUMAN_CLASSES = 17
     labels = {}
     # Parse partition and create a correspondence to an integer in classes
     class_ids = classes['label_id']

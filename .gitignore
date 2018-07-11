@@ -1,9 +1,9 @@
 # Custom folders or files to ignore
 # These are other repos
-arch/code/foveated_yolt/
-arch/code/gpu_flow/
-arch/code/ActivityNet/
-arch/code/person_detector/
+arch/utils/foveated_yolt/
+arch/utils/gpu_flow/
+arch/utils/ActivityNet/
+arch/utils/person_detector/
 
 # Ignore models
 arch/models/

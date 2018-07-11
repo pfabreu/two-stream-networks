@@ -4,13 +4,14 @@ import sys
 import glob
 
 set_type = "train"
-_DATA_DIR = "segments_train/"
-_OUT_DIR = "big_split_segments_train/"
+
+_DATA_DIR = "/media/pedro/actv-ssd/segments_val/"
+_OUT_DIR = "/media/pedro/actv-ssd/rgb_val/"
 snippets_video = []
 snippets_time = []
 
 
-with open('AVA2.1/ava_mini_split_train_big.csv') as csvDataFile:
+with open('files/AVA_Val_Custom_Corrected.csv') as csvDataFile:
     csvReader = csv.reader(csvDataFile)
     for row in csvReader:
         snippets_video.append(row[0])
@@ -43,12 +44,12 @@ if set_type != "test":
             else:
                 if not os.path.exists(_OUT_DIR + output_folder):
                     os.makedirs(_OUT_DIR + output_folder)
-                    cmd = "ffmpeg -i " + videoPath + " -vf select='eq(n\,25)+eq(n\,35)+eq(n\,45)+eq(n\,55)+eq(n\,65)' -vsync 0 -s 224x224 " + _OUT_DIR + output_folder + "/frames%d.jpg"
+                    cmd = "ffmpeg -loglevel 0 -i " + videoPath + " -vf select='eq(n\,25)+eq(n\,35)+eq(n\,45)+eq(n\,55)+eq(n\,65)' -vsync 0 -s 224x224 " + _OUT_DIR + output_folder + "/frames%d.jpg"
                     os.system(cmd)
 else:
     counter = 1
     for v in glob.glob(_DATA_DIR + "*"):
-        print(counter)
+        print(v)
         counter += 1
         if not os.path.exists(v):
             print(v + " not found")
@@ -58,7 +59,7 @@ else:
             # print(output_folder)
             if not os.path.exists(_OUT_DIR + output_folder):
                 os.makedirs(_OUT_DIR + output_folder)
-                cmd = "ffmpeg -loglevel -8 -i " + v + " -vf select='eq(n\,25)+eq(n\,35)+eq(n\,45)+eq(n\,55)+eq(n\,65)' -vsync 0 -s 224x224 " + _OUT_DIR + output_folder + "/frames%d.jpg"
+                cmd = "ffmpeg -loglevel 0 -i " + v + " -vf select='eq(n\,25)+eq(n\,35)+eq(n\,45)+eq(n\,55)+eq(n\,65)' -vsync 0 -s 224x224 " + _OUT_DIR + output_folder + "/frames%d.jpg"
                 os.system(cmd)
 
 # TODO The following code is for resizing frames

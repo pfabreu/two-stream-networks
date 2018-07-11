@@ -4,9 +4,9 @@
 import os
 import glob
 
-OUT_DIR = '/media/pedro/actv5/UCF101/flow_sf/'
-DATA_DIR = '/media/pedro/actv3/UCF101/videos/'
-GPU_FLOW_DIR = '../../arch/streams/gpu_flow/build/'
+OUT_DIR = '/media/pedro/actv5/UCF101/flow_single_frame/'
+DATA_DIR = '/media/pedro/actv5/UCF101/videos/'
+GPU_FLOW_DIR = '../../arch/utils/gpu_flow/build/'
 
 # Load video
 vid_count = 0
