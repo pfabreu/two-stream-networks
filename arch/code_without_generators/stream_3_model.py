@@ -39,7 +39,7 @@ def prepare_flow_stream(classes, flow_weights, model_name):
 
 
 def prepare_context_stream(classes, context_weights):
-    original_context_stream = context_create_model(128, 64, in_shape=(720,))
+    original_context_stream = context_create_model(128, 64, in_shape=(270,))
     if context_weights is None:
         print("Aborting, No saved flow_weights weights file, please use fusion weights!")
         sys.exit(1)

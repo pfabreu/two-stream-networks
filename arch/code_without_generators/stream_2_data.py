@@ -7,7 +7,7 @@ import glob
 import utils
 
 
-def load_split(ids, labels, dim, n_channels, of_len, rgb_dir, flow_dir, set_type, encoding, train):
+def load_split(ids, labels, dim, n_channels, of_len, rgb_dir, flow_dir, set_type, encoding, train=True):
     'Generates data containing batch_size samples'
     resize = False
     sep = "@"
@@ -64,8 +64,14 @@ def load_split(ids, labels, dim, n_channels, of_len, rgb_dir, flow_dir, set_type
                 f_img_name = flow_dir + set_type + "/" + vid_name + "/frame" + str('{:06}'.format(of_frame)) + ".jpg"
                 # print(f_img_name)
                 f_img = cv2.imread(f_img_name)
-                x_img = f_img[:, :, 0]
-                y_img = f_img[:, :, 1]
+                try:
+                    # TODO this is an awful programming practice
+                    # but it might be possible that some flow images don't have a last image (frame 36) due to opencv/ffmpeg imprecision
+                    x_img = f_img[:, :, 0]
+                    y_img = f_img[:, :, 1]
+                except:
+                    pass
+                f_img = None
 
             # Put them in img_volume (x then y)
             of_volume[:, :, v] = x_img
@@ -77,10 +83,8 @@ def load_split(ids, labels, dim, n_channels, of_len, rgb_dir, flow_dir, set_type
             ypose[i] = labels[ID]['pose']
             yobject.append(labels[ID]['human-object'])
             yhuman.append(labels[ID]['human-human'])
-    if train is True:
+
         return X_rgb, X_flow, ypose, yobject, yhuman
-    else:
-        return X_rgb, X_flow
 
 
 def get_AVA_set(classes, filename, train):
@@ -92,44 +96,44 @@ def get_AVA_set(classes, filename, train):
 
     # Load all lines of filename
     # For training we use a csv file
-    if train is True:
-        with open(filename) as csvDataFile:
-            csvReader = csv.reader(csvDataFile)
-            for row in csvReader:
-                video = row[0]
-                kf_timestamp = row[1]
 
-                # action = row[6]
-                bb_top_x = row[2]
-                bb_top_y = row[3]
-                bb_bot_x = row[4]
-                bb_bot_y = row[5]
-                # This is due to the behav of range
-                for frame in range(start_frame, end_frame + jump_frames, jump_frames):
-                    # Append to the dictionary
-                    ID = video + sep + kf_timestamp.lstrip("0") + \
-                        sep + str(bb_top_x) + sep + str(bb_top_y) + sep + \
-                        str(bb_bot_x) + sep + str(bb_bot_y) + sep + str(frame)
-                    id_list.append(ID)
-    # For testing use a directory
-    else:
-        for d in glob.glob(filename + "/*"):
-            if d != filename:
-                row = d.rsplit("/", 1)[1]
-                row = row.split("_")
-                video = "_".join(row[:-5])
-                kf_timestamp = row[-5]
-                # action = row[6]
-                bb_top_x = row[-4]
-                bb_top_y = row[-3]
-                bb_bot_x = row[-2]
-                bb_bot_y = row[-1]
-                # This is due to the behav of range
-                for frame in range(start_frame, end_frame + jump_frames, jump_frames):
-                    # Append to the dictionary
-                    ID = video + sep + kf_timestamp.lstrip("0") + \
-                        sep + str(bb_top_x) + sep + str(bb_top_y) + sep + str(bb_bot_x) + sep + str(bb_bot_y) + sep + str(frame)
-                    id_list.append(ID)
+    with open(filename) as csvDataFile:
+        csvReader = csv.reader(csvDataFile)
+        for row in csvReader:
+            video = row[0]
+            kf_timestamp = row[1]
+
+            # action = row[6]
+            bb_top_x = row[2]
+            bb_top_y = row[3]
+            bb_bot_x = row[4]
+            bb_bot_y = row[5]
+            # This is due to the behav of range
+            for frame in range(start_frame, end_frame + jump_frames, jump_frames):
+                # Append to the dictionary
+                ID = video + sep + kf_timestamp.lstrip("0") + \
+                    sep + str(bb_top_x) + sep + str(bb_top_y) + sep + \
+                    str(bb_bot_x) + sep + str(bb_bot_y) + sep + str(frame)
+                id_list.append(ID)
+    # For true testing use a directory
+
+    # for d in glob.glob(filename + "/*"):
+    #    if d != filename:
+    #        row = d.rsplit("/", 1)[1]
+    #        row = row.split("_")
+    #        video = "_".join(row[:-5])
+    #        kf_timestamp = row[-5]
+    #        # action = row[6]
+    #        bb_top_x = row[-4]
+    #        bb_top_y = row[-3]
+    #        bb_bot_x = row[-2]
+    #        bb_bot_y = row[-1]
+    #        # This is due to the behav of range
+    #        for frame in range(start_frame, end_frame + jump_frames, jump_frames):
+    #            # Append to the dictionary
+    #            ID = video + sep + kf_timestamp.lstrip("0") + \
+    #                sep + str(bb_top_x) + sep + str(bb_top_y) + sep + str(bb_bot_x) + sep + str(bb_bot_y) + sep + str(frame)
+    #            id_list.append(ID)
     id_list = list(set(id_list))
     return id_list
 

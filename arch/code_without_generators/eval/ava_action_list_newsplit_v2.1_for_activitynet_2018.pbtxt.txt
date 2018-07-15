@@ -1,0 +1,120 @@
+item {
+  name: "bend/bow (at the waist)"
+  id: 1
+}
+item {
+  name: "crouch/kneel"
+  id: 2
+}
+item {
+  name: "dance"
+  id: 3
+}
+item {
+  name: "get up"
+  id: 4
+}
+item {
+  name: "lie/sleep"
+  id: 5
+}
+item {
+  name: "martial art"
+  id: 6
+}
+item {
+  name: "run/jog"
+  id: 7
+}
+item {
+  name: "sit"
+  id: 8
+}
+item {
+  name: "stand"
+  id: 9
+}
+item {
+  name: "walk"
+  id: 10
+}
+item {
+  name: "answer phone"
+  id: 11
+}
+item {
+  name: "carry/hold (an object)"
+  id: 12
+}
+item {
+  name: "drink"
+  id: 13
+}
+item {
+  name: "eat"
+  id: 14
+}
+item {
+  name: "push (an object)"
+  id: 15
+}
+item {
+  name: "read"
+  id: 16
+}
+item {
+  name: "ride (e.g., a bike, a car, a horse)"
+  id: 17
+}
+item {
+  name: "sail boat"
+  id: 18
+}
+item {
+  name: "smoke"
+  id: 19
+}
+item {
+  name: "text on/look at a cellphone"
+  id: 20
+}
+item {
+  name: "touch (an object)"
+  id: 21
+}
+item {
+  name: "watch (e.g., TV)"
+  id: 22
+}
+item {
+  name: "fight/hit (a person)"
+  id: 23
+}
+item {
+  name: "give/serve (an object) to (a person)"
+  id: 24
+}
+item {
+  name: "grab (a person)"
+  id: 25
+}
+item {
+  name: "hug (a person)"
+  id: 26
+}
+item {
+  name: "listen to (a person)"
+  id: 27
+}
+item {
+  name: "sing to (e.g., self, a person, a group)"
+  id: 28
+}
+item {
+  name: "talk to (e.g., self, a person, a group)"
+  id: 29
+}
+item {
+  name: "watch (a person)"
+  id: 30
+}

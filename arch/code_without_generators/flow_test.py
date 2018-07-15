@@ -12,12 +12,15 @@ def main():
 
     root_dir = '../../data/AVA/files/'
 
+    # Erase previous models from GPU memory
+    K.clear_session()
+
     # Load list of action classes and separate them (from utils_stream)
     classes = utils.get_AVA_classes(root_dir + 'ava_action_list_custom.csv')
 
     # Parameters for training (batch size 32 is supposed to be the best?)
     params = {'dim': (224, 224), 'batch_size': 32,
-              'n_classes': len(classes['label_id']), 'n_channels': 3,
+              'n_classes': len(classes['label_id']), 'n_channels': 20,
               'shuffle': False, 'nb_epochs': 200, 'model': 'resnet50', 'email': False,
               'freeze_all': True, 'conv_fusion': False}
 
@@ -38,7 +41,7 @@ def main():
     print("Test set size: " + str(len(partition['test'])))
 
     # Load chunks
-    test_splits = utils.make_chunks(original_list=partition['test'], size=len(partition['test']), chunk_size=2**11)
+    test_splits = utils.make_chunks(original_list=partition['test'], size=len(partition['test']), chunk_size=2**10)
 
     # Test directories where pre-processed test files are
     flow_dir = "/media/pedro/actv-ssd/flow_test/"
@@ -59,13 +62,14 @@ def main():
     with tf.device('/gpu:0'):
         for testIDS in test_splits:
             # TODO Technically it shouldnt return labels here (these are ground truth)
-            x_test_flow, y_test_pose, y_test_object, y_test_human = None
             x_test_flow, y_test_pose, y_test_object, y_test_human = load_split(testIDS, None, params['dim'], params['n_channels'], "test", 10, False, encoding="rgb", soft_sigmoid=True)
             print("Predicting on chunk " + str(test_chunks_count) + "/" + str(len(test_splits)))
 
-            predictions = model.predict(x_test_rgb, batch_size=params['batch_size'], verbose=1)
+            predictions = model.predict(x_test_flow, batch_size=params['batch_size'], verbose=1)
+
             # Convert predictions to readable output and perform majority voting
             voting.pred2classes(testIDS, predictions, pose_votes, obj_votes, human_votes, thresh=0.4)
+            x_test_flow = None
             test_chunks_count += 1
 
     # When you're done getting all the votes, write output csv

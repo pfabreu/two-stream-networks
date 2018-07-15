@@ -7,16 +7,15 @@ import glob
 import utils
 
 
-def load_split(ids, labels, dim, n_channels, gen_type, of_len, context_dict, rgb_dir, flow_dir):
+def load_split(ids, labels, dim, n_channels, of_len, context_dict, rgb_dir, flow_dir, encoding, set_type, train=True):
     'Generates data containing batch_size samples'
 
     sep = "@"
-    f_dir = flow_dir + gen_type
-    r_dir = rgb_dir + gen_type + "_elipsis/"
+    r_dir = rgb_dir + set_type + "/"
     # Initialization, assuming its bidimensional (for now)
     X_rgb = np.empty([len(ids), dim[0], dim[1], 3])
     X_flow = np.empty([len(ids), dim[0], dim[1], 20])
-    X_context = np.empty([len(ids), 720])  # TODO 720 is hardcoded but can be derived from context params
+    X_context = np.empty([len(ids), 270])  # TODO 270 is hardcoded but can be derived from context params
     ypose = np.empty(len(ids))
     yobject = []
     yhuman = []
@@ -46,7 +45,6 @@ def load_split(ids, labels, dim, n_channels, gen_type, of_len, context_dict, rgb
         img = cv2.imread(img_name)
         # Store sample
         X_rgb[i, ] = img
-
         context_key = vid_name + \
             "@" + str(bb_top_x) + "@" + str(bb_top_y) + "@" + str(bb_bot_x) + "@" + str(bb_bot_y)
         context_str = context_dict[context_key]
@@ -57,24 +55,40 @@ def load_split(ids, labels, dim, n_channels, gen_type, of_len, context_dict, rgb
         v = 0
         for fn in range(-of_len // 2, of_len // 2):
             of_frame = optical_flow_frame + fn
+            if encoding == "grayscale":
+                x_img_name = flow_dir + set_type + "/x/" + vid_name + \
+                    "/frame" + str('{:06}'.format(of_frame)) + ".jpg"
+                x_img = cv2.imread(x_img_name, cv2.IMREAD_GRAYSCALE)
+                if x_img is None:
+                    continue
+                y_img_name = flow_dir + set_type + "/y/" + vid_name + \
+                    "/frame" + str('{:06}'.format(of_frame)) + ".jpg"
+                y_img = cv2.imread(y_img_name, cv2.IMREAD_GRAYSCALE)
+                if y_img is None:
+                    continue
+            elif encoding == "rgb":
+                f_img_name = flow_dir + set_type + "/" + vid_name + "/frame" + str('{:06}'.format(of_frame)) + ".jpg"
+                # print(f_img_name)
+                f_img = cv2.imread(f_img_name)
+                try:
+                    # TODO this is an awful programming practice
+                    # but it might be possible that some flow images don't have a last image (frame 36) due to opencv/ffmpeg imprecision
+                    x_img = f_img[:, :, 0]
+                    y_img = f_img[:, :, 1]
+                except:
+                    pass
+                f_img = None
 
-            x_img_name = f_dir + "/x/" + vid_name + "/frame" + str('{:06}'.format(of_frame)) + ".jpg"
-            x_img = cv2.imread(x_img_name, cv2.IMREAD_GRAYSCALE)
-            if x_img is None:
-                continue
-            y_img_name = f_dir + "/y/" + vid_name + "/frame" + str('{:06}'.format(of_frame)) + ".jpg"
-            y_img = cv2.imread(y_img_name, cv2.IMREAD_GRAYSCALE)
-            if y_img is None:
-                continue
             # Put them in img_volume (x then y)
             of_volume[:, :, v] = x_img
             v += 1
             of_volume[:, :, v] = y_img
             v += 1
         X_flow[i, ] = of_volume
-        ypose[i] = labels[ID]['pose']
-        yobject.append(labels[ID]['human-object'])
-        yhuman.append(labels[ID]['human-human'])
+        if train is True:
+            ypose[i] = labels[ID]['pose']
+            yobject.append(labels[ID]['human-object'])
+            yhuman.append(labels[ID]['human-human'])
 
     return X_rgb, X_flow, X_context, ypose, yobject, yhuman
 
@@ -88,44 +102,44 @@ def get_AVA_set(classes, filename, train):
 
     # Load all lines of filename
     # For training we use a csv file
-    if train is True:
-        with open(filename) as csvDataFile:
-            csvReader = csv.reader(csvDataFile)
-            for row in csvReader:
-                video = row[0]
-                kf_timestamp = row[1]
 
-                # action = row[6]
-                bb_top_x = row[2]
-                bb_top_y = row[3]
-                bb_bot_x = row[4]
-                bb_bot_y = row[5]
-                # This is due to the behav of range
-                for frame in range(start_frame, end_frame + jump_frames, jump_frames):
-                    # Append to the dictionary
-                    ID = video + sep + kf_timestamp.lstrip("0") + \
-                        sep + str(bb_top_x) + sep + str(bb_top_y) + sep + \
-                        str(bb_bot_x) + sep + str(bb_bot_y) + sep + str(frame)
-                    id_list.append(ID)
-    # For testing use a directory
-    else:
-        for d in glob.glob(filename + "/*"):
-            if d != filename:
-                row = d.rsplit("/", 1)[1]
-                row = row.split("_")
-                video = "_".join(row[:-5])
-                kf_timestamp = row[-5]
-                # action = row[6]
-                bb_top_x = row[-4]
-                bb_top_y = row[-3]
-                bb_bot_x = row[-2]
-                bb_bot_y = row[-1]
-                # This is due to the behav of range
-                for frame in range(start_frame, end_frame + jump_frames, jump_frames):
-                    # Append to the dictionary
-                    ID = video + sep + kf_timestamp.lstrip("0") + \
-                        sep + str(bb_top_x) + sep + str(bb_top_y) + sep + str(bb_bot_x) + sep + str(bb_bot_y) + sep + str(frame)
-                    id_list.append(ID)
+    with open(filename) as csvDataFile:
+        csvReader = csv.reader(csvDataFile)
+        for row in csvReader:
+            video = row[0]
+            kf_timestamp = row[1]
+
+            # action = row[6]
+            bb_top_x = row[2]
+            bb_top_y = row[3]
+            bb_bot_x = row[4]
+            bb_bot_y = row[5]
+            # This is due to the behav of range
+            for frame in range(start_frame, end_frame + jump_frames, jump_frames):
+                # Append to the dictionary
+                ID = video + sep + kf_timestamp.lstrip("0") + \
+                    sep + str(bb_top_x) + sep + str(bb_top_y) + sep + \
+                    str(bb_bot_x) + sep + str(bb_bot_y) + sep + str(frame)
+                id_list.append(ID)
+    # For true testing use a directory
+
+    # for d in glob.glob(filename + "/*"):
+    #    if d != filename:
+    #        row = d.rsplit("/", 1)[1]
+    #        row = row.split("_")
+    #        video = "_".join(row[:-5])
+    #        kf_timestamp = row[-5]
+    #        # action = row[6]
+    #        bb_top_x = row[-4]
+    #        bb_top_y = row[-3]
+    #        bb_bot_x = row[-2]
+    #        bb_bot_y = row[-1]
+    #        # This is due to the behav of range
+    #        for frame in range(start_frame, end_frame + jump_frames, jump_frames):
+    #            # Append to the dictionary
+    #            ID = video + sep + kf_timestamp.lstrip("0") + \
+    #                sep + str(bb_top_x) + sep + str(bb_top_y) + sep + str(bb_bot_x) + sep + str(bb_bot_y) + sep + str(frame)
+    #            id_list.append(ID)
     id_list = list(set(id_list))
     return id_list
 

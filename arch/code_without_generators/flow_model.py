@@ -45,47 +45,6 @@ def flow_create_model(classes, model_name, soft_sigmoid=True, image_shape=(224, 
     return model
 
 
-def vgg16_of(input_shape, pooling='avg'):
-    img_input = Input(shape=input_shape)
-    # using matconvnet naming conventions
-    # Block 1
-    x = Conv2D(64, (3, 3), activation='relu', padding='same', name='conv1_1')(img_input)
-    x = Conv2D(64, (3, 3), activation='relu', padding='same', name='conv1_2')(x)
-    x = MaxPooling2D((2, 2), strides=(2, 2), name='pool1')(x)
-
-    # Block 2
-    x = Conv2D(128, (3, 3), activation='relu', padding='same', name='conv2_1')(x)
-    x = Conv2D(128, (3, 3), activation='relu', padding='same', name='conv2_2')(x)
-    x = MaxPooling2D((2, 2), strides=(2, 2), name='pool2')(x)
-
-    # Block 3
-    x = Conv2D(256, (3, 3), activation='relu', padding='same', name='conv3_1')(x)
-    x = Conv2D(256, (3, 3), activation='relu', padding='same', name='conv3_2')(x)
-    x = Conv2D(256, (3, 3), activation='relu', padding='same', name='conv3_3')(x)
-    x = MaxPooling2D((2, 2), strides=(2, 2), name='pool3')(x)
-
-    # Block 4
-    x = Conv2D(512, (3, 3), activation='relu', padding='same', name='conv4_1')(x)
-    x = Conv2D(512, (3, 3), activation='relu', padding='same', name='conv4_2')(x)
-    x = Conv2D(512, (3, 3), activation='relu', padding='same', name='conv4_3')(x)
-    x = MaxPooling2D((2, 2), strides=(2, 2), name='pool4')(x)
-
-    # Block 5
-    x = Conv2D(512, (3, 3), activation='relu', padding='same', name='conv5_1')(x)
-    x = Conv2D(512, (3, 3), activation='relu', padding='same', name='conv5_2')(x)
-    x = Conv2D(512, (3, 3), activation='relu', padding='same', name='conv5_3')(x)
-    x = MaxPooling2D((2, 2), strides=(2, 2), name='pool5')(x)
-
-    # Top is not included!
-    if pooling == 'avg':
-        x = GlobalAveragePooling2D()(x)
-    elif pooling == 'max':
-        x = GlobalMaxPooling2D()(x)
-
-    model = Model(img_input, x, name='vgg16')
-    return model
-
-
 def identity_block(input_tensor, kernel_size, filters, stage, block):
     """The identity block is the block that has no conv layer at shortcut.
     # Arguments
@@ -201,37 +160,4 @@ def resnet50_of(input_shape, pooling='avg'):
         x = GlobalMaxPooling2D()(x)
 
     model = Model(img_input, x, name='resnet50')
-    return model
-
-
-def Shallow(include_top=False, input_shape=(224, 224)):
-    # Architecture from the original paper of 2stream
-    # http://papers.nips.cc/paper/5353-two-stream-convolutional-networks-for-action-recognition-in-videos.pdf
-    model = Sequential()
-
-    model.add(Conv2D(96, (7, 7), strides=2, padding='same', name='conv1', input_shape=input_shape))
-    model.add(BatchNormalization())
-    model.add(Activation('relu'))
-    model.add(MaxPooling2D(pool_size=(2, 2)))
-
-    # NOTE This is the only different layer between RGB and OF streams in the original paper
-    model.add(Conv2D(256, (5, 5), strides=2, padding='same', name='conv2'))
-    model.add(Activation('relu'))
-    model.add(MaxPooling2D(pool_size=(2, 2)))
-
-    model.add(Conv2D(512, (3, 3), strides=1, activation='relu', padding='same', name='conv3'))
-    model.add(Conv2D(512, (3, 3), strides=1, activation='relu', padding='same', name='conv4'))
-    model.add(Conv2D(512, (3, 3), strides=1, activation='relu', padding='same', name='conv5'))
-    model.add(MaxPooling2D(pool_size=(2, 2)))
-
-    # full6
-    model.add(Flatten())
-    model.add(Dense(4096, activation='relu'))
-    model.add(Dropout(0.9))
-
-    # full7
-    model.add(Dense(2048, activation='relu'))
-    model.add(Dropout(0.9))
-    model.add(Dense(1024, activation='relu'))
-
     return model

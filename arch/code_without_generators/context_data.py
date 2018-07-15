@@ -5,7 +5,7 @@ import sys
 import utils
 
 
-def load_split(ids, labels, dim, n_channels, gen_type):
+def load_split(ids, labels, dim, n_channels, gen_type, root_dir):
     'Generates data containing batch_size samples'
     sep = "@"
     X = np.empty([len(ids), dim])
@@ -13,7 +13,7 @@ def load_split(ids, labels, dim, n_channels, gen_type):
     ypose = np.empty(len(ids))
     yobject = []
     yhuman = []
-    Xfilename = "XContext_" + gen_type + "_pastfuture.csv"
+    Xfilename = root_dir + "context_files/XContext_" + gen_type + "_pastfuture.csv"
     if not os.path.exists(Xfilename):
         print("File does not exist")
         print(Xfilename)

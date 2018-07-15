@@ -45,10 +45,15 @@ def load_split(ids, labels, dim, n_channels, gen_type, of_len, first_epoch, enco
 
             elif encoding == "rgb":
                 f_img_name = root_dir + "/" + vid_name + "/frame" + str('{:06}'.format(of_frame)) + ".jpg"
-                # print(f_img_name)
+
                 f_img = cv2.imread(f_img_name)
-                x_img = f_img[:, :, 0]
-                y_img = f_img[:, :, 1]
+                try:
+                    # TODO this is an awful programming practice
+                    # but it might be possible that some flow images don't have a last image (frame 36) due to opencv/ffmpeg imprecision
+                    x_img = f_img[:, :, 0]
+                    y_img = f_img[:, :, 1]
+                except:
+                    pass
                 f_img = None
             # Put them in img_volume (x then y)
             of_volume[:, :, v] = x_img

@@ -20,7 +20,7 @@ def main():
               'n_classes': len(classes['label_id']), 'n_channels': 3,
               'shuffle': False, 'nb_epochs': 200, 'model': 'resnet50', 'email': False,
               'freeze_all': True, 'conv_fusion': False}
-    filter_type = "fovea"
+    filter_type = "rgb"
 
     # Get validation set from directory
     partition = {}
@@ -30,7 +30,7 @@ def main():
     result_csv = "output_test_" + filter_type + "_" + time_str + ".csv"
 
     # Load trained model
-    rgb_weights = "../models/rgb_" + filter_type + "_resnet50_1806301953.hdf5"
+    rgb_weights = "../models/rgb_" + filter_type + "_resnet50_1807060914.hdf5"
     model = rgb_create_model(classes=classes['label_id'], soft_sigmoid=True, model_name=params[
                              'model'], freeze_all=params['freeze_all'], conv_fusion=params['conv_fusion'])
     model = compile_model(model, soft_sigmoid=True)
@@ -60,7 +60,6 @@ def main():
     with tf.device('/gpu:0'):
         for testIDS in test_splits:
             # TODO Technically it shouldnt return labels here (these are ground truth)
-            x_test_rgb, y_test_pose, y_test_object, y_test_human = None
             x_test_rgb, y_test_pose, y_test_object, y_test_human = load_split(testIDS, None, params['dim'], params['n_channels'], "test", filter_type, soft_sigmoid=True, train=False)
             print("Predicting on chunk " + str(test_chunks_count) + "/" + str(len(test_splits)))
 

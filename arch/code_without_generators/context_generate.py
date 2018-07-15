@@ -1,11 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Thu May 24 13:18:20 2018
-
-@author: jantunes
-"""
-
 import csv
 import numpy as np
 import utils
@@ -39,7 +31,7 @@ def createLabelVector(NUMBEROFNEIGHBORS, NCLASSES, distances, actions_dict, TIME
                 for l in listClasses:
                     v = to_categorical(l, NCLASSES)
                     currentLabelVector = currentLabelVector + v
-                currentActions[select*NCLASSES:(select+1)*NCLASSES] = currentLabelVector
+                currentActions[select * NCLASSES:(select + 1) * NCLASSES] = currentLabelVector
     elif(TIMEFRAME == "past"):
         for select in range(1, len(distances)):
             if(select < NUMBEROFNEIGHBORS):
@@ -49,14 +41,14 @@ def createLabelVector(NUMBEROFNEIGHBORS, NCLASSES, distances, actions_dict, TIME
                 for l in listClasses:
                     v = to_categorical(l, NCLASSES)
                     currentLabelVector = currentLabelVector + v
-                currentActions[select*NCLASSES:(select+1)*NCLASSES] = currentLabelVector
+                currentActions[select * NCLASSES:(select + 1) * NCLASSES] = currentLabelVector
 
     return currentActions
 
 
 def calcDistances(actions_dict, current_bb):
-    centerX = (current_bb[0] + (current_bb[2]-current_bb[0])/2.0)
-    centerY = (current_bb[1] + (current_bb[3]-current_bb[1])/2.0)
+    centerX = (current_bb[0] + (current_bb[2] - current_bb[0]) / 2.0)
+    centerY = (current_bb[1] + (current_bb[3] - current_bb[1]) / 2.0)
     center = (centerX, centerY)
     distances = []
     for key in actions_dict:
@@ -69,8 +61,8 @@ def calcDistances(actions_dict, current_bb):
             floatkey[3] = float(keysplit[3][:-1])
         else:
             floatkey[3] = float(keysplit[3])
-        currentCenterX = floatkey[0] + (floatkey[2]-floatkey[0])/2.0
-        currentCenterY = floatkey[1] + (floatkey[3]-floatkey[1])/2.0
+        currentCenterX = floatkey[0] + (floatkey[2] - floatkey[0]) / 2.0
+        currentCenterY = floatkey[1] + (floatkey[3] - floatkey[1]) / 2.0
         currentCenter = (currentCenterX, currentCenterY)
         dist = distance.euclidean(center, currentCenter)
         distances.append((key, dist))
@@ -85,10 +77,10 @@ def getActionDict(indexes, snippets_bb, snippets_actions, current_bb):
         if not (sum(currentBB == snippets_bb[i]) == len(currentBB)):
             key = str(snippets_bb[i])
             if key in actions_dict:
-                actions_dict[key].append(int(snippets_actions[i])-1)
+                actions_dict[key].append(int(snippets_actions[i]) - 1)
             else:
                 actions_dict[key] = []
-                actions_dict[key].append(int(snippets_actions[i])-1)
+                actions_dict[key].append(int(snippets_actions[i]) - 1)
     return actions_dict
 
 
@@ -144,7 +136,7 @@ for i in range(len(INPATHS)):
     #        print("\n")
             actions_dict = getActionDict(currentIndexes, snippets_bb, snippets_actions, currentBB)
             old_actions_dict_list = []
-            for timestep in range(1, LOOKBACK+1):
+            for timestep in range(1, LOOKBACK + 1):
                 oldIndexes = []
                 oldIndexes = getRelevantIndexes(currentVideoID, int(currentKeyFrame) - timestep, snippets_video, snippets_time)  # Check for behaviour if the videoID/Keyframe combo doesn't exist!
                 old_actions_dict_list.append(getActionDict(oldIndexes, snippets_bb, snippets_actions, currentBB))
@@ -154,12 +146,12 @@ for i in range(len(INPATHS)):
                 oldDistances.append(calcDistances(old_actions_dict, currentBB))
             # Generate Vector with the data
             presentX = createLabelVector(NUMBEROFNEIGHBORS, NCLASSES, currentDistances, actions_dict, "present")
-            oldX = np.zeros([NUMBEROFNEIGHBORS*NCLASSES*LOOKBACK])
+            oldX = np.zeros([NUMBEROFNEIGHBORS * NCLASSES * LOOKBACK])
             for oldIndex in range(len(old_actions_dict_list)):
-                oldX[(oldIndex)*NCLASSES*NUMBEROFNEIGHBORS:(oldIndex+1)*NCLASSES*NUMBEROFNEIGHBORS] = createLabelVector(NUMBEROFNEIGHBORS, NCLASSES, oldDistances[oldIndex], old_actions_dict_list[oldIndex], "past")
+                oldX[(oldIndex) * NCLASSES * NUMBEROFNEIGHBORS:(oldIndex + 1) * NCLASSES * NUMBEROFNEIGHBORS] = createLabelVector(NUMBEROFNEIGHBORS, NCLASSES, oldDistances[oldIndex], old_actions_dict_list[oldIndex], "past")
 
             future_actions_dict_list = []
-            for timestep in range(1, LOOKFORWARD+1):
+            for timestep in range(1, LOOKFORWARD + 1):
                 futureIndexes = []
                 futureIndexes = getRelevantIndexes(currentVideoID, int(currentKeyFrame) + timestep, snippets_video, snippets_time)  # Check for behaviour if the videoID/Keyframe combo doesn't exist!
                 future_actions_dict_list.append(getActionDict(futureIndexes, snippets_bb, snippets_actions, currentBB))
@@ -169,18 +161,18 @@ for i in range(len(INPATHS)):
             # Generate Vector with the data
             presentX = createLabelVector(NUMBEROFNEIGHBORS, NCLASSES, currentDistances, actions_dict, "present")
 
-            oldX = np.zeros([NUMBEROFNEIGHBORS*NCLASSES*LOOKBACK])
+            oldX = np.zeros([NUMBEROFNEIGHBORS * NCLASSES * LOOKBACK])
             for oldIndex in range(len(old_actions_dict_list)):
-                oldX[(oldIndex)*NCLASSES*NUMBEROFNEIGHBORS:(oldIndex+1)*NCLASSES*NUMBEROFNEIGHBORS] = createLabelVector(NUMBEROFNEIGHBORS, NCLASSES, oldDistances[oldIndex], old_actions_dict_list[oldIndex], "past")
+                oldX[(oldIndex) * NCLASSES * NUMBEROFNEIGHBORS:(oldIndex + 1) * NCLASSES * NUMBEROFNEIGHBORS] = createLabelVector(NUMBEROFNEIGHBORS, NCLASSES, oldDistances[oldIndex], old_actions_dict_list[oldIndex], "past")
 
-            futureX = np.zeros([NUMBEROFNEIGHBORS*NCLASSES*LOOKFORWARD])
+            futureX = np.zeros([NUMBEROFNEIGHBORS * NCLASSES * LOOKFORWARD])
             for futureIndex in range(len(future_actions_dict_list)):
-                futureX[(futureIndex)*NCLASSES*NUMBEROFNEIGHBORS:(futureIndex+1)*NCLASSES*NUMBEROFNEIGHBORS] = createLabelVector(NUMBEROFNEIGHBORS, NCLASSES, futureDistances[futureIndex], future_actions_dict_list[futureIndex], "past")
+                futureX[(futureIndex) * NCLASSES * NUMBEROFNEIGHBORS:(futureIndex + 1) * NCLASSES * NUMBEROFNEIGHBORS] = createLabelVector(NUMBEROFNEIGHBORS, NCLASSES, futureDistances[futureIndex], future_actions_dict_list[futureIndex], "past")
 
-            currentXLine = np.zeros([NUMBEROFNEIGHBORS*NCLASSES*(LOOKBACK+LOOKFORWARD+1)])
-            currentXLine[:NUMBEROFNEIGHBORS*NCLASSES] = presentX
-            currentXLine[NCLASSES*NUMBEROFNEIGHBORS:NCLASSES*NUMBEROFNEIGHBORS+NUMBEROFNEIGHBORS*NCLASSES*LOOKBACK] = oldX
-            currentXLine[NCLASSES*NUMBEROFNEIGHBORS+NUMBEROFNEIGHBORS*NCLASSES*LOOKBACK:] = futureX
+            currentXLine = np.zeros([NUMBEROFNEIGHBORS * NCLASSES * (LOOKBACK + LOOKFORWARD + 1)])
+            currentXLine[:NUMBEROFNEIGHBORS * NCLASSES] = presentX
+            currentXLine[NCLASSES * NUMBEROFNEIGHBORS:NCLASSES * NUMBEROFNEIGHBORS + NUMBEROFNEIGHBORS * NCLASSES * LOOKBACK] = oldX
+            currentXLine[NCLASSES * NUMBEROFNEIGHBORS + NUMBEROFNEIGHBORS * NCLASSES * LOOKBACK:] = futureX
 
             currentXLine = np.array2string(currentXLine, separator=' ', max_line_width=100000)  # hehe
             currentXLine = currentXLine[1:-1]  # Remove trailling "[]"

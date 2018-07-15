@@ -38,7 +38,7 @@ def main():
     # Create + compile model, load saved weights if they exist
     rgb_weights = "saved_models/rgb_fovea_resnet50_1806301953.hdf5"
     flow_weights = "saved_models/flow_resnet50_1806281901.hdf5"
-    context_weights = "saved_models/bestModelcontext128.hdf5"
+    context_weights = "saved_models/bestModelContext_128.hdf5"
     nsmodel = ThreeStreamModel(classes['label_id'], rgb_weights, flow_weights, context_weights)
     nsmodel.compile_model(soft_sigmoid=True)
     model = nsmodel.model
@@ -61,7 +61,7 @@ def main():
     valcsvPath = "three_stream_val_elfov_plot_" + params['model'] + "_" + time_str + ".csv"
 
     print("Building context dictionaries from context files (these should be generated)...")
-    Xfilename = root_dir + "context_files/XContext_train_pastfuture.csv"
+    Xfilename = "XContext_train_pastfuture.csv"
     train_context_rows = {}
     with open(Xfilename) as csvDataFile:
         csvReader = csv.reader(csvDataFile)
@@ -70,7 +70,7 @@ def main():
                 "@" + str(row[2]) + "@" + str(row[3]) + "@" + str(row[4]) + "@" + str(row[5])
             train_context_rows[rkey] = row[6]
 
-    Xfilename = root_dir + "context_files/XContext_val_pastfuture.csv"
+    Xfilename = "XContext_val_pastfuture.csv"
     val_context_rows = {}
     with open(Xfilename) as csvDataFile:
         csvReader = csv.reader(csvDataFile)
@@ -87,7 +87,7 @@ def main():
                 start_time = timeit.default_timer()
                 # -----------------------------------------------------------
                 x_val_rgb = x_val_flow = x_val_context = y_val_pose = y_val_object = y_val_human = x_train_rgb = x_train_flow = y_train_pose = y_train_object = y_train_human = None
-                x_train_rgb, x_train_flow, x_train_context, y_train_pose, y_train_object, y_train_human = load_split(trainIDS, labels_train, params['dim'], params['n_channels'], "train", 10, train_context_rows, rgb_dir, flow_dir)
+                x_train_rgb, x_train_flow, x_train_context, y_train_pose, y_train_object, y_train_human = load_split(trainIDS, labels_train, params['dim'], params['n_channels'], 10, train_context_rows, rgb_dir, flow_dir, "grayscale", "train", train=True)
 
                 y_train_pose = to_categorical(y_train_pose, num_classes=utils.POSE_CLASSES)
                 y_train_object = utils.to_binary_vector(y_train_object, size=utils.OBJ_HUMAN_CLASSES, labeltype='object-human')
@@ -109,7 +109,7 @@ def main():
             loss_acc_list = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
             for valIDS in val_splits:
                 x_val_rgb = x_val_flow = x_val_context = y_val_pose = y_val_object = y_val_human = x_train_rgb = x_train_flow = y_train_pose = y_train_object = y_train_human = None
-                x_val_rgb, x_val_flow, x_val_context, y_val_pose, y_val_object, y_val_human = load_split(valIDS, labels_val, params['dim'], params['n_channels'], "val", 10, val_context_rows, rgb_dir, flow_dir)
+                x_val_rgb, x_val_flow, x_val_context, y_val_pose, y_val_object, y_val_human = load_split(valIDS, labels_val, params['dim'], params['n_channels'], "val", 10, val_context_rows, rgb_dir, flow_dir, "grayscale", "val", train=True)
 
                 y_val_pose = to_categorical(y_val_pose, num_classes=utils.POSE_CLASSES)
                 y_val_object = utils.to_binary_vector(y_val_object, size=utils.OBJ_HUMAN_CLASSES, labeltype='object-human')

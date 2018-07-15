@@ -1,11 +1,3 @@
-#!/usr/bin/env python2
-# -*- coding: utf-8 -*-
-"""
-Created on Thu Jun 14 11:03:14 2018
-
-@author: jantunes
-"""
-
 # TESTING SPLIT COMES FROM THE END OF THE TRAINING SPLIT
 # TRAINING AND VAL ARE JUST SUBSETS OF MINI_SPLIT_X_BIG
 import csv
@@ -43,12 +35,12 @@ actions = np.array([int(i) for i in snippets_actions])
 hist, b = np.histogram(actions, 80)
 
 
-trueClasses = [index+1 for index, value in enumerate(hist) if value >= 15]
-removedClasses = [index+1 for index, value in enumerate(hist) if value < 15]
+trueClasses = [index + 1 for index, value in enumerate(hist) if value >= 15]
+removedClasses = [index + 1 for index, value in enumerate(hist) if value < 15]
 removedPoses = [i for i in removedClasses if i < 14]
 #poseClasses = np.arange(1,15)
 # trueClasses = list(np.union1d(poseClasses,trueClasses)) #Never remove a pose class!
-newClasses = np.arange(1, len(trueClasses)+1)
+newClasses = np.arange(1, len(trueClasses) + 1)
 # Now generate CSV's without the forbidden Classes
 # To get corrected class do trueClasses.index(oldClass) + 1
 

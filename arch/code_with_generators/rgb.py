@@ -61,23 +61,40 @@ def main():
     # Create + compile model, load saved weights if true
     rgb_weights = None
 
-    if rgb_weights is None:
-        # Create new model and freeze all but top
-        model = rgb_create_model(model_name='resnet50', freeze_all=True, conv_fusion=True):
+    # Create new model and freeze all but top
+    model = rgb_create_model(model_name='resnet50', conv_fusion=True)
 
-            # Load pre-trained UCF weights
+    if rgb_weights is None:
+
+        # If they don't exist, convert Feichtenhofer's models from matconv to keras
+
+        # Load pre-trained UCF weights
         model.load_weights("../models/ucf_keras/")
 
-        model = train(model, nb_epochs, generators)  # No need for callbacks here
+        # Freeze all but top
+        for layer in model.layers[:-2]:
+            layer.trainable = False
 
-        # Now, freeze half layers for final training step
+        # Compile the model
+        model.compile(optimizer='rmsprop', loss='categorical_crossentropy', metrics=['accuracy'])
+
+        # Train
+        model = train(model, nb_epochs, generators)  # No need for callbacks here
     else:
 
-        # Create new model and freeze half
-        model = rgb_create_model(model_name='resnet50', freeze_all=False, conv_fusion=True):
+        # Create new model
+        model = rgb_create_model(model_name='resnet50', conv_fusion=True):
 
-            # TODO Load weights
+            # Load weights
         model.load_weights(rgb_weights)
+
+    # Unfreeze layers for a more complete training
+    for layer in model.layers:
+        layer.trainable = True
+
+    # Recompile the model
+     model.compile(optimizer=SGD(lr=0.0001, momentum=0.9), loss='categorical_crossentropy', metrics=['accuracy', 'top_k_categorical_accuracy'])
+
 
     model = train(model, nb_epochs, generators, [checkpointer, tb, logger, early_stopper])
 
