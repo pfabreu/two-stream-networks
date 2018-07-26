@@ -16,7 +16,7 @@ def pred2classes(ids, predictions, pose_votes, obj_votes, human_votes, thresh=0.
     HUMAN_THRESHOLD = thresh
 
     for type_counter in range(3):
-        print("Getting votes for " + str(type_counter))
+        # print("Getting votes for " + str(type_counter))
         for ID, pred in zip(ids, predictions[type_counter]):
             row = ID.split("@")
             i = row[0] + "@" + row[1] + "@" + row[2] + "@" + row[3] + "@" + row[4] + "@" + row[5]
@@ -26,11 +26,11 @@ def pred2classes(ids, predictions, pose_votes, obj_votes, human_votes, thresh=0.
                 pose_votes[i][pred.argmax(axis=0)] += 1
 
             elif type_counter == 1:
-                print(pred)
+                # print(pred)
                 top_three_idxs = pred.argsort()[-3:][::-1]  # Get the three with the highest probabilities
-                print(top_three_idxs)
+                # print(top_three_idxs)
                 for idx in top_three_idxs:
-                    print(idx)
+                    # print(idx)
                     if pred[idx] > OBJECT_THRESHOLD:
                         obj_votes[i][idx] += 1
 

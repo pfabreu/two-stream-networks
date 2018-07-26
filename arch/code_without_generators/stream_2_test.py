@@ -24,16 +24,22 @@ def main():
     partition = {}
     partition['test'] = get_AVA_set(classes=classes, filename=root_dir + "AVA_Test_Custom_Corrected.csv", train=False)
 
+    filter_type = "gauss"
+
     time_str = time.strftime("%y%m%d%H%M", time.localtime())
-    result_csv = "output_" + params['gen_type'] + "_2stream_" + time_str + ".csv"
+    result_csv = "output_" + params['gen_type'] + "_2stream_" + filter_type + "_" + time_str + ".csv"
 
     # Load trained model
-    rgb_weights = "../models/rgb_fovea_resnet50_1806301953.hdf5"
+    # rgb_weights = "../models/rgb_fovea_resnet50_1806301953.hdf5"
+    rgb_weights = "../models/rgb_gauss_resnet50_1806290918.hdf5"
+    # rgb_weights = "../models/rgb_crop_resnet50_1806300210.hdf5"
+
     flow_weights = "../models/flow_resnet50_1806281901.hdf5"
     nsmodel = TwoStreamModel(classes['label_id'], rgb_weights, flow_weights)
     nsmodel.compile_model(soft_sigmoid=True)
     model = nsmodel.model
-    two_stream_weights = "../models/two_stream_fusion_elfovresnet50_1807030015.hdf5"
+    # two_stream_weights = "../models/two_stream_fusion_elfovresnet50_1807030015.hdf5"
+    two_stream_weights = "../models/two_stream_fusion_gaussian_resnet50_1807121121.hdf5"
     model.load_weights(two_stream_weights)
 
     print("Test set size: " + str(len(partition['test'])))
@@ -42,7 +48,7 @@ def main():
     test_splits = utils.make_chunks(original_list=partition['test'], size=len(partition['test']), chunk_size=2**10)
 
     # Test directories where pre-processed test files are
-    filter_type = "fovea"
+
     rgb_dir = "/media/pedro/actv-ssd/" + filter_type + "_"
     flow_dir = "/media/pedro/actv-ssd/flow_"
 

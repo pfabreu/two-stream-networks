@@ -140,56 +140,34 @@ def run_evaluation(labelmap, groundtruth, exclusions, iou):
 
     # Make sure not to mess this up
     filters = []
-    filters.append("gauss")
-    filters.append("gauss-extra")
+    filters.append("0.1")
+    filters.append("0.2")
+    filters.append("0.3")
+    filters.append("0.4")
+    filters.append("0.5")
+    filters.append("0.6")
+    filters.append("0.7")
+    filters.append("0.8")
+    filters.append("0.9")
 
-    # filters.append("flowcrop")
-    # filters.append("flow")
+    ftype = "gauss"
 
-    # filters.append("2st-crop")
-    # filters.append("2st-gauss")
-    # filters.append("3st-crop")
-    # filters.append("3st-gauss")
-
-    # filters.append("ctx")
-    # filters.append("flow")
-    # filters.append("2-stream (fovea)")
-    # filters.append("3-stream (fovea)")
-
-    # filters.append("rgb")
-    # filters.append("crop")
-    # filters.append("gauss")
-    # filters.append("fovea")
     all_detections = []
-
-    # New run to compare new flow
-    # all_detections.append(open("output_test_flowcrop.csv", 'rb'))
-    # all_detections.append(open("output_test_flow.csv", 'rb'))
-
-    # New 2 and 3 streams
-    all_detections.append(open("output_test_gauss.csv", 'rb'))
-    all_detections.append(open("output_test_gauss_extra.csv", 'rb'))
-    # all_detections.append(open("output_test_3stream_gauss.csv", 'rb'))
-    # all_detections.append(open("output_test_3stream_crop.csv", 'rb'))
-
-    # Flow, context, 2-stream, 3-stream run
-    #all_detections.append(open("output_test_ctx.csv", 'rb'))
-    #all_detections.append(open("output_test_flow.csv", 'rb'))
-    #all_detections.append(open("output_test_2stream.csv", 'rb'))
-    #all_detections.append(open("output_test_3stream.csv", 'rb'))
-
-    # RGB run
-    # all_detections.append(open("output_test_rgb.csv", 'rb'))
-    # all_detections.append(open("output_test_crop.csv", 'rb'))
-    # all_detections.append(open("output_test_gauss.csv", 'rb'))
-    # all_detections.append(open("output_test_fovea.csv", 'rb'))
+    for f in filters:
+        all_detections.append(open("../thresholds/predictions_rgb_" + ftype + "_1807241628_" + f + ".csv", 'rb'))
 
     all_gndtruths = []
-    # TODO Fix this dirty hack lol
-    all_gndtruths.append(open("AVA_Test_Custom_Corrected.csv", 'rb'))
-    all_gndtruths.append(open("AVA_Test_Custom_Corrected.csv", 'rb'))
-    # all_gndtruths.append(open("AVA_Test_Custom_Corrected.csv", 'rb'))
-    # all_gndtruths.append(open("AVA_Test_Custom_Corrected.csv", 'rb'))
+    all_gndtruths.append(open("AVA_Val_Custom_Corrected.csv", 'rb'))
+    all_gndtruths.append(open("AVA_Val_Custom_Corrected.csv", 'rb'))
+    all_gndtruths.append(open("AVA_Val_Custom_Corrected.csv", 'rb'))
+    all_gndtruths.append(open("AVA_Val_Custom_Corrected.csv", 'rb'))
+    all_gndtruths.append(open("AVA_Val_Custom_Corrected.csv", 'rb'))
+    all_gndtruths.append(open("AVA_Val_Custom_Corrected.csv", 'rb'))
+    all_gndtruths.append(open("AVA_Val_Custom_Corrected.csv", 'rb'))
+    all_gndtruths.append(open("AVA_Val_Custom_Corrected.csv", 'rb'))
+    all_gndtruths.append(open("AVA_Val_Custom_Corrected.csv", 'rb'))
+    #all_gndtruths.append(open("AVA_Test_Custom_Corrected.csv", 'rb'))
+    #all_gndtruths.append(open("AVA_Test_Custom_Corrected.csv", 'rb'))
     """Runs evaluations given input files.
 
     Args:
@@ -288,15 +266,15 @@ def run_evaluation(labelmap, groundtruth, exclusions, iou):
                         if maxY < metrics[m]:
                             maxY = metrics[m]
                         if cat['id'] <= 10:
-                            xpose_ax.append(ms + "(" + filter_type + ") ")
+                            xpose_ax.append("(" + filter_type + ") " + ms)
                             ypose_ax.append(metrics[m])
                             colors_pose.append('red')
                         elif cat['id'] <= 22:
-                            xobj_ax.append(ms + "(" + filter_type + ") ")
+                            xobj_ax.append("(" + filter_type + ") " + ms)
                             yobj_ax.append(metrics[m])
                             colors_obj.append('blue')
                         else:
-                            xhuman_ax.append(ms + "(" + filter_type + ") ")
+                            xhuman_ax.append("(" + filter_type + ") " + ms)
                             yhuman_ax.append(metrics[m])
                             colors_human.append('green')
 
@@ -307,55 +285,57 @@ def run_evaluation(labelmap, groundtruth, exclusions, iou):
     x_axis = split_interleave(xpose_ax) + split_interleave(xobj_ax) + split_interleave(xhuman_ax)
     y_axis = split_interleave(ypose_ax) + split_interleave(yobj_ax) + split_interleave(yhuman_ax)
     colors = split_interleave(colors_pose) + split_interleave(colors_obj) + split_interleave(colors_human)
+    print(filters)
+    print(finalmAPs)
 
     plt.ylabel('frame-mAP')
-    top = maxY + 0.1  # offset a bit so it looks good
+    top = 0.1  # offset a bit so it looks good
     sns.set_style("whitegrid")
-    g = sns.barplot(x_axis, y_axis, palette=colors)
+    g = sns.barplot(filters, finalmAPs)
     ax = g
     # annotate axis = seaborn axis
     for p in ax.patches:
-        ax.annotate("%.3f" % p.get_height(), (p.get_x() + p.get_width() / 2., p.get_height()),
+        ax.annotate("%.4f" % p.get_height(), (p.get_x() + p.get_width() / 2., p.get_height()),
                     ha='center', va='center', fontsize=10, color='gray', rotation=90, xytext=(0, 20),
                     textcoords='offset points')
     _ = g.set_ylim(0, top)  # To make space for the annotations
-    pprint.pprint(metrics, indent=2)
-    plt.xticks(rotation=-90)
-    title = ""
-    for filter_type, mAP in zip(filters, finalmAPs):
-        ft = filter_type + ': mAP@' + str(iou) + 'IOU = ' + str(mAP) + '\n'
-        title += ft
-    plt.title(title)
+    # pprint.pprint(metrics, indent=2)
+    # plt.xticks(rotation=-90)
+    # title = ""
+    # for filter_type, mAP in zip(filters, finalmAPs):
+    #     ft = filter_type + ': mAP@' + str(iou) + 'IOU = ' + str(mAP) + '\n'
+    #     title += ft
+    # plt.title(title)
     plt.show()
 
-    for i in range(1, 5):
-        print(i)
-        plt.subplot(2, 2, i)
-        if i <= len(all_detections):
+    # for i in range(1, 5):
+    #     print(i)
+    #     plt.subplot(2, 2, i)
+    #     if i <= len(all_detections):
 
-            # Confusion matrix
-            classes = []
-            for k in categories:
-                classes.append(k['name'])
-            cm = confusion_matrix(all_gndtruths[i - 1], all_detections[i - 1], x_axis)
-            g = sns.heatmap(cm, annot=True, fmt="d", cmap=sns.cubehelix_palette(8), xticklabels=classes[:10], yticklabels=classes[:10], linewidths=0.5, linecolor='black', cbar=False)
+    #         # Confusion matrix
+    #         classes = []
+    #         for k in categories:
+    #             classes.append(k['name'])
+    #         cm = confusion_matrix(all_gndtruths[i - 1], all_detections[i - 1], x_axis)
+    #         g = sns.heatmap(cm, annot=True, fmt="d", cmap=sns.cubehelix_palette(8), xticklabels=classes[:10], yticklabels=classes[:10], linewidths=0.5, linecolor='black', cbar=False)
 
-            t = 0
-            for ytick_label, xtick_label in zip(g.axes.get_yticklabels(), g.axes.get_xticklabels()):
-                if t <= 9:
-                    ytick_label.set_color("r")
-                    xtick_label.set_color("r")
+    #         t = 0
+    #         for ytick_label, xtick_label in zip(g.axes.get_yticklabels(), g.axes.get_xticklabels()):
+    #             if t <= 9:
+    #                 ytick_label.set_color("r")
+    #                 xtick_label.set_color("r")
 
-                elif t <= 22:
-                    ytick_label.set_color("b")
-                    xtick_label.set_color("b")
-                else:
-                    ytick_label.set_color("g")
-                    xtick_label.set_color("g")
-                t += 1
-            plt.xticks(rotation=-90)
-            plt.title("Pose Conf. Mat. (" + filters[i - 1] + ")")
-    plt.show()
+    #             elif t <= 22:
+    #                 ytick_label.set_color("b")
+    #                 xtick_label.set_color("b")
+    #             else:
+    #                 ytick_label.set_color("g")
+    #                 xtick_label.set_color("g")
+    #             t += 1
+    #         plt.xticks(rotation=-90)
+    #         plt.title("Pose Conf. Mat. (" + filters[i - 1] + ")")
+    # plt.show()
 
 
 def confusion_matrix(groundtruth, detections, x_axis):

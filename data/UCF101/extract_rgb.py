@@ -1,8 +1,8 @@
 import os
 import glob
 
-_DATA_DIR = "/media/pedro/actv5/UCF101/videos/"
-_OUT_DIR = "/media/pedro/actv5/UCF101/rgb/"
+_DATA_DIR = "/media/pedro/actv5/UCF101/pose_videos/"
+_OUT_DIR = "/media/pedro/actv5/UCF101/pose_rgb/"
 class_folders = glob.glob(_DATA_DIR + "*")
 for c in class_folders:
     cname = c.split("/")[-1]

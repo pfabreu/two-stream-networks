@@ -8,7 +8,8 @@ arch/utils/person_detector/
 # Ignore models
 arch/models/
 
-
+*.pickle
+*.csv
 
 
 

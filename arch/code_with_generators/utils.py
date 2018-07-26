@@ -7,20 +7,6 @@ import scipy.io as spio
 from collections import Counter
 import pickle
 
-POSE_CLASSES = 10
-OBJ_HUMAN_CLASSES = 12
-HUMAN_HUMAN_CLASSES = 8
-
-
-def decideBestContextModel(pickle_dir):
-    lossList = []
-    NHU = [32, 64, 128, 256, 512]
-    for i in NHU:
-        with open(pickle_dir + 'contextHistory_' + str(i), 'rb') as pickle_file:
-            content = pickle.load(pickle_file)
-            valloss = content['val_loss']
-            lossList.append(min(valloss))
-
 
 def _todict(matobj):
     '''
@@ -45,38 +31,6 @@ def loadmat(filename):
         e = _todict(e)
         layer_weights.append(e)
     return layer_weights
-
-
-def convert_vgg(model, ucf_weights):
-    """
-    Converts VGG MatConvNet model to keras
-    """
-    ucf_w_count = 0  # bottom_layer_count = 35  # Number of keras layers until the top (fc layers) is reached, in vgg16 its 35
-    for layer in model.layers:
-        config = layer.get_config()
-        name = config['name']
-        # if ucf_w_count < bottom_layer_count:
-        if name[:4] == 'conv':  # If its a convolutional layer
-            print("Keras layer name: " + str(name))
-            w = ucf_weights[ucf_w_count]['value']
-            ucf_w_count += 1
-            conv_w = np.asarray(w)
-            print("\t MConvNet conv: " + str(conv_w.shape))
-            w = ucf_weights[ucf_w_count]['value']
-            bias_w = np.asarray(w)
-            print("\t MConvNet bias: " + str(bias_w.shape))
-            keras_weights = []
-            keras_weights.append(conv_w)
-            keras_weights.append(bias_w)
-            ucf_w_count += 1
-            # Read old weights
-            old_weights = layer.get_weights()[0]
-            print("\t Keras conv: " + str(old_weights.shape))
-            old_biases = layer.get_weights()[1]
-            print("\t Keras bias: " + str(old_biases.shape))
-            # Load weights if shapes match (joao this is just me being ocd)
-            if (old_weights - conv_w).all() and (old_biases - bias_w).all:
-                layer.set_weights(keras_weights)
 
 
 def convert_resnet(model, ucf_weights):
@@ -150,26 +104,23 @@ def convert_inceptionv3(model, tf_weights):
     pass
 
 
-def get_AVA_classes(csv_filename):
-    """
-    Gets all classes from an AVA csv, format of classes is a dictionary with:
-    classes['label_id'] has all class ids from 1-80
-    classes['label_name'] has all class names (e.g bend/bow (at the waist))
-    classes['label_type'] is either PERSON_MOVEMENT (1-14), OBJECT_MANIPULATION
-    (15-63) or PERSON_INTERACTION (64-80)
-    """
+ def get_UCF_classes(self):
+    """Extract the classes from our data. If we want to limit them,
+    only return the classes we need."""
     classes = []
-    with open(csv_filename) as csvDataFile:
-        csvReader = csv.reader(csvDataFile)
-        headers = next(csvReader)
-        classes = {}
-        for h in headers:
-            classes[h] = []
+    for item in self.data_list:
+        if item[1] not in classes:
+            classes.append(item[1])
 
-        for row in csvReader:
-            for h, v in zip(headers, row):
-                classes[h].append(v)
-    return classes
+    # Sort them.
+    classes = sorted(classes)
+
+    # Return.
+    if self.class_limit is not None:
+        return classes[:self.class_limit]
+    else:
+        return classes
+
 
 
 def sendemail(from_addr, to_addr_list, subject, message, login, password, smtpserver='smtp.gmail.com:587'):
@@ -186,41 +137,6 @@ def sendemail(from_addr, to_addr_list, subject, message, login, password, smtpse
     problems = server.sendmail(from_addr, to_addr_list, message)
     server.quit()
     return problems
-
-
-def make_chunks(original_list, size, chunk_size):
-    seq = original_list[:size]
-    splits = [seq[i:i + chunk_size] for i in range(0, len(seq), chunk_size)]
-    return splits
-
-
-def to_binary_vector(list_classes, size, labeltype):
-    """
-    Converts list_classes list to binary vector with given size
-    This is specific to the AVA challenge
-    """
-    labelsarray = np.empty([len(list_classes), size])
-    offset = 0
-    if labeltype == 'object-human':
-        offset = POSE_CLASSES
-    elif labeltype == 'human-human':
-        offset = POSE_CLASSES + OBJ_HUMAN_CLASSES
-    elif labeltype == 'pose':
-        offset = 0
-    index = 0
-    for l in list_classes:
-        bv = np.zeros(size)
-        lv = l
-        if len(lv) >= 1:
-            lv = [x - offset for x in lv]
-        for c in lv:
-            v = to_categorical(c, size)
-            bv = bv + v
-
-        labelsarray[index, :] = bv
-        index += 1
-    return labelsarray
-
 
 def learning_rate_schedule(model, epoch, nb_epochs):
     if epoch < 0.9 * nb_epochs:

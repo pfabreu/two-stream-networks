@@ -44,7 +44,13 @@ def train(model, nb_epochs, generators, callbacks=[]):
 def main():
 
     # Erase previous models from GPU memory
+    root_dir = '../../data/AVA/files/'
+
+    # Erase previous models from GPU memory
     K.clear_session()
+
+    # Load list of action classes and separate them
+    # classes = utils.get_AVA_classes(root_dir + 'ava_action_list_custom.csv')
 
     checkpointer, tb, early_stopper = callbacks()
 
@@ -54,9 +60,7 @@ def main():
               'n_classes': len(classes['label_id']), 'n_channels': 3,
               'shuffle': False, 'nb_epochs': 10}
 
-    data = DataSet(image_shape=params['dim'])
-
-    generators = get_generators(data=data, image_shape=params['dim'], batch_size=params['batch_size'])
+    generators = get_generators(classes=101, image_shape=params['dim'], batch_size=params['batch_size'])
 
     # Create + compile model, load saved weights if true
     rgb_weights = None
@@ -67,9 +71,15 @@ def main():
     if rgb_weights is None:
 
         # If they don't exist, convert Feichtenhofer's models from matconv to keras
-
-        # Load pre-trained UCF weights
-        model.load_weights("../models/ucf_keras/")
+        ucf_weights = None
+        if ucf_weights is None:
+                # TODO Better initialization, average UCF models overt he 3 splits provided
+            ucf_weights = utils.loadmat("../models/ucf_matconvnet/ucf101-img-resnet-50-split1.mat")
+            utils.convert_resnet(model, ucf_weights)
+            model.save("../models/ucf_keras/keras-ucf101-rgb-resnet50.hdf5")
+        else:
+                # Load pre-trained UCF weights
+            model.load_weights("../models/ucf_keras/keras-ucf101-rgb-resnet50.hdf5")
 
         # Freeze all but top
         for layer in model.layers[:-2]:
@@ -78,14 +88,15 @@ def main():
         # Compile the model
         model.compile(optimizer='rmsprop', loss='categorical_crossentropy', metrics=['accuracy'])
 
-        # Train
+        sys.exit(0)
+
+        # Train a bit more
         model = train(model, nb_epochs, generators)  # No need for callbacks here
     else:
 
         # Create new model
-        model = rgb_create_model(model_name='resnet50', conv_fusion=True):
-
-            # Load weights
+        model = rgb_create_model(model_name='resnet50', conv_fusion=True)
+        # Load weights
         model.load_weights(rgb_weights)
 
     # Unfreeze layers for a more complete training
@@ -93,8 +104,7 @@ def main():
         layer.trainable = True
 
     # Recompile the model
-     model.compile(optimizer=SGD(lr=0.0001, momentum=0.9), loss='categorical_crossentropy', metrics=['accuracy', 'top_k_categorical_accuracy'])
-
+    model.compile(optimizer=SGD(lr=0.0001, momentum=0.9), loss='categorical_crossentropy', metrics=['accuracy', 'top_k_categorical_accuracy'])
 
     model = train(model, nb_epochs, generators, [checkpointer, tb, logger, early_stopper])
 

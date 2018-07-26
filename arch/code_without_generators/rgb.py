@@ -24,8 +24,8 @@ def main():
     # Parameters for training
     params = {'dim': (224, 224), 'batch_size': 32,
               'n_classes': len(classes['label_id']), 'n_channels': 3,
-              'shuffle': False, 'nb_epochs': 200, 'model': 'resnet50', 'email': True,
-              'freeze_all': True, 'conv_fusion': False, 'train_chunk_size': 2**12,
+              'shuffle': False, 'nb_epochs': 300, 'model': 'resnet50', 'email': True,
+              'freeze_all': True, 'conv_fusion': True, 'train_chunk_size': 2**12,
               'validation_chunk_size': 2**12}
     soft_sigmoid = True
     minValLoss = 9999990.0
@@ -45,6 +45,7 @@ def main():
 
     # Create + compile model, load saved weights if they exist
     saved_weights = None
+    # saved_weights = "../models/rgbextra_gauss_resnet50_1807250030.hdf5"
     model = rgb_create_model(classes=classes['label_id'], soft_sigmoid=soft_sigmoid, model_name=params[
                              'model'], freeze_all=params['freeze_all'], conv_fusion=params['conv_fusion'])
     model = compile_model(model, soft_sigmoid=soft_sigmoid)
@@ -64,13 +65,13 @@ def main():
         partition['validation']), chunk_size=params['validation_chunk_size'])
 
     time_str = time.strftime("%y%m%d%H%M", time.localtime())
-    filter_type = "rgb"
+    filter_type = "gauss"
     # TODO Change this for joao's paths
-    bestModelPath = "../models/rgb_" + filter_type + \
+    bestModelPath = "../models/rgbconv_" + filter_type + \
         "_" + params['model'] + "_" + time_str + ".hdf5"
-    traincsvPath = "../plots/rgb_train_" + filter_type + \
+    traincsvPath = "../plots/rgbconv_train_" + filter_type + \
         "_plot_" + params['model'] + "_" + time_str + ".csv"
-    valcsvPath = "../plots/rgb_val_" + filter_type + \
+    valcsvPath = "../plots/rgbconv_val_" + filter_type + \
         "_plot_" + params['model'] + "_" + time_str + ".csv"
 
     with tf.device('/gpu:0'):
@@ -95,6 +96,9 @@ def main():
                 history = model.fit(x_train, y_t, batch_size=params[
                                     'batch_size'], epochs=1, verbose=0)
                 utils.learning_rate_schedule(model, epoch, params['nb_epochs'])
+
+                # TODO Repeat samples of unrepresented classes?
+
                 # ------------------------------------------------------------
                 elapsed = timeit.default_timer() - start_time
 
@@ -151,7 +155,7 @@ def main():
     if params['email']:
         utils.sendemail(from_addr='pythonscriptsisr@gmail.com',
                         to_addr_list=['pedro_abreu95@hotmail.com'],
-                        subject='Finished training RGB-stream',
+                        subject='Finished training RGB-stream (extra epochs + training conv layers + more aggressive learning rate, on my pc)',
                         message='Training RGB with following params: ' +
                         str(params),
                         login='pythonscriptsisr@gmail.com',

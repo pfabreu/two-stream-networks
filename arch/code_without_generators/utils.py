@@ -223,7 +223,8 @@ def to_binary_vector(list_classes, size, labeltype):
 
 
 def learning_rate_schedule(model, epoch, nb_epochs):
-    if epoch < 0.9 * nb_epochs:
+    # TODO Pass this as an argument
+    if epoch < 0.8 * nb_epochs:
         K.set_value(model.optimizer.lr, 0.001)
     else:
         K.set_value(model.optimizer.lr, 0.0001)

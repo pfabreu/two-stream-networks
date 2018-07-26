@@ -4,11 +4,14 @@ import cv2
 import utils
 
 
-def load_split(ids, labels, dim, n_channels, gen_type, of_len, first_epoch, encoding="rgb", soft_sigmoid=False):
+def load_split(ids, labels, dim, n_channels, gen_type, of_len, first_epoch, encoding="rgb", soft_sigmoid=False, crop=False):
     'Generates data containing batch_size samples'
 
     # TODO Warp
-    root_dir = "/media/pedro/actv-ssd/flow_" + gen_type
+    if crop is True:
+        root_dir = "/media/pedro/actv-ssd/flowcrop_" + gen_type
+    else:
+        root_dir = "/media/pedro/actv-ssd/flow_" + gen_type
     # Initialization, assuming its bidimensional (for now)
     X = np.empty([len(ids), dim[0], dim[1], n_channels])
     # Generate data
@@ -22,8 +25,12 @@ def load_split(ids, labels, dim, n_channels, gen_type, of_len, first_epoch, enco
         split_id = ID.split(sep)
         vid_name = split_id[0]
         keyframe = split_id[1]
-        vid_name = vid_name + "_" + keyframe
-        # bbs = str(float(split_id[2])) + "_" + str(float(split_id[3])) + "_" + str(float(split_id[4])) + "_" + str(float(split_id[5]))
+
+        if crop is True:
+            bbs = str(float(split_id[2])) + "_" + str(float(split_id[3])) + "_" + str(float(split_id[4])) + "_" + str(float(split_id[5]))
+            vid_name = vid_name + "_" + keyframe + "_" + bbs
+        else:
+            vid_name = vid_name + "_" + keyframe
         frame = int(split_id[6])
 
         of_volume = np.zeros(shape=(dim[0], dim[1], n_channels))

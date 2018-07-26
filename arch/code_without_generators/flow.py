@@ -34,7 +34,8 @@ def main():
               'validation_chunk_size': 2**10}
     minValLoss = 9999990.0
     soft_sigmoid = True
-    warp = False
+    warp = False  # TODO Use warped (camera motion corrected) flow or not
+    crop = True  # TODO Use crop flow or not
     encoding = "rgb"  # TODO Are flows stored as rgb or as 2 grayscales
 
     # Get ID's and labels from the actual dataset
@@ -50,6 +51,7 @@ def main():
     # saved_weights = "saved_models/RGB_Stream_Softmax_inceptionv3.hdf5"
     saved_weights = None
     model_name = "resnet50"
+
     ucf_weights = "../models/ucf_keras/keras-ucf101-TVL1flow-" + model_name + "-newsplit.hdf5"  # Outdated model
     # ucf_weights = None
 
@@ -67,6 +69,7 @@ def main():
                 utils.convert_vgg(model, ucf_weights)
                 model.save("./models/ucf_keras/keras-ucf101-TVL1flow-vgg16-split-custom.hdf5")
             elif model_name == "resnet50":
+                # TODO Better initialization, average UCF models overt he 3 splits provided
                 ucf_weights = utils.loadmat("../models/ucf_matconvnet/ucf101-TVL1flow-resnet-50-split1.mat")
                 utils.convert_resnet(model, ucf_weights)
                 model.save("../models/ucf_keras/keras-ucf101-TVL1flow-resnet50-newsplit.hdf5")
@@ -83,10 +86,10 @@ def main():
     val_splits = utils.make_chunks(original_list=partition['validation'], size=len(partition['validation']), chunk_size=params['validation_chunk_size'])
 
     time_str = time.strftime("%y%m%d%H%M", time.localtime())
-    if warp is True:
-        bestModelPath = "../models/flow_warp_" + params['model'] + "_" + time_str + ".hdf5"
-        traincsvPath = "../plots/flow_warp_customcsv_train_plot_" + params['model'] + "_" + time_str + ".csv"
-        valcsvPath = "../plots/flow_warp_customcsv_val_plot_" + params['model'] + "_" + time_str + ".csv"
+    if crop is True:
+        bestModelPath = "../models/flowcrop_" + params['model'] + "_" + time_str + ".hdf5"
+        traincsvPath = "../plots/flowcrop_customcsv_train_plot_" + params['model'] + "_" + time_str + ".csv"
+        valcsvPath = "../plots/flowcrop_customcsv_val_plot_" + params['model'] + "_" + time_str + ".csv"
     else:
         bestModelPath = "../models/flow__" + params['model'] + "_" + time_str + ".hdf5"
         traincsvPath = "../plots/flow_customcsv_train_plot_" + params['model'] + "_" + time_str + ".csv"
@@ -102,7 +105,7 @@ def main():
                 start_time = timeit.default_timer()
                 # -----------------------------------------------------------
                 x_val = y_val_pose = y_val_object = y_val_human = x_train = y_train_pose = y_train_object = y_train_human = None
-                x_train, y_train_pose, y_train_object, y_train_human = load_split(trainIDS, labels_train, params['dim'], params['n_channels'], "train", 10, first_epoch, encoding=encoding, soft_sigmoid=soft_sigmoid)
+                x_train, y_train_pose, y_train_object, y_train_human = load_split(trainIDS, labels_train, params['dim'], params['n_channels'], "train", 10, first_epoch, encoding=encoding, soft_sigmoid=soft_sigmoid, crop=True)
 
                 y_t = []
                 y_t.append(to_categorical(y_train_pose, num_classes=utils.POSE_CLASSES))
@@ -126,7 +129,7 @@ def main():
             loss_acc_list = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
             for valIDS in val_splits:
                 x_val = y_val_pose = y_val_object = y_val_human = x_train = y_train_pose = y_train_object = y_train_human = None
-                x_val, y_val_pose, y_val_object, y_val_human = load_split(valIDS, labels_val, params['dim'], params['n_channels'], "val", 10, first_epoch, encoding=encoding, soft_sigmoid=soft_sigmoid)
+                x_val, y_val_pose, y_val_object, y_val_human = load_split(valIDS, labels_val, params['dim'], params['n_channels'], "val", 10, first_epoch, encoding=encoding, soft_sigmoid=soft_sigmoid, crop=True)
 
                 y_v = []
                 y_v.append(to_categorical(y_val_pose, num_classes=utils.POSE_CLASSES))
