@@ -11,7 +11,7 @@ import utils
 
 def load_split(ids, labels, dim, n_channels, gen_type, filter_type, soft_sigmoid=False, train=True):
     'Generates data containing batch_size samples'
-    resize = True
+    resize = False
     sep = "@"
     X = np.zeros([len(ids), dim[0], dim[1], n_channels])
     rgb_dir = "/media/pedro/actv-ssd/"

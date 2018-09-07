@@ -4,8 +4,14 @@ import math
 import glob
 
 set_type = 'test'
+face = False
+hand = False
 _VID_DIR = '/media/pedro/actv-ssd/segments_' + set_type + '/'
-_OUT_DIR = "/media/pedro/actv-ssd/pose_" + set_type + "/"
+
+# NOTE Remove "noface" if you wish to use face and hands joints
+_OUT_DIR = "/media/pedro/actv-ssd/pose_noface_" + set_type + "/"
+_JOINTS_OUT_DIR = "/media/pedro/actv-ssd/pose_noface_" + set_type + "_joints/"
+
 OPENPOSE_DIR = "/home/pedro/openpose/"
 MODELS_DIR = "../../arch/models/openpose_models/"
 
@@ -31,11 +37,9 @@ for v in vids:
             height_rounded = int(math.ceil(height / 16.0) * 16)
 
             # Make folder with options
-            face = True
-            hand = True
             input_video = _VID_DIR + vname
             output_video = _OUT_DIR + output_name + "_orig.avi"
-            output_joint_path = _OUT_DIR + "joints/" + output_name + "/"
+            output_joint_path = _JOINTS_OUT_DIR + output_name + "/"
             # Make output_joint_path if it doesnt exist
             if not os.path.exists(output_joint_path):
                 os.makedirs(output_joint_path)

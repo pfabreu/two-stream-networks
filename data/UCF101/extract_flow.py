@@ -4,7 +4,7 @@
 import os
 import glob
 
-OUT_DIR = '/media/pedro/actv5/UCF101/flow_single_frame/'
+OUT_DIR = '/media/pedro/actv5/UCF101/flow_warp/'
 DATA_DIR = '/media/pedro/actv5/UCF101/videos/'
 GPU_FLOW_DIR = '../../arch/utils/gpu_flow/build/'
 

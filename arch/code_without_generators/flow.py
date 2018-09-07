@@ -12,10 +12,6 @@ from flow_model import flow_create_model, compile_model
 from flow_data import get_AVA_set, get_AVA_labels, load_split
 
 
-# Disable tf not built with AVX/FMA warning
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
-
-
 def main():
     # root_dir for the files
     root_dir = '../../data/AVA/files/'
@@ -28,14 +24,14 @@ def main():
 
     # Parameters for training (batch size 32 is supposed to be the best?)
     params = {'dim': (224, 224), 'batch_size': 64,
-              'n_classes': len(classes['label_id']), 'n_channels': 20,
-              'shuffle': False, 'nb_epochs': 200, 'model': "resnet50", 'email': False,
+              'n_classes': len(classes['label_id']), 'n_channels': 10,
+              'nb_epochs': 157, 'model': "inceptionv3", 'email': True,
               'freeze_all': True, 'conv_fusion': False, 'train_chunk_size': 2**10,
               'validation_chunk_size': 2**10}
     minValLoss = 9999990.0
     soft_sigmoid = True
     warp = False  # TODO Use warped (camera motion corrected) flow or not
-    crop = True  # TODO Use crop flow or not
+    crop = False  # TODO Use crop flow or not
     encoding = "rgb"  # TODO Are flows stored as rgb or as 2 grayscales
 
     # Get ID's and labels from the actual dataset
@@ -49,32 +45,41 @@ def main():
 
     # Create + compile model, load saved weights if they exist
     # saved_weights = "saved_models/RGB_Stream_Softmax_inceptionv3.hdf5"
-    saved_weights = None
-    model_name = "resnet50"
-
-    ucf_weights = "../models/ucf_keras/keras-ucf101-TVL1flow-" + model_name + "-newsplit.hdf5"  # Outdated model
+    saved_weights = "../models/flow_kineticsinit_inceptionv3_1808282350.hdf5"
+    ucf_weights = "../models/ucf_keras/keras-ucf101-TVL1flow-" + params['model'] + "-newsplit.hdf5"  # Outdated model
     # ucf_weights = None
 
     # ucf_weights = None
-    model = flow_create_model(classes=classes['label_id'], model_name=model_name, soft_sigmoid=soft_sigmoid, image_shape=(224, 224), opt_flow_len=20, freeze_all=params['freeze_all'], conv_fusion=params['conv_fusion'])
+    model, keras_layer_names = flow_create_model(classes=classes['label_id'], model_name=params['model'], soft_sigmoid=soft_sigmoid, image_shape=(224, 224), opt_flow_len=10, freeze_all=params['freeze_all'], conv_fusion=params['conv_fusion'])
     model = compile_model(model, soft_sigmoid=soft_sigmoid)
+
+    # TODO Experiment: 1. no initialization, 2. ucf initialization 3. kinetics initialization
+    initialization = True  # Set to True to use initialization
+    kinetics_weights = None
+    ucf_weights = ""
 
     if saved_weights is not None:
         model.load_weights(saved_weights)
     else:
-        if ucf_weights is None:
-            print("Loading MConvNet weights: ")
-            if model_name == 'vgg16':
-                ucf_weights = utils.loadmat("ucf101-TVL1flow-vgg16-split1.mat")
-                utils.convert_vgg(model, ucf_weights)
-                model.save("./models/ucf_keras/keras-ucf101-TVL1flow-vgg16-split-custom.hdf5")
-            elif model_name == "resnet50":
-                # TODO Better initialization, average UCF models overt he 3 splits provided
-                ucf_weights = utils.loadmat("../models/ucf_matconvnet/ucf101-TVL1flow-resnet-50-split1.mat")
-                utils.convert_resnet(model, ucf_weights)
-                model.save("../models/ucf_keras/keras-ucf101-TVL1flow-resnet50-newsplit.hdf5")
-        else:
-            model.load_weights(ucf_weights)
+        if initialization is True:
+            if kinetics_weights is None:
+                if params['model'] == "inceptionv3":
+                    print("Loading kinetics weights: ")
+                    keras_weights = ["../models/kinetics_keras/tsn_flow_params_names.pkl", "../models/kinetics_keras/tsn_flow_params.pkl"]
+                    utils.convert_inceptionv3(model, keras_weights, keras_layer_names)
+                    model.save("../models/kinetics_keras/keras-kinetics-flow-inceptionv3.hdf5")
+
+            if ucf_weights is None:
+                print("Loading UCF weights: ")
+                if params['model'] == "resnet50":
+                    # TODO Better initialization, average UCF models overt he 3 splits provided
+                    ucf_weights = utils.loadmat("../models/ucf_matconvnet/ucf101-TVL1flow-resnet-50-split1.mat")
+                    utils.convert_resnet(model, ucf_weights)
+                    model.save("../models/ucf_keras/keras-ucf101-TVL1flow-resnet50-newsplit.hdf5")
+            else:
+                if ucf_weights != "":
+                    model.load_weights(ucf_weights)
+
     # Try to train on more than 1 GPU if possible
     # try:
     #    print("Trying MULTI-GPU")
@@ -88,12 +93,17 @@ def main():
     time_str = time.strftime("%y%m%d%H%M", time.localtime())
     if crop is True:
         bestModelPath = "../models/flowcrop_" + params['model'] + "_" + time_str + ".hdf5"
-        traincsvPath = "../plots/flowcrop_customcsv_train_plot_" + params['model'] + "_" + time_str + ".csv"
-        valcsvPath = "../plots/flowcrop_customcsv_val_plot_" + params['model'] + "_" + time_str + ".csv"
+        traincsvPath = "../loss_acc_plots/flowcrop_customcsv_train_plot_" + params['model'] + "_" + time_str + ".csv"
+        valcsvPath = "../loss_acc_plots/flowcrop_customcsv_val_plot_" + params['model'] + "_" + time_str + ".csv"
     else:
-        bestModelPath = "../models/flow__" + params['model'] + "_" + time_str + ".hdf5"
-        traincsvPath = "../plots/flow_customcsv_train_plot_" + params['model'] + "_" + time_str + ".csv"
-        valcsvPath = "../plots/flow_customcsv_val_plot_" + params['model'] + "_" + time_str + ".csv"
+        if warp is True:
+            bestModelPath = "../models/flow_warp_" + params['model'] + "_" + time_str + ".hdf5"
+            traincsvPath = "../loss_acc_plots/flow_warp_customcsv_train_plot_" + params['model'] + "_" + time_str + ".csv"
+            valcsvPath = "../loss_acc_plots/flow_warp_customcsv_val_plot_" + params['model'] + "_" + time_str + ".csv"
+        else:
+            bestModelPath = "../models/flow_kineticsinit_" + params['model'] + "_" + time_str + ".hdf5"
+            traincsvPath = "../loss_acc_plots/flow_kineticsinit_customcsv_train_plot_" + params['model'] + "_" + time_str + ".csv"
+            valcsvPath = "../loss_acc_plots/flow_kineticsinit_customcsv_val_plot_" + params['model'] + "_" + time_str + ".csv"
     first_epoch = True
 
     with tf.device('/gpu:0'):  # TODO Multi GPU
@@ -105,7 +115,7 @@ def main():
                 start_time = timeit.default_timer()
                 # -----------------------------------------------------------
                 x_val = y_val_pose = y_val_object = y_val_human = x_train = y_train_pose = y_train_object = y_train_human = None
-                x_train, y_train_pose, y_train_object, y_train_human = load_split(trainIDS, labels_train, params['dim'], params['n_channels'], "train", 10, first_epoch, encoding=encoding, soft_sigmoid=soft_sigmoid, crop=True)
+                x_train, y_train_pose, y_train_object, y_train_human = load_split(trainIDS, labels_train, params['dim'], params['n_channels'], "train", 5, first_epoch, encoding=encoding, soft_sigmoid=soft_sigmoid, crop=True)
 
                 y_t = []
                 y_t.append(to_categorical(y_train_pose, num_classes=utils.POSE_CLASSES))
@@ -129,7 +139,7 @@ def main():
             loss_acc_list = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
             for valIDS in val_splits:
                 x_val = y_val_pose = y_val_object = y_val_human = x_train = y_train_pose = y_train_object = y_train_human = None
-                x_val, y_val_pose, y_val_object, y_val_human = load_split(valIDS, labels_val, params['dim'], params['n_channels'], "val", 10, first_epoch, encoding=encoding, soft_sigmoid=soft_sigmoid, crop=True)
+                x_val, y_val_pose, y_val_object, y_val_human = load_split(valIDS, labels_val, params['dim'], params['n_channels'], "val", 5, first_epoch, encoding=encoding, soft_sigmoid=soft_sigmoid, crop=True)
 
                 y_v = []
                 y_v.append(to_categorical(y_val_pose, num_classes=utils.POSE_CLASSES))

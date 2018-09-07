@@ -4,14 +4,17 @@ import cv2
 import utils
 
 
-def load_split(ids, labels, dim, n_channels, gen_type, of_len, first_epoch, encoding="rgb", soft_sigmoid=False, crop=False):
+def load_split(ids, labels, dim, n_channels, gen_type, of_len, first_epoch, encoding="rgb", soft_sigmoid=False, crop=False, warp=True):
     'Generates data containing batch_size samples'
 
     # TODO Warp
     if crop is True:
         root_dir = "/media/pedro/actv-ssd/flowcrop_" + gen_type
     else:
-        root_dir = "/media/pedro/actv-ssd/flow_" + gen_type
+        if warp is True:
+            root_dir = "/media/pedro/actv-ssd/flow_" + gen_type + "_warp"
+        else:
+            root_dir = "/media/pedro/actv-ssd/flow_" + gen_type
     # Initialization, assuming its bidimensional (for now)
     X = np.empty([len(ids), dim[0], dim[1], n_channels])
     # Generate data

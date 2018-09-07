@@ -139,15 +139,86 @@ def convert_resnet(model, ucf_weights):
             layer.set_weights(keras_weights)
 
 
-def convert_inceptionv3(model, tf_weights):
-    """
-    Converts Inception V3 caffe model to keras. We use this great implementation:
-    https://github.com/h-bo/tsn-tensorflow
-    To obtain our tensorflow weights.
-    """
-    # Load tensorflow model for inception v3
-    # Go through each layer of keras inception v3 (model) and get the tensorflow weights from the checkpoint file
-    pass
+def convert_inceptionv3(model, keras_weights, keras_layer_names):
+    keras_layer_names = []
+    with open(keras_weights[0], "rb") as names_file:
+        layer_names = pickle.load(names_file)
+
+    with open(keras_weights[1], "rb") as params_file:
+        layer_params = pickle.load(params_file)
+
+    l = 0
+    # for layer in model.layers:
+    for ln in keras_layer_names:
+        layer = model.get_layer(ln)
+        config = layer.get_config()
+        name = config['name']
+        if name[:4] == 'conv':
+            print("\t Caffe name: " + layer_names[l])
+            print("\t Keras name: " + name)
+            # print(len(layer.get_weights()))
+            old_weights = layer.get_weights()[0]
+            caffe_conv = layer_params[layer_names[l]][0]
+            caffe_conv = np.swapaxes(caffe_conv, 3, 0)
+            caffe_conv = np.swapaxes(caffe_conv, 1, 2)
+            print("\t Keras conv: " + str(old_weights.shape))
+            print("\t Caffe conv: " + str(caffe_conv.shape))
+
+            old_biases = layer.get_weights()[1]
+            caffe_bias = layer_params[layer_names[l]][1]
+            print("\t Keras bias: " + str(old_biases.shape))
+            print("\t Caffe bias: " + str(caffe_bias.shape) + "\n")
+
+            keras_weights = []
+            keras_weights.append(caffe_conv)
+            keras_weights.append(caffe_bias)
+            layer.set_weights(keras_weights)
+
+            l += 1
+        elif name[:5] == 'batch':
+            print("\t Caffe name: " + layer_names[l])
+            print("\t Keras name: " + name)
+            # print(len(layer.get_weights()))
+            old_weights = layer.get_weights()[0]
+            caffe_bn_gamma = layer_params[layer_names[l]][0]
+            caffe_bn_gamma = np.squeeze(caffe_bn_gamma)
+            print("\t Keras bn gamma: " + str(old_weights.shape))
+            print("\t Caffe bn gamma: " + str(caffe_bn_gamma.shape))
+            old_weights = layer.get_weights()[1]
+            caffe_bn_beta = layer_params[layer_names[l]][1]
+            caffe_bn_beta = np.squeeze(caffe_bn_beta)
+            print("\t Keras bn beta: " + str(old_weights.shape))
+            print("\t Caffe bn beta: " + str(caffe_bn_beta.shape))
+            old_weights = layer.get_weights()[2]
+            caffe_bn_moments = layer_params[layer_names[l]][2]
+            caffe_bn_moments = np.squeeze(caffe_bn_moments)
+            print("\t Keras bn moments: " + str(old_weights.shape))
+            print("\t Caffe bn moments: " + str(caffe_bn_moments.shape))
+            old_weights = layer.get_weights()[3]
+            caffe_bn_scale = layer_params[layer_names[l]][3]
+            caffe_bn_scale = np.squeeze(caffe_bn_scale)
+            print("\t Keras bn scale: " + str(old_weights.shape))
+            print("\t Caffe bn_scale: " + str(caffe_bn_scale.shape) + "\n")
+
+            keras_weights = []
+            keras_weights.append(caffe_bn_gamma)
+            keras_weights.append(caffe_bn_beta)
+            keras_weights.append(caffe_bn_moments)
+            keras_weights.append(caffe_bn_scale)
+            layer.set_weights(keras_weights)
+
+            l += 1
+        elif name[:5] == 'activ':
+            pass
+            # print("\t Keras activations (for BN): ")
+            # print(len(layer.get_weights()))
+        elif name[:5] == 'avera' or name[:3] == 'max':
+            pass
+            # print("\t Keras pooling: ")
+            # print(len(layer.get_weights()))
+        elif name[:5] == 'mixed':
+            pass
+            # print(len(layer.get_weights()))
 
 
 def get_AVA_classes(csv_filename):

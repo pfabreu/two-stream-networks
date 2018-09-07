@@ -13,25 +13,26 @@ def main():
     classes = utils.get_AVA_classes('ava_action_list_custom.csv')
 
     # Parameters for training (batch size 32 is supposed to be the best?)
-    params = {'dim': 270, 'batch_size': 64,
-              'n_classes': len(classes['label_id']), 'n_channels': 1,
-              'shuffle': False, 'nb_epochs': 200, 'model': "mlp", 'email': True}
+    # params = {'dim': 270, 'batch_size': 64, 'n_classes': len(classes['label_id']), 'n_channels': 1, 'nb_epochs': 200, 'model': "mlp", 'email': True}
+    params = {'dim': 630, 'batch_size': 64, 'n_classes': len(classes['label_id']), 'n_channels': 1, 'nb_epochs': 200, 'model': "mlp"}
+
+    root_dir = '../../data/AVA/files/'
 
     # Get ID's and labels from the actual dataset
     partition = {}
-    partition['train'] = get_AVA_set(classes=classes, filename="AVA_Train_Custom_Corrected.csv")  # IDs for training
-    partition['validation'] = get_AVA_set(classes=classes, filename="AVA_Validation_Custom_Corrected.csv")  # IDs for validation
+    partition['train'] = get_AVA_set(classes=classes, filename=root_dir + "AVA_Train_Custom_Corrected.csv")  # IDs for training
+    partition['validation'] = get_AVA_set(classes=classes, filename=root_dir + "AVA_Validation_Custom_Corrected.csv")  # IDs for validation
 
     # Labels
-    labels_train = get_AVA_labels(classes, partition, "train", filename="AVA_Train_Custom_Corrected.csv")
-    labels_val = get_AVA_labels(classes, partition, "validation", filename="AVA_Validation_Custom_Corrected.csv")
+    labels_train = get_AVA_labels(classes, partition, "train", filename=root_dir + "AVA_Train_Custom_Corrected.csv")
+    labels_val = get_AVA_labels(classes, partition, "validation", filename=root_dir + "AVA_Validation_Custom_Corrected.csv")
     # pprint.pprint(labels_val)
 
     # Create + compile model, load saved weights if they exist
     NHU1V = [32, 64, 128, 256, 512]
     NHU2V = [16, 32, 64, 128, 256]
     for NHU1, NHU2 in zip(NHU1V, NHU2V):
-        bestModelPath = "bestModelContext_" + str(NHU1) + ".hdf5"
+        bestModelPath = "context_mlp" + str(NHU1) + ".hdf5"
         histPath = "contextHistory_" + str(NHU1)
         checkpointer = ModelCheckpoint(filepath=bestModelPath, monitor='val_loss', verbose=1, save_best_only=True, save_weights_only=False, period=1)
         model = context_create_model(NHU1, NHU2, in_shape=(params['dim'],))
@@ -40,6 +41,7 @@ def main():
         x_val = y_val_pose = y_val_object = y_val_human = x_train = y_train_pose = y_train_object = y_train_human = None
 
         # Load train data
+        Xfilename = root_dir + "context_files/XContext_train_tw3.csv"
         x_train, y_train_pose, y_train_object, y_train_human = load_split(partition['train'], labels_train, params['dim'], params['n_channels'], "train")
         y_t = []
         y_t.append(to_categorical(y_train_pose, num_classes=utils.POSE_CLASSES))
@@ -47,6 +49,7 @@ def main():
         y_t.append(utils.to_binary_vector(y_train_human, size=utils.HUMAN_HUMAN_CLASSES, labeltype='human-human'))
 
         # Load val data
+        Xfilename = root_dir + "contextData/XContext_val_tw3.csv"
         x_val, y_val_pose, y_val_object, y_val_human = load_split(partition['validation'], labels_val, params['dim'], params['n_channels'], "val")
         y_v = []
         y_v.append(to_categorical(y_val_pose, num_classes=utils.POSE_CLASSES))

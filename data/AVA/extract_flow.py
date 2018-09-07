@@ -3,7 +3,7 @@ import os
 set_type = 'test'
 OUT_DIR = '/media/pedro/actv-ssd/flow_' + set_type + "_warp/"
 DATA_DIR = "/media/pedro/actv-ssd/segments_" + set_type + "/"
-GPU_FLOW_DIR = '../../arch/utils/gpu_flow/build/'
+GPU_FLOW_DIR = '../../arch/tvl1_flow/build/'
 
 
 def _process_dataset():

@@ -1,16 +1,19 @@
 import csv
 import numpy as np
-import utils
 from scipy.spatial import distance
 from keras.utils import to_categorical
+#import utils
 
 INPATHS = ["AVA_train_Custom_Corrected.csv", "AVA_validation_Custom_Corrected.csv", "AVA_Test_Custom_Corrected.csv"]
-OUTPATHS = ["XContext_train_pastfuture.csv", "XContext_val_pastfuture.csv", "XContext_test_pastfuture.csv"]
+OUTPATHS = ["XContext_train_tw3.csv", "XContext_val_tw3.csv", "XContext_test_tw3.csv"]
 
+POSE_CLASSES = 10
+OBJ_HUMAN_CLASSES = 12
+HUMAN_HUMAN_CLASSES = 8
 NUMBEROFNEIGHBORS = 3
-NCLASSES = utils.POSE_CLASSES + utils.OBJ_HUMAN_CLASSES + utils.HUMAN_HUMAN_CLASSES
-LOOKBACK = 1
-LOOKFORWARD = 1
+NCLASSES = POSE_CLASSES + OBJ_HUMAN_CLASSES + HUMAN_HUMAN_CLASSES
+LOOKBACK = 3
+LOOKFORWARD = 3
 
 
 def writeCSV(filename, XLine, videoName, keyFrame, bb):
@@ -95,7 +98,7 @@ def getRelevantIndexes(videoID, keyFrame, snippets_video, snippets_time):
 
 
 for i in range(len(INPATHS)):
-    INPATH = INPATHS[i]
+    INPATH = "contextData/" + INPATHS[i]
     OUTPATH = OUTPATHS[i]
     print("Now on input:" + INPATH + "\n And output: " + OUTPATH)
 
@@ -119,7 +122,7 @@ for i in range(len(INPATHS)):
         if i % 5000 == 0:
             print("On snippet #" + str(i) + " of " + str(len(snippets_video)) + ".\n")
         if (snippets_video[i] == currentVideoID) and \
-            (snippets_time[i] == currentKeyFrame) and \
+                (snippets_time[i] == currentKeyFrame) and \
                 (sum(currentBB == snippets_bb[i]) == len(currentBB)):
             # This is the same ID,Keyframe,BB as last time. skip this one.
             pass
@@ -174,6 +177,6 @@ for i in range(len(INPATHS)):
             currentXLine[NCLASSES * NUMBEROFNEIGHBORS:NCLASSES * NUMBEROFNEIGHBORS + NUMBEROFNEIGHBORS * NCLASSES * LOOKBACK] = oldX
             currentXLine[NCLASSES * NUMBEROFNEIGHBORS + NUMBEROFNEIGHBORS * NCLASSES * LOOKBACK:] = futureX
 
-            currentXLine = np.array2string(currentXLine, separator=' ', max_line_width=100000)  # hehe
+            currentXLine = np.array2string(currentXLine, separator=' ', max_line_width=10000000000)  # hehe
             currentXLine = currentXLine[1:-1]  # Remove trailling "[]"
             writeCSV(OUTPATH, currentXLine, currentVideoID, currentKeyFrame, currentBB)

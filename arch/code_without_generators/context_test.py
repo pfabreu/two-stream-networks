@@ -1,3 +1,4 @@
+import tensorflow as tf
 from keras.utils import to_categorical
 from keras.callbacks import ModelCheckpoint
 
@@ -5,6 +6,7 @@ from context_model import context_create_model, compile_model
 from context_data import load_split, get_AVA_set, get_AVA_labels
 import voting
 
+from keras import backend as K
 import pickle
 import utils
 import numpy as np
@@ -12,6 +14,23 @@ import time
 
 
 def main():
+
+    GPU = False
+    CPU = True
+    num_cores = 8
+
+    if GPU:
+        num_GPU = 1
+        num_CPU = 1
+    if CPU:
+        num_CPU = 1
+        num_GPU = 0
+
+    config = tf.ConfigProto(intra_op_parallelism_threads=num_cores, inter_op_parallelism_threads=num_cores, allow_soft_placement=True,
+                            device_count={'CPU': num_CPU, 'GPU': num_GPU})
+    session = tf.Session(config=config)
+    K.set_session(session)
+
     # Load list of action classes and separate them (from utils_stream)
     root_dir = '../../data/AVA/files/'
     classes = utils.get_AVA_classes(root_dir + 'ava_action_list_custom.csv')

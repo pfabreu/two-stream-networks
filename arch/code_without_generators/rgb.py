@@ -24,34 +24,49 @@ def main():
     # Parameters for training
     params = {'dim': (224, 224), 'batch_size': 32,
               'n_classes': len(classes['label_id']), 'n_channels': 3,
-              'shuffle': False, 'nb_epochs': 300, 'model': 'resnet50', 'email': True,
-              'freeze_all': True, 'conv_fusion': True, 'train_chunk_size': 2**12,
+              'shuffle': False, 'nb_epochs': 200, 'model': 'inceptionv3', 'email': True,
+              'freeze_all': True, 'conv_fusion': False, 'train_chunk_size': 2**12,
               'validation_chunk_size': 2**12}
     soft_sigmoid = True
     minValLoss = 9999990.0
 
     # Get ID's and labels from the actual dataset
     partition = {}
-    partition['train'] = get_AVA_set(classes=classes, filename=root_dir +
-                                     "AVA_Train_Custom_Corrected.csv", soft_sigmoid=soft_sigmoid)  # IDs for training
-    partition['validation'] = get_AVA_set(
-        classes=classes, filename=root_dir + "AVA_Val_Custom_Corrected.csv", soft_sigmoid=soft_sigmoid)  # IDs for validation
+    partition['train'] = get_AVA_set(classes=classes, filename=root_dir + "AVA_Train_Custom_Corrected.csv", soft_sigmoid=soft_sigmoid)  # IDs for training
+    partition['validation'] = get_AVA_set(classes=classes, filename=root_dir + "AVA_Val_Custom_Corrected.csv", soft_sigmoid=soft_sigmoid)  # IDs for validation
 
     # Labels
-    labels_train = get_AVA_labels(classes, partition, "train", filename=root_dir +
-                                  "AVA_Train_Custom_Corrected.csv", soft_sigmoid=soft_sigmoid)
-    labels_val = get_AVA_labels(classes, partition, "validation", filename=root_dir +
-                                "AVA_Val_Custom_Corrected.csv", soft_sigmoid=soft_sigmoid)
+    labels_train = get_AVA_labels(classes, partition, "train", filename=root_dir + "AVA_Train_Custom_Corrected.csv", soft_sigmoid=soft_sigmoid)
+    labels_val = get_AVA_labels(classes, partition, "validation", filename=root_dir + "AVA_Val_Custom_Corrected.csv", soft_sigmoid=soft_sigmoid)
 
     # Create + compile model, load saved weights if they exist
     saved_weights = None
     # saved_weights = "../models/rgbextra_gauss_resnet50_1807250030.hdf5"
-    model = rgb_create_model(classes=classes['label_id'], soft_sigmoid=soft_sigmoid, model_name=params[
-                             'model'], freeze_all=params['freeze_all'], conv_fusion=params['conv_fusion'])
+    model, keras_layer_names = rgb_create_model(classes=classes['label_id'], soft_sigmoid=soft_sigmoid, model_name=params['model'], freeze_all=params['freeze_all'], conv_fusion=params['conv_fusion'])
     model = compile_model(model, soft_sigmoid=soft_sigmoid)
+
+    # TODO Experiment: 1. no initialization, 2. ucf initialization 3. kinetics initialization
+    initialization = True  # Set to True to use initialization
+    kinetics_weights = None
+    ucf_weights = "a"
+
     if saved_weights is not None:
         model.load_weights(saved_weights)
-    # Try to train on more than 1 GPU if possible
+    else:
+        if initialization is True:
+            if ucf_weights is None:
+                print("Loading MConvNet weights: ")
+                if params['model'] == "resnet50":
+                    ucf_weights = utils.loadmat("../models/ucf_matconvnet/ucf101-img-resnet-50-split1.mat")
+                    utils.convert_resnet(model, ucf_weights)
+                    model.save("../models/ucf_keras/keras-ucf101-rgb-resnet50-newsplit.hdf5")
+            if kinetics_weights is None:
+                if params['model'] == "inceptionv3":
+                    print("Loading Keras weights: ")
+                    keras_weights = ["../models/kinetics_keras/tsn_rgb_params_names.pkl", "../models/kinetics_keras/tsn_rgb_params.pkl"]
+                    utils.convert_inceptionv3(model, keras_weights, keras_layer_names)
+                    model.save("../models/kinetics_keras/keras-kinetics-rgb-inceptionv3.hdf5")
+    # Try to train on more than 1 GPU if    possible
     # try:
     #    print("Trying MULTI-GPU")
     #    model = multi_gpu_model(model)
@@ -65,16 +80,17 @@ def main():
         partition['validation']), chunk_size=params['validation_chunk_size'])
 
     time_str = time.strftime("%y%m%d%H%M", time.localtime())
+
+    # TODO Don't forget to change your names :)
     filter_type = "gauss"
-    # TODO Change this for joao's paths
-    bestModelPath = "../models/rgbconv_" + filter_type + \
+    bestModelPath = "../models/rgb_kininit_" + filter_type + \
         "_" + params['model'] + "_" + time_str + ".hdf5"
-    traincsvPath = "../plots/rgbconv_train_" + filter_type + \
+    traincsvPath = "../plots/rgb_kininit_train_" + filter_type + \
         "_plot_" + params['model'] + "_" + time_str + ".csv"
-    valcsvPath = "../plots/rgbconv_val_" + filter_type + \
+    valcsvPath = "../plots/rgb_kininit_val_" + filter_type + \
         "_plot_" + params['model'] + "_" + time_str + ".csv"
 
-    with tf.device('/gpu:0'):
+    with tf.device('/gpu:0'):  # NOTE Not using multi gpu
         for epoch in range(params['nb_epochs']):
             epoch_chunks_count = 0
             for trainIDS in train_splits:
@@ -83,7 +99,7 @@ def main():
                 # -----------------------------------------------------------
                 x_val = y_val_pose = y_val_object = y_val_human = x_train = y_train_pose = y_train_object = y_train_human = None
                 x_train, y_train_pose, y_train_object, y_train_human = load_split(trainIDS, labels_train, params[
-                                                                                  'dim'], params['n_channels'], "train", filter_type, soft_sigmoid=soft_sigmoid)
+                    'dim'], params['n_channels'], "train", filter_type, soft_sigmoid=soft_sigmoid)
 
                 y_t = []
                 y_t.append(to_categorical(
@@ -94,7 +110,7 @@ def main():
                     y_train_human, size=utils.HUMAN_HUMAN_CLASSES, labeltype='human-human'))
 
                 history = model.fit(x_train, y_t, batch_size=params[
-                                    'batch_size'], epochs=1, verbose=0)
+                    'batch_size'], epochs=1, verbose=0)
                 utils.learning_rate_schedule(model, epoch, params['nb_epochs'])
 
                 # TODO Repeat samples of unrepresented classes?
@@ -118,7 +134,7 @@ def main():
             for valIDS in val_splits:
                 x_val = y_val_pose = y_val_object = y_val_human = x_train = y_train_pose = y_train_object = y_train_human = None
                 x_val, y_val_pose, y_val_object, y_val_human = load_split(valIDS, labels_val, params[
-                                                                          'dim'], params['n_channels'], "val", filter_type, soft_sigmoid=soft_sigmoid)
+                    'dim'], params['n_channels'], "val", filter_type, soft_sigmoid=soft_sigmoid)
                 y_v = []
                 y_v.append(to_categorical(
                     y_val_pose, num_classes=utils.POSE_CLASSES))
@@ -155,7 +171,7 @@ def main():
     if params['email']:
         utils.sendemail(from_addr='pythonscriptsisr@gmail.com',
                         to_addr_list=['pedro_abreu95@hotmail.com'],
-                        subject='Finished training RGB-stream (extra epochs + training conv layers + more aggressive learning rate, on my pc)',
+                        subject='Finished training RGB-stream ',
                         message='Training RGB with following params: ' +
                         str(params),
                         login='pythonscriptsisr@gmail.com',

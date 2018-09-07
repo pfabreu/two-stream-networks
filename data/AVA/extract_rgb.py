@@ -3,15 +3,16 @@ import os
 import sys
 import glob
 
-set_type = "train"
+set_type = "val"
+use_glob = False
+_DATA_DIR = "/media/pedro/actv-ssd/pose_noface_" + set_type + "/"
+_OUT_DIR = "/media/pedro/actv-ssd/pose_rgb_noface/" + set_type + "/"
 
-_DATA_DIR = "/media/pedro/actv-ssd/segments_val/"
-_OUT_DIR = "/media/pedro/actv-ssd/rgb_val/"
 snippets_video = []
 snippets_time = []
 
 
-with open('files/AVA_Val_Custom_Corrected.csv') as csvDataFile:
+with open('files/AVA_' + set_type.title() + '_Custom_Corrected.csv') as csvDataFile:
     csvReader = csv.reader(csvDataFile)
     for row in csvReader:
         snippets_video.append(row[0])
@@ -21,7 +22,7 @@ with open('files/AVA_Val_Custom_Corrected.csv') as csvDataFile:
 
 currentVideo = ''
 currentTime = ''
-if set_type != "test":
+if use_glob is False:
     for i in range(len(snippets_video)):
         if i % 100 == 0:
             print("Video #" + str(i) + " of " + str(len(snippets_video)) + ".")
@@ -37,7 +38,7 @@ if set_type != "test":
             else:
                 currentTimeStr = currentTime  # Fixed this :D
             output_folder = currentVideo + "_" + currentTimeStr
-            videoPath = _DATA_DIR + currentVideo + "_" + currentTimeStr + ".avi"
+            videoPath = _DATA_DIR + currentVideo + "_" + currentTimeStr + "_orig.avi"
             if not os.path.exists(videoPath):
                 print(videoPath + " not found")
                 sys.exit(0)
