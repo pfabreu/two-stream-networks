@@ -12,6 +12,7 @@ def load_split(ids, labels, dim, n_channels, of_len, pose_dir, rgb_dir, flow_dir
 
     sep = "@"
     r_dir = rgb_dir + set_type + "/"
+    pose_dir = pose_dir + "/" + set_type + "/"
     # Initialization, assuming its bidimensional (for now)
     X_rgb = np.empty([len(ids), dim[0], dim[1], 3])
     X_flow = np.empty([len(ids), dim[0], dim[1], 20])
@@ -60,13 +61,11 @@ def load_split(ids, labels, dim, n_channels, of_len, pose_dir, rgb_dir, flow_dir
         for fn in range(-of_len // 2, of_len // 2):
             of_frame = optical_flow_frame + fn
             if encoding == "grayscale":
-                x_img_name = flow_dir + set_type + "/x/" + vid_name +
-                    "/frame" + str('{:06}'.format(of_frame)) + ".jpg"
+                x_img_name = flow_dir + set_type + "/x/" + vid_name + "/frame" + str('{:06}'.format(of_frame)) + ".jpg"
                 x_img = cv2.imread(x_img_name, cv2.IMREAD_GRAYSCALE)
                 if x_img is None:
                     continue
-                y_img_name = flow_dir + set_type + "/y/" + vid_name +
-                    "/frame" + str('{:06}'.format(of_frame)) + ".jpg"
+                y_img_name = flow_dir + set_type + "/y/" + vid_name + "/frame" + str('{:06}'.format(of_frame)) + ".jpg"
                 y_img = cv2.imread(y_img_name, cv2.IMREAD_GRAYSCALE)
                 if y_img is None:
                     continue

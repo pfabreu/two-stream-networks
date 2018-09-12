@@ -12,8 +12,8 @@ import timeit
 
 
 def main():
-    root_dir = '../../../AVA2.1/'  # root_dir for the files
-    # root_dir = '../../data/AVA/files/'
+    # root_dir = '../../../AVA2.1/'  # root_dir for the files
+    root_dir = '../../data/AVA/files/'
     K.clear_session()
 
     # Load list of action classes and separate them (from _stream)
@@ -22,8 +22,8 @@ def main():
     # Parameters for training (batch size 32 is supposed to be the best?)
     params = {'dim': (224, 224), 'batch_size': 64,
               'n_classes': len(classes['label_id']), 'n_channels': 3,
-              'nb_epochs': 150, 'model': 'resnet50', 'email': True,
-              'train_chunk_size': 2**11, 'validation_chunk_size': 2**11}
+              'nb_epochs': 100, 'model': 'resnet50', 'email': True,
+              'train_chunk_size': 2**10, 'validation_chunk_size': 2**10}
     minValLoss = 9999990.0
 
     # Get ID's and labels from the actual dataset
@@ -36,12 +36,12 @@ def main():
     labels_val = get_AVA_labels(classes, partition, "validation", filename=root_dir + "AVA_Val_Custom_Corrected.csv")
 
     # Create + compile model, load saved weights if they exist
-    rgb_weights = "../models/rgb_gauss_resnet50_1806301953.hdf5"
+    rgb_weights = "../models/rgb_gauss_resnet50_1806290918.hdf5"
     flow_weights = "../models/flow_resnet50_1806281901.hdf5"
     pose_weights = "../models/pose_alexnet_1808310209.hdf5"
     rgb_dir = "/media/pedro/actv-ssd/gauss_"
     flow_dir = "/media/pedro/actv-ssd/flow_"
-    pose_dir = "/media/pedro/actv-ssd/pose_rgb_crop_"
+    pose_dir = "/media/pedro/actv-ssd/pose_rgb_crop"
     time_str = time.strftime("%y%m%d%H%M", time.localtime())
     bestModelPath = "../models/fusion_pose_gauss_" + params['model'] + "_" + time_str + ".hdf5"
     traincsvPath = "../loss_acc_plots/fusion_pose_train_gauss_plot_" + params['model'] + "_" + time_str + ".csv"
@@ -68,12 +68,12 @@ def main():
                 start_time = timeit.default_timer()
                 # -----------------------------------------------------------
                 x_val_rgb = x_val_flow = x_val_pose = y_val_pose = y_val_object = y_val_human = x_train_rgb = x_train_pose = x_train_flow = y_train_pose = y_train_object = y_train_human = None
-                x_train_rgb, x_train_flow, x_train_pose, y_train_pose, y_train_object, y_train_human = load_split(trainIDS, labels_train, params['dim'], params['n_channels'], 10, pose_dir, rgb_dir, flow_dir, "grayscale", "train", train=True)
+                x_train_rgb, x_train_flow, x_train_pose, y_train_pose, y_train_object, y_train_human = load_split(trainIDS, labels_train, params['dim'], params['n_channels'], 10, pose_dir, rgb_dir, flow_dir, "rgb", "train", train=True)
 
                 y_train_pose = to_categorical(y_train_pose, num_classes=utils.POSE_CLASSES)
                 y_train_object = utils.to_binary_vector(y_train_object, size=utils.OBJ_HUMAN_CLASSES, labeltype='object-human')
                 y_train_human = utils.to_binary_vector(y_train_human, size=utils.HUMAN_HUMAN_CLASSES, labeltype='human-human')
-
+                print("Loaded, running through CNN")
                 history = model.fit([x_train_rgb, x_train_flow, x_train_pose], [y_train_pose, y_train_object, y_train_human], batch_size=params['batch_size'], epochs=1, verbose=0)
                 elapsed = timeit.default_timer() - start_time
                 # learning_rate_schedule(model, epoch, params['nb_epochs'])
@@ -90,7 +90,7 @@ def main():
             loss_acc_list = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
             for valIDS in val_splits:
                 x_val_rgb = x_val_flow = x_val_pose = y_val_pose = y_val_object = y_val_human = x_train_rgb = x_train_pose = x_train_flow = y_train_pose = y_train_object = y_train_human = None
-                x_val_rgb, x_val_flow, x_val_pose, y_val_pose, y_val_object, y_val_human = load_split(valIDS, labels_val, params['dim'], params['n_channels'], "val", 10, pose_dir, flow_dir, "grayscale", "val", train=True)
+                x_val_rgb, x_val_flow, x_val_pose, y_val_pose, y_val_object, y_val_human = load_split(valIDS, labels_val, params['dim'], params['n_channels'], "val", 10, pose_dir, flow_dir, "rgb", "val", train=True)
 
                 y_val_pose = to_categorical(y_val_pose, num_classes=utils.POSE_CLASSES)
                 y_val_object = utils.to_binary_vector(y_val_object, size=utils.OBJ_HUMAN_CLASSES, labeltype='object-human')

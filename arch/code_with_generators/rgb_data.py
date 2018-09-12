@@ -11,6 +11,10 @@ import timeit
 
 
 def get_generators(classes, image_shape=(224, 224), batch_size=32):
+    # Rescale is a value by which we will multiply the data before any other processing.
+    # Our original images consist in RGB coefficients in the 0-255, but such values
+    # would be too high for our model to process (given a typical learning rate),
+    # so we target values between 0 and 1 instead by scaling with a 1/255. factor
     train_datagen = ImageDataGenerator(
         rescale=1. / 255,
         shear_range=0.2,
@@ -21,22 +25,56 @@ def get_generators(classes, image_shape=(224, 224), batch_size=32):
 
     test_datagen = ImageDataGenerator(rescale=1. / 255)
 
+    # Karphaty said this (implying that the learning curve deals well with high values?)
+    # Convert color scale from 0-1 to 0-255 range (actually because image type is a float the
+    # actual range could be negative or >255 during the cubic spline interpolation for image resize.
+
     train_generator = train_datagen.flow_from_directory(
-        os.path.join('/data', 'train'),
-        target_size=image_shape,
-        batch_size=batch_size,
-        classes=classes,
+        '/media/pedro/UCF101/rgb', target_size=image_shape,
+        batch_size=batch_size, classes=classes,
         class_mode='categorical')
 
     validation_generator = test_datagen.flow_from_directory(
-        os.path.join('/data', 'test'),
-        target_size=image_shape,
-        batch_size=batch_size,
-        classes=classes,
+        '/media/pedro/UCF101/rgb', target_size=image_shape,
+        batch_size=batch_size, classes=classes,
         class_mode='categorical')
 
     return train_generator, validation_generator
 
+
+def get_classes(filename):
+    with open(filename, 'r') as fin:
+        reader = csv.reader(fin)
+        data_list = list(reader)
+
+    classes = []
+    for item in data_list:
+        if item[1] not in classes:
+            classes.append(item[1])
+
+    # Sort them.
+    classes = sorted(classes)
+
+    data_list_clean = []
+    for item in data_list:
+        if item[1] in classes:
+            data_list_clean.append(item)
+
+    # Return.
+    return classes, data_list_clean
+
+
+def get_class_one_hot(self, class_str):
+    """Given a class as a string, return its number in the classes
+    list. This lets us encode and one-hot it for training."""
+
+    # Encode it first.
+    label_encoded = self.classes.index(class_str)
+
+    # Now one-hot it.
+    label_hot = to_categorical(label_encoded, len(self.classes))
+
+    return label_hot
 
 # class DataGenerator(keras.utils.Sequence):
 #     'Generates data for Keras'

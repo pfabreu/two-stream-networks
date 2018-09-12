@@ -135,7 +135,7 @@ def main():
 
     if params['email']:
         utils.sendemail(from_addr='pythonscriptsisr@gmail.com',
-                        to_addr_list=['pedro_abreu95@hotmail.com', 'joaogamartins@gmail.com'],
+                        to_addr_list=['pedro_abreu95@hotmail.com'],
                         cc_addr_list=[],
                         subject='Finished training context fusion',
                         message='Training fusion with following params: ' + str(params),

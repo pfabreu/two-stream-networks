@@ -1,6 +1,8 @@
 import numpy as np
 import utils
 from rgb_data import get_AVA_set
+import matplotlib.pyplot as plt
+import seaborn as sns
 import voting
 import pickle
 import sys
@@ -13,7 +15,7 @@ import csv
 # File with predictions
 stream = "rgb"
 filter_type = "gauss"
-filename = "thresholds/rgb_" + stream + "/predictions_" + stream + "_" + filter_type + "_1807241628.pickle"
+filename = "thresholds/" + stream + "_" + filter_type + "/predictions_" + stream + "_" + filter_type + "_1807241628.pickle"
 with open(filename, 'rb') as handle:
     predictions = pickle.load(handle)
 
@@ -23,7 +25,7 @@ root_dir = '../../data/AVA/files/'
 # Load groundtruth (test or val set)
 # Load list of action classes and separate them (from utils_stream)
 classes = utils.get_AVA_classes(root_dir + 'ava_action_list_custom.csv')
-
+print(classes)
 f = np.zeros(30)
 with open("../../data/AVA/files/AVA_Test_Custom_Corrected.csv") as csvDataFile:
     csvReader = csv.reader(csvDataFile)
@@ -34,24 +36,77 @@ p = np.divide(f, np.sum(f))
 print(p)
 a = np.zeros(30)
 
-# Load groundtruth (test or val set)
-partition = get_AVA_set(classes=classes, filename=root_dir + "AVA_Test_Custom_Corrected.csv", soft_sigmoid=True)
-
-
+partition = get_AVA_set(classes=classes, filename=root_dir + "AVA_Val_Custom_Corrected.csv", soft_sigmoid=True)
+test_splits = utils.make_chunks(original_list=partition, size=len(partition), chunk_size=2**11)
 # First "test" where all a's are still 0
+# Pick a's: Select random combinations from a set of values for each class, making sure they aren't repeated?
+# Just test uniform value for now (all a_L's the same)
+a_set = [0, 10, 100, 1000, 5000, 10000]
+i = 1
+bls = []
+for a_s in a_set:
+    plt.subplot(3, 2, i)
+    i += 1
+    x_axis = []
+    colors = []
+    for m in classes['label_id']:
+        ms = int(m)
+        if ms <= 10:
+            colors.append('red')
+        elif ms < 22:
+            colors.append('blue')
+        else:
+            colors.append('green')
+    for m in classes['label_name']:
+        ms = m.split("/")[-1]
+        x_axis.append(ms)
+
+    b = np.zeros(30)
+    for bs in range(len(b)):
+        b[bs] = (f[bs] + a_s) / np.sum(f + a_s)
+    sbs = np.sum(b)
+    for bs in range(len(b)):
+        b[bs] /= sbs
+    print(np.sum(b))
+    g = sns.barplot(x=x_axis, y=b)
+    plt.xticks(rotation=-90)
+    plt.title("Dirichlet Prior, all a_L's = " + str(a_s))
+    plt.grid(True)
+    t = 0
+    for xtick_label in g.axes.get_xticklabels():
+        if t <= 9:
+            xtick_label.set_color("r")
+        elif t < 22:
+            xtick_label.set_color("b")
+        else:
+            xtick_label.set_color("g")
+        t += 1
+    b = np.split(b, [10, 22])  # Has to be done due to shape of predictions .pkl file
+    bls.append(b)
 
 
-sys.exit(0)
-# Pick a's: Select random combinations from a set of values for each class, making sure they aren't repeated
-
+plt.show()
 
 # Save combo files
 
 # Voting (will output a lot of csvs)
-combo_number = 0
-for combo in combinations:
+a_idx = 0
+for b in bls:
 
-    # Regularize predictions given the combination
+    print("Regularizing predictions from file: " + filename)
+    with open(filename, 'rb') as handle:
+        predictions = pickle.load(handle)
+
+    for tc in range(len(predictions)):
+        for predtype in range(3):
+            print(len(predictions[tc][predtype]))
+            # print("Pre-reg:")
+            print(predictions[tc][predtype])
+            # NOTE Element wise regulation by the dirichlet prior
+            print("Post_reg:")
+            predictions[tc][predtype] = predictions[tc][predtype] * b[predtype]
+            print(predictions[tc][predtype])
+            # Regularize predictions given the combination
 
     pose_votes = {}
     obj_votes = {}
@@ -64,9 +119,18 @@ for combo in combinations:
         obj_votes[i] = np.zeros(utils.OBJ_HUMAN_CLASSES)
         human_votes[i] = np.zeros(utils.HUMAN_HUMAN_CLASSES)
 
-    voting.pred2classes(testIDS, predictions, pose_votes, obj_votes, human_votes, thresh=0.4)
+    pred_chunk = 0
+    for testIDS in test_splits:
+        voting.pred2classes(testIDS, predictions[pred_chunk], pose_votes, obj_votes, human_votes, thresh=0.2)
+        pred_chunk += 1
 
-    result_csv = filename.split(".")[1] + "_" + str(thresh) + ".csv"
+    result_csv = filename.split(".")[0] + "_" + str(a_set[a_idx]) + ".csv"
+    print(result_csv)
+    result_csv = result_csv.split("/")[1] + "/" + result_csv.split("/")[2]
+
+    result_csv = "dirichlet/" + result_csv
+    a_idx += 1
+    print(result_csv)
     with open(result_csv, "a") as output_file:
         for key in pose_votes:
             idx = key.split("@")

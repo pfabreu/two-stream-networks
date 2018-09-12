@@ -7,6 +7,54 @@ import cv2
 import os.path
 import sys
 import utils
+import imgaug as ia
+from imgaug import augmenters as iaa
+from imgaug import parameters as iap
+import random
+
+
+def load_split_aug(ids, labels, dim, n_channels, gen_type, filter_type, soft_sigmoid=False, train=True):
+    'Generates data containing batch_size samples'
+    resize = False
+    sep = "@"
+    X = np.zeros([len(ids), dim[0], dim[1], n_channels])
+    rgb_dir = "/media/pedro/actv-ssd/"
+    # rgb_dir = ""
+    ypose = np.empty(len(ids))
+    yobject = []
+    yhuman = []
+    # Generate data
+    for i, ID in enumerate(ids):
+        # Get image from ID (since we are using opencv we get np array)
+        split_id = ID.split(sep)
+        vid_name = split_id[0]
+
+        keyframe = split_id[1]
+        vid_name = vid_name + "_" + keyframe
+        bbs = str(float(split_id[2])) + "_" + str(float(split_id[3])) + "_" + str(float(split_id[4])) + "_" + str(float(split_id[5]))
+        rgb_frame = split_id[6]
+
+        # Is this the correct format? Yes, the format has to use _
+        img_name = rgb_dir + filter_type + "_" + gen_type + "/" + vid_name + "_" + bbs + "/frames" + rgb_frame + ".jpg"
+
+        if not os.path.exists(img_name):
+            img = np.zeros((224, 224, 3))
+            print(img_name)
+            print("[Error] File does not exist... Using a black image instead")
+            # sys.exit(0)
+        else:
+            img = cv2.imread(img_name)
+            if resize is True:
+                img = cv2.resize(img, (224, 224), interpolation=cv2.INTER_NEAREST)
+
+        X[i, ] = img
+        if train is True:
+            ypose[i] = labels[ID]['pose']
+            yobject.append(labels[ID]['human-object'])
+            yhuman.append(labels[ID]['human-human'])
+
+            # conversion to one hot is done after
+    return X, ypose, yobject, yhuman
 
 
 def load_split(ids, labels, dim, n_channels, gen_type, filter_type, soft_sigmoid=False, train=True):
@@ -73,8 +121,7 @@ def get_AVA_set(classes, filename, soft_sigmoid=False):
             # This is due to the behav of range
             for frame in range(start_frame, end_frame + jump_frames, jump_frames):
                 # Append to the dictionary
-                ID = video + sep + kf_timestamp.lstrip("0") + \
-                    sep + str(bb_top_x) + sep + str(bb_top_y) + sep + str(bb_bot_x) + sep + str(bb_bot_y) + sep + str(frame)
+                ID = video + sep + kf_timestamp.lstrip("0") + sep + str(bb_top_x) + sep + str(bb_top_y) + sep + str(bb_bot_x) + sep + str(bb_bot_y) + sep + str(frame)
                 id_list.append(ID)
     id_list = list(set(id_list))  # Make sure we only got unique id's
     return id_list

@@ -26,7 +26,7 @@ def main():
               'train_chunk_size': 2**10, 'validation_chunk_size': 2**10}
     minValLoss = 9999990.0
     encoding = "rgb"
-    crop = False
+    crop = True
 
     # Get ID's and labels from the actual dataset
     partition = {}
@@ -40,8 +40,8 @@ def main():
     # Create + compile model, load saved weights if they exist
     # rgb_weights = "../models/rgb_gauss_resnet50_1806290918.hdf5"
     # rgb_weights = "../models/rgb_gauss_resnet50_1806290918.hdf5"
-    rgb_weights = "../models/rgb_rgb_resnet50_1807060914.hdf5"
-    flow_weights = "../models/flow_resnet50_1806281901.hdf5"
+    rgb_weights = "../models/rgb_fovea_resnet50_1806301953.hdf5"
+    flow_weights = "../models/flowcrop_resnet50_1807180022.hdf5"
     # flow_weights = "../models/flowcrop_resnet50_1807180022.hdf5"
 
     # Model
@@ -54,15 +54,15 @@ def main():
     # Load splits as chunks (see utils)
     train_splits = utils.make_chunks(original_list=partition['train'], size=len(partition['train']), chunk_size=params['train_chunk_size'])
     val_splits = utils.make_chunks(original_list=partition['validation'], size=len(partition['validation']), chunk_size=params['validation_chunk_size'])
-    filter_type = "rgb"
+    filter_type = "fovea"
     rgb_dir = "/media/pedro/actv-ssd/" + filter_type + "_"
-    flow_dir = "/media/pedro/actv-ssd/flow_"
+    flow_dir = "/media/pedro/actv-ssd/flowcrop_"
 
     # Paths for saving model and plots
     time_str = time.strftime("%y%m%d%H%M", time.localtime())
-    bestModelPath = "../models/two_stream_fusion_rgbbaseline_" + filter_type + "_" + params['model'] + "_" + time_str + ".hdf5"
-    traincsvPath = "../loss_acc_plots/two_stream_fusion_rgbbaseline_train_" + filter_type + "_plot_" + params['model'] + "_" + time_str + ".csv"
-    valcsvPath = "../loss_acc_plots/two_stream_fusion_rgbbaseline_val_" + filter_type + "_plot_" + params['model'] + "_" + time_str + ".csv"
+    bestModelPath = "../models/two_stream_fusion_flowcrop_fovea_" + filter_type + "_" + params['model'] + "_" + time_str + ".hdf5"
+    traincsvPath = "../loss_acc_plots/two_stream_fusion_flowcrop_fovea_train_" + filter_type + "_plot_" + params['model'] + "_" + time_str + ".csv"
+    valcsvPath = "../loss_acc_plots/two_stream_fusion_flowcrop_fovea_val_" + filter_type + "_plot_" + params['model'] + "_" + time_str + ".csv"
 
     with tf.device('/gpu:0'):
         for epoch in range(params['nb_epochs']):

@@ -3,13 +3,13 @@ from keras.models import Model
 from keras.optimizers import Adam
 from rgb_model import rgb_create_model
 from flow_model import flow_create_model
-from pose_model import context_create_model
+from pose_model import pose_create_model
 import sys
 import utils
 
 
 def prepare_rgb_stream(classes, rgb_weights, model_name):
-    original_rgb_stream = rgb_create_model(classes, soft_sigmoid=True, model_name=model_name, freeze_all=True, conv_fusion=False)
+    original_rgb_stream, k = rgb_create_model(classes, soft_sigmoid=True, model_name=model_name, freeze_all=True, conv_fusion=False)
     # print(original_rgb_stream.summary())
     if rgb_weights is None:
         print("No saved rgb_weights weights file, please use fusion weights!")
@@ -23,7 +23,7 @@ def prepare_rgb_stream(classes, rgb_weights, model_name):
 
 
 def prepare_flow_stream(classes, flow_weights, model_name):
-    original_flow_stream = flow_create_model(classes, model_name=model_name, soft_sigmoid=True, image_shape=(224, 224), opt_flow_len=20, freeze_all=True, conv_fusion=False)
+    original_flow_stream, k = flow_create_model(classes, model_name=model_name, soft_sigmoid=True, image_shape=(224, 224), opt_flow_len=20, freeze_all=True, conv_fusion=False)
     # print(original_flow_stream.summary())
     if flow_weights is None:
         print("Aborting, No saved flow_weights weights file, please use fusion weights!")
@@ -39,7 +39,7 @@ def prepare_flow_stream(classes, flow_weights, model_name):
 
 
 def prepare_pose_stream(classes, pose_weights):
-    original_pose_stream = pose_create_model(classes, soft_sigmoid=True, image_shape=(300, 300), model_name=params['model'])
+    original_pose_stream = pose_create_model(classes, soft_sigmoid=True, image_shape=(300, 300), model_name='alexnet')
     if pose_weights is None:
         print("Aborting, No saved pose_weights weights file, please use fusion weights!")
         sys.exit(1)
@@ -52,7 +52,7 @@ def prepare_pose_stream(classes, pose_weights):
         return original_pose_stream
 
 
-class FusionPosetModel():
+class FusionPoseModel():
 
     def __init__(self, classes, rgb_weights, flow_weights, pose_weights):
         # Simple non-time-distributed model
@@ -71,6 +71,7 @@ class FusionPosetModel():
         # TODO Maybe not so many pops
         # print(flow_m.summary())
         # print(rgb_m.summary())
+        print(pose_m.summary())
         # Since mode is concat the next conv layer after will learn rgb+flow filters
         m = concatenate([rgb_m.layers[-1].output, flow_m.layers[-1].output, pose_m.layers[-1].output, ], axis=-1)
         # Convolutional fusion layer

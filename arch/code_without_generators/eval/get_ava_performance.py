@@ -136,8 +136,218 @@ def split_interleave(A):
     return D
 
 
+def run_evaluation_threshold(labelmap, groundtruth, exclusions, iou):
+
+    # sns.palplot(sns.diverging_palette(128, 240, n=10))
+    # seq_col_brew = sns.color_palette("Blues_r", 4) # For sequential, blue gradient in reverse
+    # Qualitative data palette
+    # current_palette = sns.color_palette("Paired")
+    # sns.set_palette(current_palette)
+
+    # Make sure not to mess this up
+    filters = []
+    filters.append("0.1")
+    filters.append("0.2")
+    filters.append("0.3")
+    filters.append("0.4")
+    filters.append("0.5")
+    filters.append("0.6")
+    filters.append("0.7")
+    filters.append("0.8")
+    filters.append("0.9")
+
+    ftype = "gauss"
+
+    all_detections = []
+    for f in filters:
+        all_detections.append(open("../thresholds/predictions_rgb_" + ftype + "_1807241628_" + f + ".csv", 'rb'))
+
+    all_gndtruths = []
+    all_gndtruths.append(open("AVA_Val_Custom_Corrected.csv", 'rb'))
+    all_gndtruths.append(open("AVA_Val_Custom_Corrected.csv", 'rb'))
+    all_gndtruths.append(open("AVA_Val_Custom_Corrected.csv", 'rb'))
+    all_gndtruths.append(open("AVA_Val_Custom_Corrected.csv", 'rb'))
+    all_gndtruths.append(open("AVA_Val_Custom_Corrected.csv", 'rb'))
+    all_gndtruths.append(open("AVA_Val_Custom_Corrected.csv", 'rb'))
+    all_gndtruths.append(open("AVA_Val_Custom_Corrected.csv", 'rb'))
+    all_gndtruths.append(open("AVA_Val_Custom_Corrected.csv", 'rb'))
+    all_gndtruths.append(open("AVA_Val_Custom_Corrected.csv", 'rb'))
+    #all_gndtruths.append(open("AVA_Test_Custom_Corrected.csv", 'rb'))
+    #all_gndtruths.append(open("AVA_Test_Custom_Corrected.csv", 'rb'))
+    """Runs evaluations given input files.
+
+    Args:
+      labelmap: file object containing map of labels to consider, in pbtxt format
+      groundtruth: file object
+      detections: file object
+      exclusions: file object or None.
+    """
+    categories, class_whitelist = read_labelmap(labelmap)
+    logging.info("CATEGORIES (%d):\n%s", len(categories),
+                 pprint.pformat(categories, indent=2))
+    excluded_keys = read_exclusions(exclusions)
+
+    # Reads detections data.
+    x_axis = []
+    xpose_ax = []
+    xobj_ax = []
+    xhuman_ax = []
+    ypose_ax = []
+    yobj_ax = []
+    yhuman_ax = []
+    colors_pose = []
+    colors_obj = []
+    colors_human = []
+    finalmAPs = []
+    colors = []
+
+    maxY = -1.0
+
+    for detections, gndtruth, filter_type in zip(all_detections, all_gndtruths, filters):
+        pascal_evaluator = None
+        metrics = None
+        actions = None
+        start = 0
+
+        pascal_evaluator = object_detection_evaluation.PascalDetectionEvaluator(
+            categories, matching_iou_threshold=iou)
+
+        # Reads the ground truth data.
+        boxes, labels, _ = read_csv(gndtruth, class_whitelist)
+        start = time.time()
+        for image_key in boxes:
+            if image_key in excluded_keys:
+                logging.info(("Found excluded timestamp in ground truth: %s. "
+                              "It will be ignored."), image_key)
+                continue
+            pascal_evaluator.add_single_ground_truth_image_info(
+                image_key, {
+                    standard_fields.InputDataFields.groundtruth_boxes:
+                        np.array(boxes[image_key], dtype=float),
+                    standard_fields.InputDataFields.groundtruth_classes:
+                        np.array(labels[image_key], dtype=int),
+                    standard_fields.InputDataFields.groundtruth_difficult:
+                        np.zeros(len(boxes[image_key]), dtype=bool)
+                })
+        print_time("convert groundtruth", start)
+
+        # Run evaluation
+        boxes, labels, scores = read_csv(detections, class_whitelist)
+        start = time.time()
+        for image_key in boxes:
+            if image_key in excluded_keys:
+                logging.info(("Found excluded timestamp in detections: %s. "
+                              "It will be ignored."), image_key)
+                continue
+            pascal_evaluator.add_single_detected_image_info(
+                image_key, {
+                    standard_fields.DetectionResultFields.detection_boxes:
+                        np.array(boxes[image_key], dtype=float),
+                    standard_fields.DetectionResultFields.detection_classes:
+                        np.array(labels[image_key], dtype=int),
+                    standard_fields.DetectionResultFields.detection_scores:
+                        np.array(scores[image_key], dtype=float)
+                })
+        print_time("convert detections", start)
+
+        start = time.time()
+        metrics = pascal_evaluator.evaluate()
+        print_time("run_evaluator", start)
+
+        # TODO Show a pretty histogram here besides pprint
+        actions = list(metrics.keys())
+
+        final_value = 0.0
+        for m in actions:
+            ms = m.split("/")[-1]
+
+            if ms == 'mAP@' + str(iou) + 'IOU':
+                final_value = metrics[m]
+                finalmAPs.append(final_value)
+            else:
+                # x_axis.append(ms)
+                # y_axis.append(metrics[m])
+                for cat in categories:
+                    if cat['name'].split("/")[-1] == ms:
+                        if maxY < metrics[m]:
+                            maxY = metrics[m]
+                        if cat['id'] <= 10:
+                            xpose_ax.append("(" + filter_type + ") " + ms)
+                            ypose_ax.append(metrics[m])
+                            colors_pose.append('red')
+                        elif cat['id'] <= 22:
+                            xobj_ax.append("(" + filter_type + ") " + ms)
+                            yobj_ax.append(metrics[m])
+                            colors_obj.append('blue')
+                        else:
+                            xhuman_ax.append("(" + filter_type + ") " + ms)
+                            yhuman_ax.append(metrics[m])
+                            colors_human.append('green')
+
+                # Make a confusion matrix for this run
+
+        pascal_evaluator = None
+
+    x_axis = split_interleave(xpose_ax) + split_interleave(xobj_ax) + split_interleave(xhuman_ax)
+    y_axis = split_interleave(ypose_ax) + split_interleave(yobj_ax) + split_interleave(yhuman_ax)
+    colors = split_interleave(colors_pose) + split_interleave(colors_obj) + split_interleave(colors_human)
+    print(filters)
+    print(finalmAPs)
+
+    plt.ylabel('frame-mAP')
+    top = 0.1  # offset a bit so it looks good
+    sns.set_style("whitegrid")
+    g = sns.barplot(filters, finalmAPs)
+    ax = g
+    # annotate axis = seaborn axis
+    for p in ax.patches:
+        ax.annotate("%.4f" % p.get_height(), (p.get_x() + p.get_width() / 2., p.get_height()),
+                    ha='center', va='center', fontsize=10, color='gray', rotation=90, xytext=(0, 20),
+                    textcoords='offset points')
+    _ = g.set_ylim(0, top)  # To make space for the annotations
+    # pprint.pprint(metrics, indent=2)
+    # plt.xticks(rotation=-90)
+    # title = ""
+    # for filter_type, mAP in zip(filters, finalmAPs):
+    #     ft = filter_type + ': mAP@' + str(iou) + 'IOU = ' + str(mAP) + '\n'
+    #     title += ft
+    # plt.title(title)
+    plt.show()
+
+    # for i in range(1, 5):
+    #     print(i)
+    #     plt.subplot(2, 2, i)
+    #     if i <= len(all_detections):
+
+    #         # Confusion matrix
+    #         classes = []
+    #         for k in categories:
+    #             classes.append(k['name'])
+    #         cm = confusion_matrix(all_gndtruths[i - 1], all_detections[i - 1], x_axis)
+    #         g = sns.heatmap(cm, annot=True, fmt="d", cmap=sns.cubehelix_palette(8), xticklabels=classes[:10], yticklabels=classes[:10], linewidths=0.5, linecolor='black', cbar=False)
+
+    #         t = 0
+    #         for ytick_label, xtick_label in zip(g.axes.get_yticklabels(), g.axes.get_xticklabels()):
+    #             if t <= 9:
+    #                 ytick_label.set_color("r")
+    #                 xtick_label.set_color("r")
+
+    #             elif t <= 22:
+    #                 ytick_label.set_color("b")
+    #                 xtick_label.set_color("b")
+    #             else:
+    #                 ytick_label.set_color("g")
+    #                 xtick_label.set_color("g")
+    #             t += 1
+    #         plt.xticks(rotation=-90)
+    #         plt.title("Pose Conf. Mat. (" + filters[i - 1] + ")")
+    # plt.show()
+
+
 def run_evaluation(labelmap, groundtruth, exclusions, iou):
 
+    root_dir = '../../../data/AVA/files/'
+    test_dir = "../test_outputs/"
     # Make sure not to mess this up
     filters = []
     filters.append("gauss")
@@ -163,33 +373,33 @@ def run_evaluation(labelmap, groundtruth, exclusions, iou):
     all_detections = []
 
     # New run to compare new flow
-    # all_detections.append(open("output_test_flowcrop.csv", 'rb'))
-    # all_detections.append(open("output_test_flow.csv", 'rb'))
+    # all_detections.append(open(test_dir + "output_test_flowcrop.csv", 'rb'))
+    # all_detections.append(open(test_dir + "output_test_flow.csv", 'rb'))
 
     # New 2 and 3 streams
-    all_detections.append(open("output_test_gauss.csv", 'rb'))
-    all_detections.append(open("output_test_gauss_extra.csv", 'rb'))
-    # all_detections.append(open("output_test_3stream_gauss.csv", 'rb'))
-    # all_detections.append(open("output_test_3stream_crop.csv", 'rb'))
+    all_detections.append(open(test_dir + "output_test_gauss.csv", 'rb'))
+    all_detections.append(open(test_dir + "output_test_gauss_extra.csv", 'rb'))
+    # all_detections.append(open(test_dir + "output_test_3stream_gauss.csv", 'rb'))
+    # all_detections.append(open(test_dir + "output_test_3stream_crop.csv", 'rb'))
 
     # Flow, context, 2-stream, 3-stream run
-    #all_detections.append(open("output_test_ctx.csv", 'rb'))
-    #all_detections.append(open("output_test_flow.csv", 'rb'))
-    #all_detections.append(open("output_test_2stream.csv", 'rb'))
-    #all_detections.append(open("output_test_3stream.csv", 'rb'))
+    #all_detections.append(open(test_dir + "output_test_ctx.csv", 'rb'))
+    #all_detections.append(open(test_dir + "output_test_flow.csv", 'rb'))
+    #all_detections.append(open(test_dir + "output_test_2stream.csv", 'rb'))
+    #all_detections.append(open(test_dir + "output_test_3stream.csv", 'rb'))
 
     # RGB run
-    # all_detections.append(open("output_test_rgb.csv", 'rb'))
-    # all_detections.append(open("output_test_crop.csv", 'rb'))
-    # all_detections.append(open("output_test_gauss.csv", 'rb'))
-    # all_detections.append(open("output_test_fovea.csv", 'rb'))
+    # all_detections.append(open(test_dir + "output_test_rgb.csv", 'rb'))
+    # all_detections.append(open(test_dir + "output_test_crop.csv", 'rb'))
+    # all_detections.append(open(test_dir + "output_test_gauss.csv", 'rb'))
+    # all_detections.append(open(test_dir + "output_test_fovea.csv", 'rb'))
 
     all_gndtruths = []
-    # TODO Fix this dirty hack lol
-    all_gndtruths.append(open("AVA_Test_Custom_Corrected.csv", 'rb'))
-    all_gndtruths.append(open("AVA_Test_Custom_Corrected.csv", 'rb'))
-    # all_gndtruths.append(open("AVA_Test_Custom_Corrected.csv", 'rb'))
-    # all_gndtruths.append(open("AVA_Test_Custom_Corrected.csv", 'rb'))
+    # TODO Fix this dirty hack
+    all_gndtruths.append(open(root_dir + "AVA_Test_Custom_Corrected.csv", 'rb'))
+    all_gndtruths.append(open(root_dir + "AVA_Test_Custom_Corrected.csv", 'rb'))
+    # all_gndtruths.append(open(root_dir + "AVA_Test_Custom_Corrected.csv", 'rb'))
+    # all_gndtruths.append(open(root_dir + "AVA_Test_Custom_Corrected.csv", 'rb'))
     """Runs evaluations given input files.
 
     Args:
@@ -473,12 +683,16 @@ def parse_arguments():
 
 
 def main():
+    # Wheter or not to test thresholds
+    threshold = False
     logging.basicConfig(level=logging.INFO)
     args = parse_arguments()
 
     print(args)
-    run_evaluation(**vars(args))
-
+    if threshold is False:
+        run_evaluation(**vars(args))
+    else:
+        run_evaluation_threshold(**vars(args))
 
 if __name__ == "__main__":
     main()
