@@ -7,13 +7,12 @@ arch/rcnn/faster_rcnn_resnet101_ava_v2.1
 
 # Ignore models
 arch/models/
-arch/code_with_generators/models/
 
 data/AVA/context_files/
 data/AVA/files/
 data/AVA/labelCoMatrices/
-
-data/UCF101/files/
+results/
+# data/UCF101/files/
 
 *.pickle
 *.csv
