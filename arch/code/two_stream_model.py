@@ -56,13 +56,13 @@ class TwoStreamModel():
         # Convolutional fusion layer
         # x = Conv2D(64, (3, 3), strides=(1, 1), activation='relu')(m)
         # Dense fusion layer
-        x = Dense(1024, activation='relu')(m)
+        x = Dense(1024, activation='relu', kernel_initializer='he_uniform')(m)
         # Average pooling
         # x = AveragePooling2D()(x)
         # Add some Dropout layers?
         x = Dropout(0.5)(x)
         # Add fully connected (merge any 1D inputs here)
-        x = Dense(512, activation='relu')(x)
+        x = Dense(512, activation='relu', kernel_initializer='he_uniform')(x)
         x = Dropout(0.5)(x)
         # Add final sigmoid/softsigmoid layer
         pred_pose = Dense(utils.POSE_CLASSES, activation='softmax', name='pred_pose')(x)

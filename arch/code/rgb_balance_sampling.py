@@ -5,13 +5,21 @@ from keras import backend as K
 import csv
 import time
 import timeit
-
+import numpy as np
+import math
 import utils
 from rgb_model import rgb_create_model, compile_model
 from rgb_data_aug import load_split, get_AVA_set, get_AVA_labels
+import matplotlib.pyplot as plt
+import seaborn as sns
+import sys
 
 
 def oversampling(classes, root_dir, file):
+    sep = "@"
+    start_frame = 1
+    end_frame = 5
+    jump_frames = 1  # Keyframe will be 3
     types = np.zeros(len(classes['label_id']))
 
     avg_samples = 0
@@ -25,7 +33,6 @@ def oversampling(classes, root_dir, file):
 
     print(types)
     print(avg_samples)
-    fds = 0
     classes_to_rep = []
     reps = []
     for i in range(len(types)):
@@ -33,9 +40,11 @@ def oversampling(classes, root_dir, file):
             # print("Class: " + str(i + 1))
             # print("Samples: " + str(types[i]))
             # print("Reps: " + str(math.ceil(avg_samples / types[i])))
-            reps.append(int(math.ceil(avg_samples / types[i])) - 1)
+            if math.ceil(avg_samples / types[i]) < 40.0:
+                reps.append(int(math.ceil(avg_samples / types[i])) - 1)
+            else:
+                reps.append(int(40.0) - 1)
             classes_to_rep.append(i + 1)
-            fds += 1
     print(classes_to_rep)
     print(reps)
 
@@ -48,22 +57,54 @@ def oversampling(classes, root_dir, file):
     samples = []
     with open(root_dir + file) as csvDataFile:
         csvReader = csv.reader(csvDataFile)
-        for row in csvReader:
+        csv_list = list(csvReader)
+        l = len(csv_list)
+        for index, row in enumerate(csv_list):
             tp = int(row[6])
             cidx = 0
             for c in classes_to_rep:
                 if tp == c:
-                    for r in range(reps[cidx]):
-                        row[0] = "#" + row[0]
-                        samples.append(row)
+                    print("Index: " + str(index))
+                    tag = row[0:5]
+                    print(tag)
+
+                    for m in range(index - 7, index + 7):
+                        if m > 0 and m < l:
+                            test_row = csv_list[m]
+                            if test_row[0][0] == "#":
+                                print(test_row)
+                                sys.exit(0)
+                            # Ger tag
+                            test_tag = test_row[0:5]
+                            # TODO for all rows that have the same bb in same vid and same time
+                            if test_tag == tag:
+
+                                for r in range(reps[cidx]):
+                                    # NOTE This is needed as a signal for augmentation
+                                    for frame in range(start_frame, end_frame + jump_frames, jump_frames):
+                                        video = test_row[0]
+                                        kf_timestamp = test_row[1]
+                                        # action = row[6]
+                                        bb_top_x = test_row[2]
+                                        bb_top_y = test_row[3]
+                                        bb_bot_x = test_row[4]
+                                        bb_bot_y = test_row[5]
+                                        ID = "#" + video + sep + kf_timestamp.lstrip("0") + sep + str(bb_top_x) + sep + str(bb_top_y) + sep + str(bb_bot_x) + sep + str(bb_bot_y) + sep + str(frame)
+                                        samples.append(ID)
+                                test_row[0] = row[0]
                 cidx += 1
 
                 # Find all labels in AVA_Train_Custom_Corrected that correspond to each of these classes
     return samples, classes_to_rep
 
 
-def undersampling(classes, root_dir, file):
+def undersampling(classes, root_dir, file, oversampling_classes):
+    sep = "@"
+    start_frame = 1
+    end_frame = 5
+    jump_frames = 1  # Keyframe will be 3
 
+    types = np.zeros(len(classes['label_id']))
     avg_samples = 0
     with open(root_dir + file) as csvDataFile:
         csvReader = csv.reader(csvDataFile)
@@ -78,13 +119,58 @@ def undersampling(classes, root_dir, file):
 
     classes_to_remove = []
     removes = []
-    for i in range(len(types)):
-        if types[i] > avg_samples:
-            reps.append(int(math.ceil(avg_samples / types[i])) - 1)
-            classes_to_rep.append(i + 1)
-            fds += 1
-    print(classes_to_rep)
-    print(reps)
+
+    # You can change avg_samples here
+    no_undersampling = False
+    beta = 2
+    avg_samples = beta * avg_samples
+    if no_undersampling:
+        for i in range(len(types)):
+            # TODO For debug, insert all classes
+            removes.append(0)
+            classes_to_remove.append(i + 1)
+    else:
+        for i in range(len(types)):
+            if types[i] > avg_samples:
+                removes.append(types[i] - avg_samples)
+                classes_to_remove.append(i + 1)
+    print(classes_to_remove)
+    print(removes)
+
+    g = sns.barplot(x=[str(i) for i in classes_to_remove], y=removes)
+    plt.xticks(rotation=-90)
+    plt.title(file + " samples to remove, with avg " + str(avg_samples))
+    plt.grid(True)
+    plt.show()
+    samples = []
+    removing_counter = np.zeros(len(removes))
+    with open(root_dir + file) as csvDataFile:
+        csvReader = csv.reader(csvDataFile)
+
+        # TODO Removal is removing the first N. Solution: Loads the rows first to another list and jumbles them up then processes that
+
+        for row in csvReader:
+            tp = int(row[6])
+            tag = row[0:5]
+
+            cidx = False
+            for c in classes_to_remove:
+                if tp == c:
+                    cd = classes_to_remove.index(c)
+                    if removing_counter[cd] < removes[cd]:
+                        # video = "~" + row[0]
+                        removing_counter[cd] += 1
+                    else:
+                        for frame in range(start_frame, end_frame + jump_frames, jump_frames):
+                            # Append to the dictionary
+                            samples.append(getID(row, sep, frame))
+                    cidx = True
+            if not cidx:
+                for frame in range(start_frame, end_frame + jump_frames, jump_frames):
+                    # Append to the dictionary
+                    samples.append(getID(row, sep, frame))
+    samples = list(set(samples))
+    return samples, classes_to_remove
 
 
 def main():
@@ -111,6 +197,8 @@ def main():
     aug_val, aug_val_classes = oversampling(classes, root_dir, "AVA_Val_Custom_Corrected.csv")
 
     #  TODO Undersampling
+    # undersampling_train, undersampling_train_classes = undersampling(classes, root_dir, "AVA_Train_Custom_Corrected.csv", oversampling_train_classes)
+    # undersampling_val, undersampling_val_classes = undersampling(classes, root_dir, "AVA_Val_Custom_Corrected.csv", oversampling_val_classes)
 
     # Get ID's and labels from the actual dataset
     partition = {}
@@ -132,8 +220,8 @@ def main():
 
     # TODO Experiment: 1. no initialization, 2. ucf initialization 3. kinetics initialization
     initialization = True  # Set to True to use initialization
-    kinetics_weights = None
-    ucf_weights = "a"
+    kinetics_weights = ""
+    ucf_weights = "../models/ucf_keras/keras-ucf101-rgb-resnet50-newsplit.hdf5"
 
     if saved_weights is not None:
         model.load_weights(saved_weights)
@@ -145,6 +233,9 @@ def main():
                     ucf_weights = utils.loadmat("../models/ucf_matconvnet/ucf101-img-resnet-50-split1.mat")
                     utils.convert_resnet(model, ucf_weights)
                     model.save("../models/ucf_keras/keras-ucf101-rgb-resnet50-newsplit.hdf5")
+            else:
+                if ucf_weights != "":
+                    model.load_weights(ucf_weights)
             if kinetics_weights is None:
                 if params['model'] == "inceptionv3":
                     print("Loading Keras weights: ")
@@ -167,8 +258,8 @@ def main():
     # TODO Don't forget to change your names :)
     filter_type = "gauss"
     bestModelPath = "../models/rgb_augsampling_" + filter_type + "_" + params['model'] + "_" + time_str + ".hdf5"
-    traincsvPath = "../plots/rgb_augsampling_train_" + filter_type + "_plot_" + params['model'] + "_" + time_str + ".csv"
-    valcsvPath = "../plots/rgb_augsampling_val_" + filter_type + "_plot_" + params['model'] + "_" + time_str + ".csv"
+    traincsvPath = "../loss_acc_plots/rgb_augsampling_train_" + filter_type + "_plot_" + params['model'] + "_" + time_str + ".csv"
+    valcsvPath = "../loss_acc_plots/rgb_augsampling_val_" + filter_type + "_plot_" + params['model'] + "_" + time_str + ".csv"
 
     with tf.device('/gpu:0'):  # NOTE Not using multi gpu
         for epoch in range(params['nb_epochs']):

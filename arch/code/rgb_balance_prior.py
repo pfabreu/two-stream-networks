@@ -9,7 +9,7 @@ import sys
 import csv
 
 
-# postreg distributions are commonly used as prior distributions in Bayesian statistics, and in fact the postreg distribution
+# prior distributions are commonly used as prior distributions in Bayesian statistics, and in fact the prior distribution
 # is the conjugate prior of the categorical distribution and multinomial distribution.
 
 # File with predictions
@@ -70,7 +70,7 @@ for a_s in a_set:
     print(np.sum(b))
     g = sns.barplot(x=x_axis, y=b)
     plt.xticks(rotation=-90)
-    plt.title("postreg Prior, all a_L's = " + str(a_s))
+    plt.title("Thresholding Prior, all a_L's = " + str(a_s))
     plt.grid(True)
     t = 0
     for xtick_label in g.axes.get_xticklabels():
@@ -102,8 +102,8 @@ for b in bls:
             print(len(predictions[tc][predtype]))
             # print("Pre-reg:")
             print(predictions[tc][predtype])
-            # NOTE Element wise regulation by the postreg prior
-            print("Post_reg:")
+            # NOTE Element wise regulation by the prior prior
+            print("Prior:")
             predictions[tc][predtype] = predictions[tc][predtype] * b[predtype]
             print(predictions[tc][predtype])
             # Regularize predictions given the combination
@@ -128,7 +128,7 @@ for b in bls:
     print(result_csv)
     result_csv = result_csv.split("/")[1] + "/" + result_csv.split("/")[2]
 
-    result_csv = "postreg/" + result_csv
+    result_csv = "prior/" + result_csv
     a_idx += 1
     print(result_csv)
     with open(result_csv, "a") as output_file:

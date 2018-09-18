@@ -44,7 +44,7 @@ def main():
 
         # Load train data
         Xfilename = root_dir + "context_files/XContext_train_tw3.csv"
-        x_train, y_train_pose, y_train_object, y_train_human = load_split(partition['train'], labels_train, params['dim'], params['n_channels'], "train")
+        x_train, y_train_pose, y_train_object, y_train_human = load_split(partition['train'], labels_train, params['dim'], params['n_channels'], "train", Xfilename)
         y_t = []
         y_t.append(to_categorical(y_train_pose, num_classes=utils.POSE_CLASSES))
         y_t.append(utils.to_binary_vector(y_train_object, size=utils.OBJ_HUMAN_CLASSES, labeltype='object-human'))
@@ -52,7 +52,7 @@ def main():
 
         # Load val data
         Xfilename = root_dir + "contextData/XContext_val_tw3.csv"
-        x_val, y_val_pose, y_val_object, y_val_human = load_split(partition['validation'], labels_val, params['dim'], params['n_channels'], "val")
+        x_val, y_val_pose, y_val_object, y_val_human = load_split(partition['validation'], labels_val, params['dim'], params['n_channels'], Xfilename)
         y_v = []
         y_v.append(to_categorical(y_val_pose, num_classes=utils.POSE_CLASSES))
         y_v.append(utils.to_binary_vector(y_val_object, size=utils.OBJ_HUMAN_CLASSES, labeltype='object-human'))

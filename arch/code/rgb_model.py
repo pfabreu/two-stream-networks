@@ -7,6 +7,13 @@ import numpy as np
 import utils
 
 
+def weighted_binary_crossentropy(y_true, y_pred, weight=1.):
+    y_true = K.clip(y_true, K.epsilon(), 1)
+    y_pred = K.clip(y_pred, K.epsilon(), 1)
+    logloss = -(y_true * K.log(y_pred) * weight + (1 - y_true) * K.log(1 - y_pred))
+    return K.mean(logloss, axis=-1)
+
+
 def print_params(model):
     trainable_count = int(np.sum([K.count_params(p) for p in set(model.trainable_weights)]))
     non_trainable_count = int(np.sum([K.count_params(p) for p in set(model.non_trainable_weights)]))
@@ -42,7 +49,7 @@ def rgb_create_model(classes, soft_sigmoid=True, model_name='inceptionv3', freez
             x = base_model.output
         x = GlobalAveragePooling2D()(x)
         x = Dropout(0.5)(x)
-        x = Dense(1024, activation='relu')(x)
+        x = Dense(1024, activation='relu', kernel_initializer='he_uniform')(x)
 
         # Freeze layers
         if freeze_all is True:

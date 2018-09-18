@@ -8,10 +8,13 @@ import time
 import timeit
 import numpy as np
 import math
+import matplotlib.pyplot as plt
+import seaborn as sns
 # from sklearn.utils import class_weight
 import utils
-from rgb_model_aug import rgb_create_model, compile_model
+from rgb_model import rgb_create_model, compile_model
 from rgb_data import load_split, get_AVA_set, get_AVA_labels
+from itertools import islice
 
 
 def labels_to_numpy(labels):
@@ -26,21 +29,6 @@ def labels_to_numpy(labels):
 
 
 def main():
-    GPU = False
-    CPU = True
-    num_cores = 8
-
-    if GPU:
-        num_GPU = 1
-        num_CPU = 1
-    if CPU:
-        num_CPU = 1
-        num_GPU = 0
-
-    config = tf.ConfigProto(intra_op_parallelism_threads=num_cores, inter_op_parallelism_threads=num_cores, allow_soft_placement=True,
-                            device_count={'CPU': num_CPU, 'GPU': num_GPU})
-    session = tf.Session(config=config)
-    K.set_session(session)
 
     # root_dir = '../../../AVA2.1/' # root_dir for the files
     root_dir = '../../data/AVA/files/'
@@ -54,7 +42,7 @@ def main():
     # Parameters for training
     params = {'dim': (224, 224), 'batch_size': 32,
               'n_classes': len(classes['label_id']), 'n_channels': 3,
-              'shuffle': False, 'nb_epochs': 200, 'model': 'inceptionv3', 'email': True,
+              'shuffle': False, 'nb_epochs': 200, 'model': 'resnet50', 'email': True,
               'freeze_all': True, 'conv_fusion': False, 'train_chunk_size': 2**12,
               'validation_chunk_size': 2**12}
     soft_sigmoid = True
@@ -92,12 +80,22 @@ def main():
         else:
             print(str(i) + " " + str(class_weights[i]) + " inf ")
             class_weights[i] = 0.0
+    g = sns.barplot(x=[str(i) for i in range(len(class_weights))], y=class_weights)
+    plt.xticks(rotation=-90)
+    plt.title("Class weights " + penalizing_method)
+    plt.grid(True)
+    plt.show()
 
-    cw = {}
+    class_dictionary = {}
     print(len(class_weights))
     for i in range(len(class_weights)):
-        cw[i] = class_weights[i]
-    print(cw)
+        class_dictionary[i] = class_weights[i]
+    print(class_dictionary)
+
+    it = iter(class_weights)
+    seclist = [utils.POSE_CLASSES, utils.OBJ_HUMAN_CLASSES, utils.HUMAN_HUMAN_CLASSES]
+    class_lists = [list(islice(it, 0, i)) for i in seclist]
+    print(class_lists)
 
     # Create + compile model, load saved weights if they exist
     saved_weights = None
@@ -146,8 +144,8 @@ def main():
     # TODO Don't forget to change your names :)
     filter_type = "gauss"
     bestModelPath = "../models/rgb_augclassweights_" + filter_type + "_" + params['model'] + "_" + time_str + ".hdf5"
-    traincsvPath = "../plots/rgb_augclassweights_train_" + filter_type + "_plot_" + params['model'] + "_" + time_str + ".csv"
-    valcsvPath = "../plots/rgb_augclassweights_val_" + filter_type + "_plot_" + params['model'] + "_" + time_str + ".csv"
+    traincsvPath = "../loss_acc_plots/rgb_augclassweights_train_" + filter_type + "_plot_" + params['model'] + "_" + time_str + ".csv"
+    valcsvPath = "../loss_acc_plots/rgb_augclassweights_val_" + filter_type + "_plot_" + params['model'] + "_" + time_str + ".csv"
 
     for epoch in range(params['nb_epochs']):
         epoch_chunks_count = 0
@@ -163,7 +161,7 @@ def main():
             y_t.append(utils.to_binary_vector(y_train_object, size=utils.OBJ_HUMAN_CLASSES, labeltype='object-human'))
             y_t.append(utils.to_binary_vector(y_train_human, size=utils.HUMAN_HUMAN_CLASSES, labeltype='human-human'))
 
-            history = model.fit(x_train, y_t, class_weight=class_weights, batch_size=params['batch_size'], epochs=1, verbose=0)
+            history = model.fit(x_train, y_t, class_weight=class_lists, batch_size=params['batch_size'], epochs=1, verbose=0)
             utils.learning_rate_schedule(model, epoch, params['nb_epochs'])
 
             # ------------------------------------------------------------

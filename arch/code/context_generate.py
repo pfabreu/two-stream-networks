@@ -1,19 +1,15 @@
 import csv
+import utils
 import numpy as np
 from scipy.spatial import distance
 from keras.utils import to_categorical
-#import utils
 
-INPATHS = ["AVA_train_Custom_Corrected.csv", "AVA_validation_Custom_Corrected.csv", "AVA_Test_Custom_Corrected.csv"]
-OUTPATHS = ["XContext_train_tw3.csv", "XContext_val_tw3.csv", "XContext_test_tw3.csv"]
-
-POSE_CLASSES = 10
-OBJ_HUMAN_CLASSES = 12
-HUMAN_HUMAN_CLASSES = 8
+NCLASSES = utils.POSE_CLASSES + utils.OBJ_HUMAN_CLASSES + utils.HUMAN_HUMAN_CLASSES
 NUMBEROFNEIGHBORS = 3
-NCLASSES = POSE_CLASSES + OBJ_HUMAN_CLASSES + HUMAN_HUMAN_CLASSES
-LOOKBACK = 3
-LOOKFORWARD = 3
+LOOKBACK = 10
+LOOKFORWARD = 10
+INPATHS = ["AVA_Train_Custom_Corrected.csv", "AVA_Val_Custom_Corrected.csv", "AVA_Test_Custom_Corrected.csv"]
+OUTPATHS = ["XContext_train_tw" + str(LOOKBACK) + "_n" + str(NUMBEROFNEIGHBORS) + ".csv", "XContext_val_tw" + str(LOOKBACK) + "_n" + str(NUMBEROFNEIGHBORS) + ".csv", "XContext_test_tw" + str(LOOKBACK) + "_n" + str(NUMBEROFNEIGHBORS) + ".csv"]
 
 
 def writeCSV(filename, XLine, videoName, keyFrame, bb):
@@ -98,7 +94,7 @@ def getRelevantIndexes(videoID, keyFrame, snippets_video, snippets_time):
 
 
 for i in range(len(INPATHS)):
-    INPATH = "contextData/" + INPATHS[i]
+    INPATH = '../../data/AVA/files/' + INPATHS[i]
     OUTPATH = OUTPATHS[i]
     print("Now on input:" + INPATH + "\n And output: " + OUTPATH)
 
@@ -139,7 +135,8 @@ for i in range(len(INPATHS)):
     #        print("\n")
             actions_dict = getActionDict(currentIndexes, snippets_bb, snippets_actions, currentBB)
             old_actions_dict_list = []
-            for timestep in range(1, LOOKBACK + 1):
+            for timestep in reversed(range(1, LOOKBACK + 1)):
+                # print(timestep)
                 oldIndexes = []
                 oldIndexes = getRelevantIndexes(currentVideoID, int(currentKeyFrame) - timestep, snippets_video, snippets_time)  # Check for behaviour if the videoID/Keyframe combo doesn't exist!
                 old_actions_dict_list.append(getActionDict(oldIndexes, snippets_bb, snippets_actions, currentBB))
@@ -177,6 +174,11 @@ for i in range(len(INPATHS)):
             currentXLine[NCLASSES * NUMBEROFNEIGHBORS:NCLASSES * NUMBEROFNEIGHBORS + NUMBEROFNEIGHBORS * NCLASSES * LOOKBACK] = oldX
             currentXLine[NCLASSES * NUMBEROFNEIGHBORS + NUMBEROFNEIGHBORS * NCLASSES * LOOKBACK:] = futureX
 
+            currentXLine[:NUMBEROFNEIGHBORS * NCLASSES * LOOKBACK] = oldX
+            currentXLine[NCLASSES * NUMBEROFNEIGHBORS * LOOKBACK:NCLASSES * NUMBEROFNEIGHBORS + NUMBEROFNEIGHBORS * NCLASSES * LOOKBACK] = presentX
+            currentXLine[NCLASSES * NUMBEROFNEIGHBORS + NUMBEROFNEIGHBORS * NCLASSES * LOOKBACK:] = futureX
+
+            np.set_printoptions(threshold=np.prod(currentXLine.shape))  # NOTE change the numpy default so we dont get ...
             currentXLine = np.array2string(currentXLine, separator=' ', max_line_width=10000000000)  # hehe
             currentXLine = currentXLine[1:-1]  # Remove trailling "[]"
             writeCSV(OUTPATH, currentXLine, currentVideoID, currentKeyFrame, currentBB)

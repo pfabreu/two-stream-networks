@@ -85,9 +85,9 @@ def main():
     filter_type = "gauss"
     bestModelPath = "../models/rgb_kininit_" + filter_type + \
         "_" + params['model'] + "_" + time_str + ".hdf5"
-    traincsvPath = "../plots/rgb_kininit_train_" + filter_type + \
+    traincsvPath = "../loss_acc_plots/rgb_kininit_train_" + filter_type + \
         "_plot_" + params['model'] + "_" + time_str + ".csv"
-    valcsvPath = "../plots/rgb_kininit_val_" + filter_type + \
+    valcsvPath = "../loss_acc_plots/rgb_kininit_val_" + filter_type + \
         "_plot_" + params['model'] + "_" + time_str + ".csv"
 
     with tf.device('/gpu:0'):  # NOTE Not using multi gpu

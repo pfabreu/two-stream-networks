@@ -16,6 +16,7 @@ results/
 
 *.pickle
 *.csv
+*.hdf5
 
 
 

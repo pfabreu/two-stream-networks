@@ -54,10 +54,10 @@ def oversampling(classes, root_dir, file):
             # print("Class: " + str(i + 1))
             # print("Samples: " + str(types[i]))
             # print("Reps: " + str(math.ceil(avg_samples / types[i])))
-            if math.ceil(avg_samples / types[i]) < 50.0:
+            if math.ceil(avg_samples / types[i]) < 40.0:
                 reps.append(int(math.ceil(avg_samples / types[i])) - 1)
             else:
-                reps.append(int(50.0) - 1)
+                reps.append(int(40.0) - 1)
             classes_to_rep.append(i + 1)
     print(classes_to_rep)
     print(reps)
@@ -170,7 +170,7 @@ def undersampling(classes, root_dir, file, oversampling_classes):
                 for frame in range(start_frame, end_frame + jump_frames, jump_frames):
                     # Append to the dictionary
                     samples.append(getID(row, sep, frame))
-
+    samples = list(set(samples))
     return samples, classes_to_remove
 
 
@@ -223,7 +223,7 @@ def main():
     print(len(oversampling_train))
     print(len(undersampling_train))
     print(len(undersampling_train + oversampling_train))
-    print(len(undersampling_train + oversampling_train) / len(partition['train']))
+    print(1.0 * len(partition['train'] + oversampling_train) / len(partition['train']))
     bestsample = undersampling_train + oversampling_train
 
     sys.exit(0)

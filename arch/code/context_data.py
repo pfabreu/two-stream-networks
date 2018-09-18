@@ -42,7 +42,7 @@ def load_split(ids, labels, dim, n_channels, gen_type, Xfilename):
         print("File does not exist")
         print(Xfilename)
         sys.exit(0)
-
+    i = 0
     with open(Xfilename) as csvDataFile:
         csvReader = csv.reader(csvDataFile)
         for row in csvReader:
@@ -54,15 +54,19 @@ def load_split(ids, labels, dim, n_channels, gen_type, Xfilename):
 
             bbs = str("{:.3f}".format(float(row[2]))) + sep + str("{:.3f}".format(float(row[3]))) + sep + str("{:.3f}".format(float(row[4]))) + sep + str("{:.3f}".format(float(row[5])))
             xline_str = row[6]
+            # print(len(xline_str))
             ID = vid_name + sep + kf.lstrip("0") + sep + bbs
-            i = ids.index(ID)
+            # i = ids.index(ID)
+            # print(i)
             xline = np.array(xline_str.split(" "))
             # print(xline.shape)
             X[i, ] = xline  # Convert xline to a numpy array
             ypose[i] = labels[ID]['pose']
             yobject.append(labels[ID]['human-object'])
             yhuman.append(labels[ID]['human-human'])
-
+            i += 1
+    print(len(ids))
+    print(i)
     # conversion to one hot is done after
     return X, ypose, yobject, yhuman
 
@@ -85,10 +89,9 @@ def get_AVA_set(classes, filename):
 #            bb_bot_y = row[5]
             bbs = str("{:.3f}".format(float(row[2]))) + sep + str("{:.3f}".format(float(row[3]))) + sep + str("{:.3f}".format(float(row[4]))) + sep + str("{:.3f}".format(float(row[5])))
 
-            ID = video + sep + kf_timestamp.lstrip("0") + \
-                sep + bbs  # str(bb_top_x) + sep + str(bb_top_y) + sep + str(bb_bot_x) + sep + str(bb_bot_y)
+            ID = video + sep + kf_timestamp.lstrip("0") + sep + bbs  # str(bb_top_x) + sep + str(bb_top_y) + sep + str(bb_bot_x) + sep + str(bb_bot_y)
             id_list.append(ID)
-
+    id_list = list(set(id_list))
     return id_list
 
 

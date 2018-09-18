@@ -24,7 +24,7 @@ def flow_create_model(classes, model_name, soft_sigmoid=True, image_shape=(224, 
     if conv_fusion is True:
         x = Conv2D(64, (2, 2))(x)
     # add a fully-connected layer with 1024 (should change)
-    x = Dense(1024, activation='relu')(x)
+    x = Dense(1024, activation='relu', kernel_initializer='he_uniform')(x)
 
     # Freeze layers
     if freeze_all is True:
