@@ -1,3 +1,9 @@
+import os
+CPU = True
+if CPU:
+    os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"   # see issue https://stackoverflow.com/questions/40690598/can-keras-with-tensorflow-backend-be-forced-to-use-cpu-or-gpu-at-will
+    os.environ["CUDA_VISIBLE_DEVICES"] = ""  # This must be imported before keras
+
 import tensorflow as tf
 import utils
 import voting
@@ -10,10 +16,9 @@ import numpy as np
 
 def main():
 
-    root_dir = '../../data/AVA/files/'
-
-    # Erase previous models from GPU memory
     K.clear_session()
+
+    root_dir = '../../data/AVA/files/'
 
     # Load list of action classes and separate them (from utils_stream)
     classes = utils.get_AVA_classes(root_dir + 'ava_action_list_custom.csv')

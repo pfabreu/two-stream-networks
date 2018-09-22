@@ -186,7 +186,7 @@ def main():
     # Parameters for training
     params = {'dim': (224, 224), 'batch_size': 32,
               'n_classes': len(classes['label_id']), 'n_channels': 3,
-              'shuffle': False, 'nb_epochs': 200, 'model': 'resnet50', 'email': True,
+              'shuffle': False, 'nb_epochs': 150, 'model': 'resnet50', 'email': True,
               'freeze_all': True, 'conv_fusion': False, 'train_chunk_size': 2**12,
               'validation_chunk_size': 2**12}
     soft_sigmoid = True
@@ -213,7 +213,7 @@ def main():
     partition['validation'] = partition['validation'] + aug_val
 
     # Create + compile model, load saved weights if they exist
-    saved_weights = None
+    saved_weights = "../models/rgb_augsampling_gauss_resnet50_1809181648.hdf5"
     # saved_weights = "../models/rgbextra_gauss_resnet50_1807250030.hdf5"
     model, keras_layer_names = rgb_create_model(classes=classes['label_id'], soft_sigmoid=soft_sigmoid, model_name=params['model'], freeze_all=params['freeze_all'], conv_fusion=params['conv_fusion'])
     model = compile_model(model, soft_sigmoid=soft_sigmoid)

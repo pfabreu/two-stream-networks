@@ -14,6 +14,7 @@ Generators to feed data are not used for AVA due to how temporal sampling is don
 * CUDA + cuDNN (we used 9 and 7.1, respectively)
 * Tensorflow (for backend GPU) (`pip install tensorflow-gpu`)
 * Keras >= 2.1.6 (`pip install keras`)
+* pydot (`pip install pydot`)
 * Pandas  and SciPy (because of dependencies)
 * [imgaug](https://imgaug.readthedocs.io/en/latest/source/examples_basics.html) for augmentation (will use tensorflow tf.image API in the future)
 * Maplotlib and Seaborn (`pip install seaborn`) for plots

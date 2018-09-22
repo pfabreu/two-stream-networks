@@ -1,3 +1,8 @@
+import os
+CPU = False
+if CPU:
+    os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"   # see issue https://stackoverflow.com/questions/40690598/can-keras-with-tensorflow-backend-be-forced-to-use-cpu-or-gpu-at-will
+    os.environ["CUDA_VISIBLE_DEVICES"] = ""  # This must be imported before keras
 import tensorflow as tf
 import utils
 import voting
@@ -9,21 +14,7 @@ import numpy as np
 
 
 def main():
-    GPU = False
-    CPU = True
-    num_cores = 8
-
-    if GPU:
-        num_GPU = 1
-        num_CPU = 1
-    if CPU:
-        num_CPU = 1
-        num_GPU = 0
-
-    config = tf.ConfigProto(intra_op_parallelism_threads=num_cores, inter_op_parallelism_threads=num_cores, allow_soft_placement=True,
-                            device_count={'CPU': num_CPU, 'GPU': num_GPU})
-    session = tf.Session(config=config)
-    K.set_session(session)
+    K.clear_session()
 
     root_dir = '../../data/AVA/files/'
     # K.clear_session()
@@ -40,23 +31,31 @@ def main():
     partition = {}
     partition['test'] = get_AVA_set(classes=classes, filename=root_dir + "AVA_Test_Custom_Corrected.csv", train=False)
 
-    filter_type = "gauss"
-
+    filter_type = "crop"
+    flowcrop = True
     time_str = time.strftime("%y%m%d%H%M", time.localtime())
-    result_csv = "test_outputs/two-streams/output_" + params['gen_type'] + "_2stream_" + filter_type + "_" + time_str + ".csv"
-
+    if flowcrop:
+        result_csv = "test_outputs/two-streams/output_" + params['gen_type'] + "_2stream_flowcrop" + filter_type + "_" + time_str + ".csv"
+    else:
+        result_csv = "test_outputs/two-streams/output_" + params['gen_type'] + "_2stream_" + filter_type + "_" + time_str + ".csv"
     # Load trained model
     # rgb_weights = "../models/rgb_fovea_resnet50_1806301953.hdf5"
-    rgb_weights = "../models/rgb_gauss_resnet50_1806290918.hdf5"
-    # rgb_weights = "../models/rgb_crop_resnet50_1806300210.hdf5"
+    # rgb_weights = "../models/rgb_gauss_resnet50_1806290918.hdf5"
+    rgb_weights = "../models/rgb_crop_resnet50_1806300210.hdf5"
+    # rgb_weights = "../models/rgb_rgb_resnet50_1807060914.hdf5"
 
-    flow_weights = "../models/flow_resnet50_1806281901.hdf5"
+    # flow_weights = "../models/flow_resnet50_1806281901.hdf5"
+    flow_weights = "../models/flowcrop_resnet50_1807180022.hdf5"
 
     nsmodel = TwoStreamModel(classes['label_id'], rgb_weights, flow_weights)
     nsmodel.compile_model(soft_sigmoid=True)
     model = nsmodel.model
     # two_stream_weights = "../models/two_stream_fusion_elfovresnet50_1807030015.hdf5"
-    two_stream_weights = "../models/two_stream_fusion_gaussian_resnet50_1807121121.hdf5"
+    # two_stream_weights = "../models/two_stream_fusion_rgbbaseline_rgb_resnet50_1809051930.hdf5"
+    two_stream_weights = "../models/two_stream_fusion_flowcrop_crop_crop_resnet50_1809162007.hdf5"
+    #two_stream_weights = "../models/two_stream_fusion_flowcrop_fovea_fovea_resnet50_1809091554.hdf5"
+    #two_stream_weights = "../models/two_stream_fusion_flowcrop_gauss_resnet50_1809012354.hdf5"
+
     model.load_weights(two_stream_weights)
 
     print("Test set size: " + str(len(partition['test'])))
@@ -67,8 +66,10 @@ def main():
     # Test directories where pre-processed test files are
 
     rgb_dir = "/media/pedro/actv-ssd/" + filter_type + "_"
-    flow_dir = "/media/pedro/actv-ssd/flow_"
-
+    if flowcrop is False:
+        flow_dir = "/media/pedro/actv-ssd/flow_"
+    else:
+        flow_dir = "/media/pedro/actv-ssd/flowcrop_"
     test_chunks_count = 0
 
     pose_votes = {}
@@ -82,16 +83,15 @@ def main():
         obj_votes[i] = np.zeros(utils.OBJ_HUMAN_CLASSES)
         human_votes[i] = np.zeros(utils.HUMAN_HUMAN_CLASSES)
 
-    with tf.device('/gpu:0'):
-        for testIDS in test_splits:
-            x_test_rgb, x_test_flow, y_test_pose, y_test_object, y_test_human = load_split(testIDS, None, params['dim'], params['n_channels'], 10, rgb_dir, flow_dir, "test", "rgb", train=False)
-            print("Predicting on chunk " + str(test_chunks_count) + "/" + str(len(test_splits)) + ":")
-            # Convert predictions to readable output and perform majority voting
-            predictions = model.predict([x_test_rgb, x_test_flow], batch_size=params['batch_size'], verbose=1)
-            voting.pred2classes(testIDS, predictions, pose_votes, obj_votes, human_votes, thresh=0.4)
-            x_test_rgb = None
-            x_test_flow = None
-            test_chunks_count += 1
+    for testIDS in test_splits:
+        x_test_rgb, x_test_flow, y_test_pose, y_test_object, y_test_human = load_split(testIDS, None, params['dim'], params['n_channels'], 10, rgb_dir, flow_dir, "test", "rgb", train=False, crop=flowcrop)
+        print("Predicting on chunk " + str(test_chunks_count) + "/" + str(len(test_splits)) + ":")
+        # Convert predictions to readable output and perform majority voting
+        predictions = model.predict([x_test_rgb, x_test_flow], batch_size=params['batch_size'], verbose=1)
+        voting.pred2classes(testIDS, predictions, pose_votes, obj_votes, human_votes, thresh=0.4)
+        x_test_rgb = None
+        x_test_flow = None
+        test_chunks_count += 1
 
     # When you're done getting all the votes, write output csv
     with open(result_csv, "a") as output_file:

@@ -1,8 +1,14 @@
+import os
+CPU = True
+if CPU:
+    os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"   # see issue https://stackoverflow.com/questions/40690598/can-keras-with-tensorflow-backend-be-forced-to-use-cpu-or-gpu-at-will
+    os.environ["CUDA_VISIBLE_DEVICES"] = ""  # This must be imported before keras
+
 import tensorflow as tf
 from keras.utils import to_categorical
 from keras.callbacks import ModelCheckpoint
 
-from context_model import context_create_model, compile_model
+from context_mlp_model import context_create_model, compile_model
 from context_data import load_split, get_AVA_set, get_AVA_labels
 import voting
 
@@ -15,21 +21,7 @@ import time
 
 def main():
 
-    GPU = False
-    CPU = True
-    num_cores = 8
-
-    if GPU:
-        num_GPU = 1
-        num_CPU = 1
-    if CPU:
-        num_CPU = 1
-        num_GPU = 0
-
-    config = tf.ConfigProto(intra_op_parallelism_threads=num_cores, inter_op_parallelism_threads=num_cores, allow_soft_placement=True,
-                            device_count={'CPU': num_CPU, 'GPU': num_GPU})
-    session = tf.Session(config=config)
-    K.set_session(session)
+    K.clear_session()
 
     # Load list of action classes and separate them (from utils_stream)
     root_dir = '../../data/AVA/files/'
@@ -48,12 +40,14 @@ def main():
     labels_test = get_AVA_labels(classes, partition, "test", filename=root_dir + "AVA_Test_Custom_Corrected.csv")
 
     # Create + compile model, load saved weights if they exist
-    bestModelPath = "../models/bestModelContext_" + str(128) + ".hdf5"
+    # bestModelPath = "../models/bestModelContext_" + str(128) + ".hdf5"
+    bestModelPath = "../models/context/TW1/context_mlp" + str(128) + ".hdf5"
     model = context_create_model(128, 64, in_shape=(params['dim'],))
     model = compile_model(model)
+    model.load_weights(bestModelPath)
 
     time_str = time.strftime("%y%m%d%H%M", time.localtime())
-    result_csv = "output_test_ctx_" + time_str + ".csv"
+    result_csv = "test_outputs/context/mlp/output_test_ctx_mlp_" + time_str + ".csv"
 
     pose_votes = {}
     obj_votes = {}
@@ -67,7 +61,9 @@ def main():
         human_votes[i] = np.zeros(utils.HUMAN_HUMAN_CLASSES)
 
     x_test = y_test_pose = y_test_object = y_test_human = None
-    x_test, y_test_pose, y_test_object, y_test_human = load_split(partition['test'], labels_test, params['dim'], params['n_channels'], "test", root_dir)
+    timewindow = 1
+    Xfilename = "../../data/AVA/mlp_context_files/XContext_test_tw" + str(timewindow) + ".csv"
+    x_test, y_test_pose, y_test_object, y_test_human = load_split(partition['test'], labels_test, params['dim'], params['n_channels'], "test", Xfilename)
 
     predictions = model.predict(x_test, batch_size=params['batch_size'], verbose=1)
 

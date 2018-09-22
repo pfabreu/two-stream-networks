@@ -156,22 +156,17 @@ def run_evaluation_threshold(labelmap, groundtruth, exclusions, iou):
     filters.append("0.8")
     filters.append("0.9")
 
+    root_dir = '../../data/AVA/files/'
     ftype = "gauss"
 
     all_detections = []
     for f in filters:
-        all_detections.append(open("../thresholds/predictions_rgb_" + ftype + "_1807241628_" + f + ".csv", 'rb'))
+        all_detections.append(open("../thresholds/rgb_" + + "predictions_rgb_" + ftype + "_1807241628_" + f + ".csv", 'rb'))
 
     all_gndtruths = []
-    all_gndtruths.append(open("AVA_Val_Custom_Corrected.csv", 'rb'))
-    all_gndtruths.append(open("AVA_Val_Custom_Corrected.csv", 'rb'))
-    all_gndtruths.append(open("AVA_Val_Custom_Corrected.csv", 'rb'))
-    all_gndtruths.append(open("AVA_Val_Custom_Corrected.csv", 'rb'))
-    all_gndtruths.append(open("AVA_Val_Custom_Corrected.csv", 'rb'))
-    all_gndtruths.append(open("AVA_Val_Custom_Corrected.csv", 'rb'))
-    all_gndtruths.append(open("AVA_Val_Custom_Corrected.csv", 'rb'))
-    all_gndtruths.append(open("AVA_Val_Custom_Corrected.csv", 'rb'))
-    all_gndtruths.append(open("AVA_Val_Custom_Corrected.csv", 'rb'))
+    for i in range(len(filters)):
+        all_gndtruths.append(open(root_dir + "AVA_Val_Custom_Corrected.csv", 'rb'))
+
     #all_gndtruths.append(open("AVA_Test_Custom_Corrected.csv", 'rb'))
     #all_gndtruths.append(open("AVA_Test_Custom_Corrected.csv", 'rb'))
     """Runs evaluations given input files.
@@ -305,43 +300,8 @@ def run_evaluation_threshold(labelmap, groundtruth, exclusions, iou):
                     ha='center', va='center', fontsize=10, color='gray', rotation=90, xytext=(0, 20),
                     textcoords='offset points')
     _ = g.set_ylim(0, top)  # To make space for the annotations
-    # pprint.pprint(metrics, indent=2)
-    # plt.xticks(rotation=-90)
-    # title = ""
-    # for filter_type, mAP in zip(filters, finalmAPs):
-    #     ft = filter_type + ': mAP@' + str(iou) + 'IOU = ' + str(mAP) + '\n'
-    #     title += ft
-    # plt.title(title)
+
     plt.show()
-
-    # for i in range(1, 5):
-    #     print(i)
-    #     plt.subplot(2, 2, i)
-    #     if i <= len(all_detections):
-
-    #         # Confusion matrix
-    #         classes = []
-    #         for k in categories:
-    #             classes.append(k['name'])
-    #         cm = confusion_matrix(all_gndtruths[i - 1], all_detections[i - 1], x_axis)
-    #         g = sns.heatmap(cm, annot=True, fmt="d", cmap=sns.cubehelix_palette(8), xticklabels=classes[:10], yticklabels=classes[:10], linewidths=0.5, linecolor='black', cbar=False)
-
-    #         t = 0
-    #         for ytick_label, xtick_label in zip(g.axes.get_yticklabels(), g.axes.get_xticklabels()):
-    #             if t <= 9:
-    #                 ytick_label.set_color("r")
-    #                 xtick_label.set_color("r")
-
-    #             elif t <= 22:
-    #                 ytick_label.set_color("b")
-    #                 xtick_label.set_color("b")
-    #             else:
-    #                 ytick_label.set_color("g")
-    #                 xtick_label.set_color("g")
-    #             t += 1
-    #         plt.xticks(rotation=-90)
-    #         plt.title("Pose Conf. Mat. (" + filters[i - 1] + ")")
-    # plt.show()
 
 
 def run_evaluation(labelmap, groundtruth, exclusions, iou):
@@ -350,41 +310,77 @@ def run_evaluation(labelmap, groundtruth, exclusions, iou):
     test_dir = "../test_outputs/"
     # Make sure not to mess this up
     filters = []
-    filters.append("gauss")
-    filters.append("gauss-extra")
 
-    # filters.append("flowcrop")
-    # filters.append("flow")
+    # filters.append("pose")
 
-    # filters.append("2st-crop")
-    # filters.append("2st-gauss")
-    # filters.append("3st-crop")
-    # filters.append("3st-gauss")
-
-    # filters.append("ctx")
-    # filters.append("flow")
-    # filters.append("2-stream (fovea)")
-    # filters.append("3-stream (fovea)")
+    # filters.append("rgb-prior")
+    # filters.append("rgb-sampling")
+    # filters.append("rgb-class")
 
     # filters.append("rgb")
     # filters.append("crop")
     # filters.append("gauss")
     # filters.append("fovea")
+
+    # filters.append("flowcrop")
+    # filters.append("flow")
+
+    # filters.append("MLP")
+    filters.append("LSTM5-A-512")
+    filters.append("LSTM5-B-512")
+    # filters.append("LSTM10")
+
+    # filters.append("2st(crop)")
+    # filters.append("2st(gauss)")
+    # filters.append("2st(fovea)")
+
+    # filters.append("2st(crop)")
+    # filters.append("2st(gauss)")
+    # filters.append("2st(fovea)")
+
+    # filters.append("2st(fovea) + mlp")
+    # filters.append("2st(crop) + mlp")
+    # filters.append("2st(gauss) + mlp")
+
+    # filters.append("2st(gauss) + lstm")
     all_detections = []
 
+    # Pose
+    # all_detections.append(open(test_dir + "output_test_flowcrop.csv", 'rb'))
+
+    # Balancing
+
+    # RGB Streams
+
+    # Flow Streams
+
+    # Context
+
+    #all_detections.append(open(test_dir + "context/mlp/output_test_ctx.csv", 'rb'))
+    #all_detections.append(open(test_dir + "context/mlp/output_test_ctx_mlp_1809212356.csv", 'rb'))
+    all_detections.append(open(test_dir + "context/lstmA/output_test_ctx_lstm_512_5_3_1809220010.csv", 'rb'))
+    all_detections.append(open(test_dir + "context/lstmB/output_test_ctx_lstm_512_5_3_1809211924.csv", 'rb'))
+    #all_detections.append(open(test_dir + "context/lstmB/output_test_ctx_lstm_128_10_3_1809211930.csv", 'rb'))
+
+    # 6 2-streams
+
+    # Context Fusions
+
+    # ---------------------------------
     # New run to compare new flow
     # all_detections.append(open(test_dir + "output_test_flowcrop.csv", 'rb'))
     # all_detections.append(open(test_dir + "output_test_flow.csv", 'rb'))
 
     # New 2 and 3 streams
-    all_detections.append(open(test_dir + "output_test_gauss.csv", 'rb'))
-    all_detections.append(open(test_dir + "output_test_gauss_extra.csv", 'rb'))
+    # all_detections.append(open(test_dir + "output_test_gauss.csv", 'rb'))
+    # all_detections.append(open(test_dir + "output_test_gauss_extra.csv", 'rb'))
     # all_detections.append(open(test_dir + "output_test_3stream_gauss.csv", 'rb'))
     # all_detections.append(open(test_dir + "output_test_3stream_crop.csv", 'rb'))
 
     # Flow, context, 2-stream, 3-stream run
     #all_detections.append(open(test_dir + "output_test_ctx.csv", 'rb'))
     #all_detections.append(open(test_dir + "output_test_flow.csv", 'rb'))
+
     #all_detections.append(open(test_dir + "output_test_2stream.csv", 'rb'))
     #all_detections.append(open(test_dir + "output_test_3stream.csv", 'rb'))
 
@@ -395,11 +391,9 @@ def run_evaluation(labelmap, groundtruth, exclusions, iou):
     # all_detections.append(open(test_dir + "output_test_fovea.csv", 'rb'))
 
     all_gndtruths = []
-    # TODO Fix this dirty hack
-    all_gndtruths.append(open(root_dir + "AVA_Test_Custom_Corrected.csv", 'rb'))
-    all_gndtruths.append(open(root_dir + "AVA_Test_Custom_Corrected.csv", 'rb'))
-    # all_gndtruths.append(open(root_dir + "AVA_Test_Custom_Corrected.csv", 'rb'))
-    # all_gndtruths.append(open(root_dir + "AVA_Test_Custom_Corrected.csv", 'rb'))
+    for i in range(len(all_detections)):
+        all_gndtruths.append(open(root_dir + "AVA_Test_Custom_Corrected.csv", 'rb'))
+
     """Runs evaluations given input files.
 
     Args:
@@ -409,8 +403,7 @@ def run_evaluation(labelmap, groundtruth, exclusions, iou):
       exclusions: file object or None.
     """
     categories, class_whitelist = read_labelmap(labelmap)
-    logging.info("CATEGORIES (%d):\n%s", len(categories),
-                 pprint.pformat(categories, indent=2))
+    logging.info("CATEGORIES (%d):\n%s", len(categories), pprint.pformat(categories, indent=2))
     excluded_keys = read_exclusions(exclusions)
 
     # Reads detections data.
@@ -498,17 +491,17 @@ def run_evaluation(labelmap, groundtruth, exclusions, iou):
                         if maxY < metrics[m]:
                             maxY = metrics[m]
                         if cat['id'] <= 10:
-                            xpose_ax.append(ms + "(" + filter_type + ") ")
+                            xpose_ax.append("[" + filter_type + "] " + ms)
                             ypose_ax.append(metrics[m])
-                            colors_pose.append('red')
+                            colors_pose.append('pose')
                         elif cat['id'] <= 22:
-                            xobj_ax.append(ms + "(" + filter_type + ") ")
+                            xobj_ax.append("[" + filter_type + "] " + ms)
                             yobj_ax.append(metrics[m])
-                            colors_obj.append('blue')
+                            colors_obj.append('human-object')
                         else:
-                            xhuman_ax.append(ms + "(" + filter_type + ") ")
+                            xhuman_ax.append("[" + filter_type + "] " + ms)
                             yhuman_ax.append(metrics[m])
-                            colors_human.append('green')
+                            colors_human.append('human-human')
 
                 # Make a confusion matrix for this run
 
@@ -521,26 +514,58 @@ def run_evaluation(labelmap, groundtruth, exclusions, iou):
     plt.ylabel('frame-mAP')
     top = maxY + 0.1  # offset a bit so it looks good
     sns.set_style("whitegrid")
-    g = sns.barplot(x_axis, y_axis, palette=colors)
+
+    g = sns.barplot(y_axis, x_axis, hue=colors, palette=['red', 'blue', 'green'])
+
     ax = g
+    #ax.legend(loc='lower right')
     # annotate axis = seaborn axis
+    # for p in ax.patches:
+    #    ax.annotate("%.3f" % p.get_height(), (p.get_x() + p.get_width() / 2., p.get_height()),
+    #                ha='center', va='center', fontsize=10, color='gray', rotation=90, xytext=(0, 20),
+    #                textcoords='offset points')
+    # ax.set_ylim(-1, len(y_axis))
+    sns.set()
+    ax.tick_params(labelsize=10)
     for p in ax.patches:
-        ax.annotate("%.3f" % p.get_height(), (p.get_x() + p.get_width() / 2., p.get_height()),
-                    ha='center', va='center', fontsize=10, color='gray', rotation=90, xytext=(0, 20),
-                    textcoords='offset points')
-    _ = g.set_ylim(0, top)  # To make space for the annotations
+        p.set_height(p.get_height() * 3)
+        ax.annotate("%.3f" % p.get_width(), (p.get_x() + p.get_width(), p.get_y()),
+                    xytext=(5, -5), fontsize=8, color='gray', textcoords='offset points')
+
+    _ = g.set_xlim(0, top)  # To make space for the annotations
     pprint.pprint(metrics, indent=2)
-    plt.xticks(rotation=-90)
+
+    ax.set(ylabel="", xlabel="AP")
+    plt.xticks(rotation=0)
+
     title = ""
     for filter_type, mAP in zip(filters, finalmAPs):
         ft = filter_type + ': mAP@' + str(iou) + 'IOU = ' + str(mAP) + '\n'
         title += ft
+
+    # ax.figure.tight_layout()
+    ax.figure.subplots_adjust(left=0.2)  # change 0.3 to suit your needs.
     plt.title(title)
+    plt.gca().xaxis.grid(True)
+
     plt.show()
 
-    for i in range(1, 5):
+    if len(all_detections) == 1:
+        sz = 2
+        grid_sz = [1, 1]
+    elif len(all_detections) == 2:
+        sz = 3
+        grid_sz = [1, 2]
+    elif len(all_detections) == 3:
+        sz = 4
+        grid_sz = [2, 2]
+    else:
+        sz = 5
+        grid_sz = [2, 2]
+
+    for i in range(1, sz):
         print(i)
-        plt.subplot(2, 2, i)
+        plt.subplot(grid_sz[0], grid_sz[1], i)
         if i <= len(all_detections):
 
             # Confusion matrix
@@ -548,23 +573,23 @@ def run_evaluation(labelmap, groundtruth, exclusions, iou):
             for k in categories:
                 classes.append(k['name'])
             cm = confusion_matrix(all_gndtruths[i - 1], all_detections[i - 1], x_axis)
-            g = sns.heatmap(cm, annot=True, fmt="d", cmap=sns.cubehelix_palette(8), xticklabels=classes[:10], yticklabels=classes[:10], linewidths=0.5, linecolor='black', cbar=False)
+            g = sns.heatmap(cm, annot=True, fmt="d", xticklabels=classes[:10], yticklabels=classes[:10], linewidths=0.5, linecolor='black', cbar=True)
 
-            t = 0
-            for ytick_label, xtick_label in zip(g.axes.get_yticklabels(), g.axes.get_xticklabels()):
-                if t <= 9:
-                    ytick_label.set_color("r")
-                    xtick_label.set_color("r")
+            #t = 0
+            # for ytick_label, xtick_label in zip(g.axes.get_yticklabels(), g.axes.get_xticklabels()):
+            #    if t <= 9:
+            #        ytick_label.set_color("r")
+            #        xtick_label.set_color("r")
 
-                elif t <= 22:
-                    ytick_label.set_color("b")
-                    xtick_label.set_color("b")
-                else:
-                    ytick_label.set_color("g")
-                    xtick_label.set_color("g")
-                t += 1
+            #    elif t <= 22:
+            #        ytick_label.set_color("b")
+            #        xtick_label.set_color("b")
+            #    else:
+            #        ytick_label.set_color("g")
+            #        xtick_label.set_color("g")
+            #    t += 1
             plt.xticks(rotation=-90)
-            plt.title("Pose Conf. Mat. (" + filters[i - 1] + ")")
+            plt.title("Pose Confusion Matrix (" + filters[i - 1] + ")")
     plt.show()
 
 
@@ -683,6 +708,7 @@ def parse_arguments():
 
 
 def main():
+
     # Wheter or not to test thresholds
     threshold = False
     logging.basicConfig(level=logging.INFO)

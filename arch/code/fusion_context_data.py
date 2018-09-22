@@ -45,8 +45,7 @@ def load_split(ids, labels, dim, n_channels, of_len, context_dict, rgb_dir, flow
         img = cv2.imread(img_name)
         # Store sample
         X_rgb[i, ] = img
-        context_key = vid_name + \
-            "@" + str(bb_top_x) + "@" + str(bb_top_y) + "@" + str(bb_bot_x) + "@" + str(bb_bot_y)
+        context_key = vid_name + "@" + str(bb_top_x) + "@" + str(bb_top_y) + "@" + str(bb_bot_x) + "@" + str(bb_bot_y)
         context_str = context_dict[context_key]
         X_context[i, ] = np.array(context_str.split(" "))
 

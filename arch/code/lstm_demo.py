@@ -22,22 +22,6 @@ def get_sequence(n_timesteps):
     y = y.reshape(1, n_timesteps, 1)
     return X, y
 
-GPU = False
-CPU = True
-num_cores = 8
-
-if GPU:
-    num_GPU = 1
-    num_CPU = 1
-if CPU:
-    num_CPU = 1
-    num_GPU = 0
-
-config = tf.ConfigProto(intra_op_parallelism_threads=num_cores, inter_op_parallelism_threads=num_cores, allow_soft_placement=True,
-                        device_count={'CPU': num_CPU, 'GPU': num_GPU})
-session = tf.Session(config=config)
-K.set_session(session)
-
 
 # The classification problem has 1 sample (e.g. one sequence), a configurable number of timesteps, and one feature per timestep.
 # We will define the sequences as having 10 timesteps.

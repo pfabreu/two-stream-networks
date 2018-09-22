@@ -102,12 +102,9 @@ def main():
                     'dim'], params['n_channels'], "train", filter_type, soft_sigmoid=soft_sigmoid)
 
                 y_t = []
-                y_t.append(to_categorical(
-                    y_train_pose, num_classes=utils.POSE_CLASSES))
-                y_t.append(utils.to_binary_vector(
-                    y_train_object, size=utils.OBJ_HUMAN_CLASSES, labeltype='object-human'))
-                y_t.append(utils.to_binary_vector(
-                    y_train_human, size=utils.HUMAN_HUMAN_CLASSES, labeltype='human-human'))
+                y_t.append(to_categorical(y_train_pose, num_classes=utils.POSE_CLASSES))
+                y_t.append(utils.to_binary_vector(y_train_object, size=utils.OBJ_HUMAN_CLASSES, labeltype='object-human'))
+                y_t.append(utils.to_binary_vector(y_train_human, size=utils.HUMAN_HUMAN_CLASSES, labeltype='human-human'))
 
                 history = model.fit(x_train, y_t, batch_size=params[
                     'batch_size'], epochs=1, verbose=0)

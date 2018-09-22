@@ -34,7 +34,7 @@ def load_split(ids, labels, dim, n_channels, gen_type, Xfilename):
     'Generates data containing batch_size samples'
     sep = "@"
     X = np.empty([len(ids), dim])
-
+    print(len(ids))
     ypose = np.empty(len(ids))
     yobject = []
     yhuman = []
@@ -48,10 +48,6 @@ def load_split(ids, labels, dim, n_channels, gen_type, Xfilename):
         for row in csvReader:
             vid_name = row[0]
             kf = row[1]
-
-            # Most hacky thing ever
-            # print(len(row[5]))
-
             bbs = str("{:.3f}".format(float(row[2]))) + sep + str("{:.3f}".format(float(row[3]))) + sep + str("{:.3f}".format(float(row[4]))) + sep + str("{:.3f}".format(float(row[5])))
             xline_str = row[6]
             # print(len(xline_str))
@@ -82,11 +78,6 @@ def get_AVA_set(classes, filename):
             video = row[0]
             kf_timestamp = row[1]
 
-            # action = row[6]
-#            bb_top_x = row[2]
-#            bb_top_y = row[3]
-#            bb_bot_x = row[4]
-#            bb_bot_y = row[5]
             bbs = str("{:.3f}".format(float(row[2]))) + sep + str("{:.3f}".format(float(row[3]))) + sep + str("{:.3f}".format(float(row[4]))) + sep + str("{:.3f}".format(float(row[5])))
 
             ID = video + sep + kf_timestamp.lstrip("0") + sep + bbs  # str(bb_top_x) + sep + str(bb_top_y) + sep + str(bb_bot_x) + sep + str(bb_bot_y)
@@ -117,11 +108,6 @@ def get_AVA_labels(classes, partition, set_type, filename):
             # Read rows
             video = row[0]
             kf = row[1]
-#            bb_top_x = row[2]
-#            bb_top_y = row[3]
-#            bb_bot_x = row[4]
-#            bb_bot_y = row[5]
-#            bbs = str(bb_top_x) + sep + str(bb_top_y) + sep + str(bb_bot_x) + sep + str(bb_bot_y)
             bbs = str("{:.3f}".format(float(row[2]))) + sep + str("{:.3f}".format(float(row[3]))) + sep + str("{:.3f}".format(float(row[4]))) + sep + str("{:.3f}".format(float(row[5])))
 
             action = int(row[6])

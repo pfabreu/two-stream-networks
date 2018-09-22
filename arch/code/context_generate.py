@@ -5,7 +5,7 @@ from scipy.spatial import distance
 from keras.utils import to_categorical
 
 NCLASSES = utils.POSE_CLASSES + utils.OBJ_HUMAN_CLASSES + utils.HUMAN_HUMAN_CLASSES
-NUMBEROFNEIGHBORS = 3
+NUMBEROFNEIGHBORS = 1
 LOOKBACK = 10
 LOOKFORWARD = 10
 INPATHS = ["AVA_Train_Custom_Corrected.csv", "AVA_Val_Custom_Corrected.csv", "AVA_Test_Custom_Corrected.csv"]
@@ -95,7 +95,7 @@ def getRelevantIndexes(videoID, keyFrame, snippets_video, snippets_time):
 
 for i in range(len(INPATHS)):
     INPATH = '../../data/AVA/files/' + INPATHS[i]
-    OUTPATH = OUTPATHS[i]
+    OUTPATH = '../../data/AVA/files/context_files/' + OUTPATHS[i]
     print("Now on input:" + INPATH + "\n And output: " + OUTPATH)
 
     snippets_video = []

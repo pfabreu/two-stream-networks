@@ -1,7 +1,13 @@
+import os
+CPU = True
+if CPU:
+    os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"   # see issue https://stackoverflow.com/questions/40690598/can-keras-with-tensorflow-backend-be-forced-to-use-cpu-or-gpu-at-will
+    os.environ["CUDA_VISIBLE_DEVICES"] = ""  # This must be imported before keras
+
 from keras.utils import to_categorical
 from keras.callbacks import ModelCheckpoint
 
-from context_mlp import context_create_model, compile_model
+from context_mlp_model import context_create_model, compile_model
 from context_data import load_split, get_AVA_set, get_AVA_labels
 
 import pickle
@@ -9,12 +15,12 @@ import utils
 
 
 def main():
+    K.clear_session()
+
     # Load list of action classes and separate them (from utils_stream)
     classes = utils.get_AVA_classes('ava_action_list_custom.csv')
 
     # Parameters for training (batch size 32 is supposed to be the best?)
-    # params = {'dim': 270, 'batch_size': 64, 'n_classes': len(classes['label_id']), 'n_channels': 1, 'nb_epochs': 200, 'model': "mlp", 'email': True}
-
     context_dim = 630
     params = {'dim': context_dim, 'batch_size': 64, 'n_classes': len(classes['label_id']), 'n_channels': 1, 'nb_epochs': 200, 'model': "mlp"}
 

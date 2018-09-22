@@ -1,3 +1,8 @@
+import os
+CPU = True
+if CPU:
+    os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"   # see issue https://stackoverflow.com/questions/40690598/can-keras-with-tensorflow-backend-be-forced-to-use-cpu-or-gpu-at-will
+    os.environ["CUDA_VISIBLE_DEVICES"] = ""  # This must be imported before keras
 import tensorflow as tf
 import utils
 import voting
@@ -10,6 +15,7 @@ import pickle
 
 
 def main():
+    K.clear_session()
 
     root_dir = '../../data/AVA/files/'
 
