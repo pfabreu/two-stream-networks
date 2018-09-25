@@ -15,7 +15,7 @@ def load_split(ids, labels, dim, n_channels, of_len, context_dict, rgb_dir, flow
     # Initialization, assuming its bidimensional (for now)
     X_rgb = np.empty([len(ids), dim[0], dim[1], 3])
     X_flow = np.empty([len(ids), dim[0], dim[1], 20])
-    X_context = np.empty([len(ids), 270])  # TODO 270 is hardcoded but can be derived from context params
+    X_context = np.empty([len(ids), 990])  # TODO 270 is hardcoded but can be derived from context params
     ypose = np.empty(len(ids))
     yobject = []
     yhuman = []

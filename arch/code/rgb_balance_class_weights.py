@@ -34,7 +34,7 @@ def main():
     root_dir = '../../data/AVA/files/'
 
     # Erase previous models from GPU memory
-    # K.clear_session()
+    K.clear_session()
 
     # Load list of action classes and separate them
     classes = utils.get_AVA_classes(root_dir + 'ava_action_list_custom.csv')
@@ -60,9 +60,11 @@ def main():
     # http://scikit-learn.org/stable/modules/generated/sklearn.utils.class_weight.compute_class_weight.html
     # Logistic Regression in Rare Events Data, Gary King, Langche Zeng
     # Keras needs a dict though
+    # From documentation: class_weight: Optional dictionary mapping class indices (integers) to a weight (float) value, used for weighting the loss function (during training only).
+    # This can be useful to tell the model to "pay more attention" to samples from an under-represented class.
     y = labels_to_numpy(labels_train)
 
-    penalizing_method = 'weighted_log'
+    penalizing_method = 'balanced'
     mu = 0.7
     # penalizing_method = 'weighted_log'
     class_weights = np.zeros(30)
@@ -72,7 +74,7 @@ def main():
     for i in range(len(class_weights)):
         if class_weights[i] != 0.0:
             if penalizing_method == 'balanced':
-                print(str(i) + " " + str(class_weights[i]) + " " + str(len(y) / (30 * class_weights[i])))
+                print(str(i) + " " + str(class_weights[i]) + " " + str(len(y) / (class_weights[i])))
                 class_weights[i] = len(y) / (30 * class_weights[i])
             elif penalizing_method == 'weighted_log':
                 print(str(i) + " " + str(class_weights[i]) + " " + str(math.log(mu * len(y) / (class_weights[i]))))
@@ -103,12 +105,10 @@ def main():
     model, keras_layer_names = rgb_create_model(classes=classes['label_id'], soft_sigmoid=soft_sigmoid, model_name=params['model'], freeze_all=params['freeze_all'], conv_fusion=params['conv_fusion'])
     model = compile_model(model, soft_sigmoid=soft_sigmoid)
 
-    sys.exit(0)
-
     # TODO Experiment: 1. no initialization, 2. ucf initialization 3. kinetics initialization
     initialization = True  # Set to True to use initialization
-    kinetics_weights = None
-    ucf_weights = "a"
+    kinetics_weights = ""
+    ucf_weights = "../models/ucf_keras/keras-ucf101-rgb-resnet50-newsplit.hdf5"
 
     if saved_weights is not None:
         model.load_weights(saved_weights)
@@ -143,9 +143,9 @@ def main():
 
     # TODO Don't forget to change your names :)
     filter_type = "gauss"
-    bestModelPath = "../models/rgb_augclassweights_" + filter_type + "_" + params['model'] + "_" + time_str + ".hdf5"
-    traincsvPath = "../loss_acc_plots/rgb_augclassweights_train_" + filter_type + "_plot_" + params['model'] + "_" + time_str + ".csv"
-    valcsvPath = "../loss_acc_plots/rgb_augclassweights_val_" + filter_type + "_plot_" + params['model'] + "_" + time_str + ".csv"
+    bestModelPath = "../models/rgb_augclassweights_balanced_" + filter_type + "_" + params['model'] + "_" + time_str + ".hdf5"
+    traincsvPath = "../loss_acc_plots/rgb_augclassweights_balanced_train_" + filter_type + "_plot_" + params['model'] + "_" + time_str + ".csv"
+    valcsvPath = "../loss_acc_plots/rgb_augclassweights_balanced_val_" + filter_type + "_plot_" + params['model'] + "_" + time_str + ".csv"
 
     for epoch in range(params['nb_epochs']):
         epoch_chunks_count = 0
@@ -192,6 +192,7 @@ def main():
             y_v.append(utils.to_binary_vector(
                 y_val_human, size=utils.HUMAN_HUMAN_CLASSES, labeltype='human-human'))
 
+            # NOTE Can't have weights on validation
             vglobal_loss, vpose_loss, vobject_loss, vhuman_loss, vpose_acc, vobject_acc, vhuman_acc = model.evaluate(
                 x_val, y_v, batch_size=params['batch_size'])
             loss_acc_list[0] += vglobal_loss

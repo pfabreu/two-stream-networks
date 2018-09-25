@@ -56,7 +56,7 @@ def main():
     classes = utils.get_AVA_classes(root_dir + 'ava_action_list_custom.csv')
 
     partition = {}
-    timewindows = [3, 5, 10]
+    timewindows = [1]
     # neighbs = [1, 2, 3]
     # Labels
     # timewindow = 10  # NOTE To the past and to the future
@@ -100,8 +100,8 @@ def main():
         # y_train = np.vstack((y_train, y_val))
         #NHU1V = [32, 64, 128, 256, 512]
         #NHU2V = [16, 32, 64, 128, 256]
-        NHU1V = [2048]
-        NHU2V = [1024]
+        NHU1V = [1024]
+        NHU2V = [512]
         for i in range(len(NHU1V)):
             NHU1 = NHU1V[i]
             NHU2 = NHU2V[i]
@@ -120,7 +120,7 @@ def main():
             model.compile(optimizer='adam', loss=['categorical_crossentropy', 'binary_crossentropy', 'binary_crossentropy'], metrics=['categorical_accuracy'])
 
             # Train
-            n_epoch = 10
+            n_epoch = 100
             hist = model.fit([x_train_past, x_train_future], y_t, shuffle=True, validation_split=0.1, epochs=n_epoch, verbose=0, callbacks=[checkpointer])
 
             # model.save(bestModelPath)

@@ -22,7 +22,7 @@ Generators to feed data are not used for AVA due to how temporal sampling is don
 * [foveated-yolt](https://github.com/pedro-abreu/foveated_yolt) if you want to apply attention filters (requires python2)
 * (Optional) Caffe 1.0 ([This](https://github.com/yjxiong/caffe) version if you wish to convert networks trained with yjxiong's version of Caffe (i.e TSN) to Keras). Note that we had to convert from this custom Caffe to Keras and as such, slightly modify the default InceptionV3 architecture to use pre-trained Kinetics weights (explained in the thesis). To understand the subtle (and low-level) differences in converting models from Caffe to Keras see [this](https://flyyufelix.github.io/2017/03/23/caffe-to-keras.html) great link.
 * (Optional) OpenPose 1.3.0 if you wish to extract poses (most recent one as of writing, and thus Caffe (all dependencies) + OpenCV, can be the previous one)
-
+* (Optional) To plot models you need graphviz and pydot.
 
 ### Data
 

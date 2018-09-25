@@ -13,7 +13,7 @@ from imgaug import parameters as iap
 import random
 
 
-def load_split(ids, labels, dim, n_channels, gen_type, filter_type, soft_sigmoid=False, train=True):
+def load_split(ids, labels, dim, n_channels, gen_type, filter_type, soft_sigmoid=False, train=True, aug=False):
     'Generates data containing batch_size samples'
     resize = False
     sep = "@"
@@ -65,21 +65,22 @@ def load_split(ids, labels, dim, n_channels, gen_type, filter_type, soft_sigmoid
             img = cv2.imread(img_name)
             # print(img_name)
             # print(img.shape)
-            if random.random() < 0.5:
-                img = np.fliplr(img)
-            crop_rand_val = random.randrange(0, 5, 1) / 10.0
-            #scale_rand_val = random.randrange(7, 10, 1) / 10.0
-            # print(crop_rand_val)
-            # print(scale_rand_val)
-            seq = iaa.Sequential([  # horizontal flips
-                #iaa.Scale((scale_rand_val, 1.0)),
-                iaa.CropAndPad(
-                    percent=(0, crop_rand_val),
-                    pad_mode=["edge"]
-                )  # random crops
-            ], random_order=True)  # apply augmenters in random order
+            if aug is True:
+                if random.random() < 0.5:
+                    img = np.fliplr(img)
+                crop_rand_val = random.randrange(0, 5, 1) / 10.0
+                #scale_rand_val = random.randrange(7, 10, 1) / 10.0
+                # print(crop_rand_val)
+                # print(scale_rand_val)
+                seq = iaa.Sequential([  # horizontal flips
+                    #iaa.Scale((scale_rand_val, 1.0)),
+                    iaa.CropAndPad(
+                        percent=(0, crop_rand_val),
+                        pad_mode=["edge"]
+                    )  # random crops
+                ], random_order=True)  # apply augmenters in random order
 
-            img = seq.augment_image(img)
+                img = seq.augment_image(img)
 
         X[i, ] = img
         if train is True:

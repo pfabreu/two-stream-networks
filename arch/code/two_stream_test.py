@@ -31,17 +31,17 @@ def main():
     partition = {}
     partition['test'] = get_AVA_set(classes=classes, filename=root_dir + "AVA_Test_Custom_Corrected.csv", train=False)
 
-    filter_type = "crop"
+    filter_type = "gauss"
     flowcrop = True
     time_str = time.strftime("%y%m%d%H%M", time.localtime())
     if flowcrop:
-        result_csv = "test_outputs/two-streams/output_" + params['gen_type'] + "_2stream_flowcrop" + filter_type + "_" + time_str + ".csv"
+        result_csv = "test_outputs/two-streams/output_" + params['gen_type'] + "_2stream_flowcrop_" + filter_type + "_" + time_str + ".csv"
     else:
         result_csv = "test_outputs/two-streams/output_" + params['gen_type'] + "_2stream_" + filter_type + "_" + time_str + ".csv"
     # Load trained model
     # rgb_weights = "../models/rgb_fovea_resnet50_1806301953.hdf5"
-    # rgb_weights = "../models/rgb_gauss_resnet50_1806290918.hdf5"
-    rgb_weights = "../models/rgb_crop_resnet50_1806300210.hdf5"
+    rgb_weights = "../models/rgb_gauss_resnet50_1806290918.hdf5"
+    # rgb_weights = "../models/rgb_crop_resnet50_1806300210.hdf5"
     # rgb_weights = "../models/rgb_rgb_resnet50_1807060914.hdf5"
 
     # flow_weights = "../models/flow_resnet50_1806281901.hdf5"
@@ -52,9 +52,9 @@ def main():
     model = nsmodel.model
     # two_stream_weights = "../models/two_stream_fusion_elfovresnet50_1807030015.hdf5"
     # two_stream_weights = "../models/two_stream_fusion_rgbbaseline_rgb_resnet50_1809051930.hdf5"
-    two_stream_weights = "../models/two_stream_fusion_flowcrop_crop_crop_resnet50_1809162007.hdf5"
-    #two_stream_weights = "../models/two_stream_fusion_flowcrop_fovea_fovea_resnet50_1809091554.hdf5"
-    #two_stream_weights = "../models/two_stream_fusion_flowcrop_gauss_resnet50_1809012354.hdf5"
+    # two_stream_weights = "../models/two_stream_fusion_flowcrop_crop_crop_resnet50_1809162007.hdf5"
+    # two_stream_weights = "../models/two_stream_fusion_flowcrop_fovea_fovea_resnet50_1809091554.hdf5"
+    two_stream_weights = "../models/two_stream_fusion_flowcrop_gauss_resnet50_1809012354.hdf5"
 
     model.load_weights(two_stream_weights)
 

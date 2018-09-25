@@ -2,9 +2,32 @@ import csv
 import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
+from numpy import nan
 
 plt.style.use('seaborn-white')
 # Show histograms of class distribution for each split
+
+
+def get_AVA_classes(csv_filename):
+    """
+    Gets all classes from an AVA csv, format of classes is a dictionary with:
+    classes['label_id'] has all class ids from 1-80
+    classes['label_name'] has all class names (e.g bend/bow (at the waist))
+    classes['label_type'] is either PERSON_MOVEMENT (1-14), OBJECT_MANIPULATION
+    (15-63) or PERSON_INTERACTION (64-80)
+    """
+    classes = []
+    with open(csv_filename) as csvDataFile:
+        csvReader = csv.reader(csvDataFile)
+        headers = next(csvReader)
+        classes = {}
+        for h in headers:
+            classes[h] = []
+
+        for row in csvReader:
+            for h, v in zip(headers, row):
+                classes[h].append(v)
+    return classes
 
 
 def coincidence_matrix(file):
@@ -15,197 +38,91 @@ def coincidence_matrix(file):
 
 
 # Show coincidence matrices one at a time
-show_coincidence = False
-show_individual_mats = False
-show_types_bar = True
+normalize = True
+classes = get_AVA_classes('files/ava_action_list_custom.csv')
+classes['label_name'].insert(0, 'none')
+cm = coincidence_matrix("occurrenceMatrices/TrainLabelsConMatrix.npy")
+colormap = sns.cubehelix_palette(8, start=.5, rot=-.75)
+if normalize is True:
+    row_sums = cm.sum(axis=1)
+    cma = 1.0 * cm / row_sums[:, np.newaxis]
+    cma = np.round(cma, decimals=2) + np.zeros(cm.shape)
+    cma = np.nan_to_num(cma)
+    g = sns.heatmap(cma, xticklabels=classes['label_name'], yticklabels=classes['label_name'], annot=True, fmt=".2f", cmap=colormap, linewidths=0.5, linecolor='gray', cbar=True)
+else:
+    cma = cm
+    g = sns.heatmap(cma, xticklabels=classes['label_name'], yticklabels=classes['label_name'], annot=True, fmt="d", cmap=colormap, linewidths=0.5, linecolor='gray', cbar=True)
+plt.title("What actions co-occur the most? (Train), row-wise")
+print(cma)
+i = 0
+for ytick_label, xtick_label in zip(g.axes.get_yticklabels(), g.axes.get_xticklabels()):
+    if i != 0:
+        idx = i - 1
 
-if show_coincidence and show_individual_mats:
-    cm = coincidence_matrix("TrainLabelsConMatrix.npy")
-    g = sns.heatmap(cm, xticklabels=True, yticklabels=True, annot=True, fmt="d", cmap=sns.cubehelix_palette(8, start=.5, rot=-.75), linewidths=0.5, linecolor='gray', cbar=True)
-    plt.title("Co-incidence Matrix (Train)")
+    if i <= 10:
+        ytick_label.set_color("r")
+        xtick_label.set_color("r")
 
-    i = 0
-    for ytick_label, xtick_label in zip(g.axes.get_yticklabels(), g.axes.get_xticklabels()):
-        if i <= 10:
-            ytick_label.set_color("r")
-            xtick_label.set_color("r")
-
-        elif i <= 22:
-            ytick_label.set_color("b")
-            xtick_label.set_color("b")
-        else:
-            ytick_label.set_color("g")
-            xtick_label.set_color("g")
-        i += 1
-    plt.show()
-
-    cm = coincidence_matrix("ValidationLabelsConMatrix.npy")
-    g = sns.heatmap(cm, xticklabels=True, yticklabels=True, annot=True, fmt="d", cmap=sns.cubehelix_palette(8, start=.5, rot=-.75), linewidths=0.5, linecolor='gray', cbar=True)
-    plt.title("Co-incidence Matrix (Validation)")
-
-    i = 0
-    for ytick_label, xtick_label in zip(g.axes.get_yticklabels(), g.axes.get_xticklabels()):
-        if i <= 10:
-            ytick_label.set_color("r")
-            xtick_label.set_color("r")
-
-        elif i <= 22:
-            ytick_label.set_color("b")
-            xtick_label.set_color("b")
-        else:
-            ytick_label.set_color("g")
-            xtick_label.set_color("g")
-        i += 1
-    plt.show()
-
-    cm = coincidence_matrix("TestLabelsConMatrix.npy")
-    g = sns.heatmap(cm, xticklabels=True, yticklabels=True, annot=True, fmt="d", cmap=sns.cubehelix_palette(8, start=.5, rot=-.75), linewidths=0.5, linecolor='gray', cbar=True)
-    plt.title("Co-incidence Matrix (Test)")
-
-    i = 0
-    for ytick_label, xtick_label in zip(g.axes.get_yticklabels(), g.axes.get_xticklabels()):
-        if i <= 10:
-            ytick_label.set_color("r")
-            xtick_label.set_color("r")
-
-        elif i <= 22:
-            ytick_label.set_color("b")
-            xtick_label.set_color("b")
-        else:
-            ytick_label.set_color("g")
-            xtick_label.set_color("g")
-        i += 1
-    plt.show()
-
-# Show Co-incidence matrices together
-for i in range(1, 7):
-    plt.subplot(2, 3, i)
-
-    if i < 4:
-        if show_coincidence:
-            if i == 1:
-                cm = coincidence_matrix("TrainLabelsConMatrix.npy")
-                plt.title("Co-incidence Matrix (Train)")
-            elif i == 2:
-                cm = coincidence_matrix("ValidationLabelsConMatrix.npy")
-                plt.title("Co-incidence Matrix (Validation)")
-            elif i == 3:
-                cm = coincidence_matrix("TestLabelsConMatrix.npy")
-                plt.title("Co-incidence Matrix (Test)")
-            g = sns.heatmap(cm, xticklabels=True, yticklabels=True, annot=False, fmt="d", cmap=sns.cubehelix_palette(8, start=.5, rot=-.75), linewidths=0.5, linecolor='gray', cbar=True)
-            t = 0
-            for ytick_label, xtick_label in zip(g.axes.get_yticklabels(), g.axes.get_xticklabels()):
-                if t <= 10:
-                    ytick_label.set_color("r")
-                    xtick_label.set_color("r")
-
-                elif t <= 22:
-                    ytick_label.set_color("b")
-                    xtick_label.set_color("b")
-                else:
-                    ytick_label.set_color("g")
-                    xtick_label.set_color("g")
-            t += 1
-        elif show_types_bar:
-            if i == 1:
-                types = np.zeros(3, 1)
-                with open("../../../data/AVA/files/AVA_Train_Custom_Corrected.csv") as csvDataFile:
-                    csvReader = csv.reader(csvDataFile)
-                    for row in csvReader:
-                        tp = int(row[6])
-                        if tp <= 10:
-                            types[0] += 1
-                        elif tp <= 22:
-                            types[1] += 1
-                        else:
-                            types[2] += 1
-                        classes.append()
-                ax = sns.distplot(classes, color="y", bins=range(1, 31))
-                plt.xlim(0, 30)
-                plt.ylim(0, 0.2)
-                #plt.yticks(ax.get_yticks(), ax.get_yticks() * 100.0)
-                plt.title("Class distribution histogram (Train)(%)")
-                plt.grid(True)
-                t = 0
-                plt.xticks(range(0, 31))
-                for xtick_label in ax.axes.get_xticklabels():
-                    if t <= 10:
-                        xtick_label.set_color("r")
-                    elif t <= 22:
-                        xtick_label.set_color("b")
-                    else:
-                        xtick_label.set_color("g")
-                    t += 1
-                print("done histo")
+    elif i <= 22:
+        ytick_label.set_color("b")
+        xtick_label.set_color("b")
     else:
-        if i == 4:
-            classes = []
-            with open("../../../data/AVA/files/AVA_Train_Custom_Corrected.csv") as csvDataFile:
-                csvReader = csv.reader(csvDataFile)
-                for row in csvReader:
-                    classes.append(int(row[6]))
-            ax = sns.distplot(classes, color="y", bins=range(1, 31))
-            plt.xlim(0, 30)
-            plt.ylim(0, 0.2)
-            #plt.yticks(ax.get_yticks(), ax.get_yticks() * 100.0)
-            plt.title("Class distribution histogram (Train)(%)")
-            plt.grid(True)
-            t = 0
-            plt.xticks(range(0, 31))
-            for xtick_label in ax.axes.get_xticklabels():
-                if t <= 10:
-                    xtick_label.set_color("r")
-                elif t <= 22:
-                    xtick_label.set_color("b")
-                else:
-                    xtick_label.set_color("g")
-                t += 1
-            print("done histo")
-        elif i == 5:
-            classes = []
-            with open("../../../data/AVA/files/AVA_Val_Custom_Corrected.csv") as csvDataFile:
-                csvReader = csv.reader(csvDataFile)
-                for row in csvReader:
-                    classes.append(int(row[6]))
-            ax = sns.distplot(classes, color="m")
-            plt.xlim(0, 30)
-            plt.ylim(0, 0.2)
-            #plt.yticks(ax.get_yticks(), ax.get_yticks() * 100.0)
-            plt.title("Class distribution histogram (Val)(%)")
-            plt.grid(True)
-            t = 0
-            plt.xticks(range(0, 31))
-            for xtick_label in ax.axes.get_xticklabels():
-                if t <= 10:
-                    xtick_label.set_color("r")
-                elif t <= 22:
-                    xtick_label.set_color("b")
-                else:
-                    xtick_label.set_color("g")
-                t += 1
-            print("done histo")
-        elif i == 6:
-            classes = []
-            with open("../../../data/AVA/files/AVA_Test_Custom_Corrected.csv") as csvDataFile:
-                csvReader = csv.reader(csvDataFile)
-                for row in csvReader:
-                    classes.append(int(row[6]))
-            ax = sns.distplot(classes, color="b")
-            plt.xlim(0, 30)
-            plt.ylim(0, 0.2)
-            #plt.yticks(ax.get_yticks(), ax.get_yticks() * 100.0)
-            plt.title("Class distribution histogram (Test)(%)")
-            plt.grid(True)
-            t = 0
-            plt.xticks(range(0, 31))
-            for xtick_label in ax.axes.get_xticklabels():
-                if t <= 10:
-                    xtick_label.set_color("r")
-                elif t <= 22:
-                    xtick_label.set_color("b")
-                else:
-                    xtick_label.set_color("g")
-                t += 1
-            print("done histo")
+        ytick_label.set_color("g")
+        xtick_label.set_color("g")
+    i += 1
+plt.show()
 
+cm = coincidence_matrix("occurrenceMatrices/ValidationLabelsConMatrix.npy")
+if normalize is True:
+    row_sums = cm.sum(axis=1)
+    cma = 1.0 * cm / row_sums[:, np.newaxis]
+    cma = np.round(cma, decimals=2) + np.zeros(cm.shape)
+    cma = np.nan_to_num(cma)
+    g = sns.heatmap(cma, xticklabels=classes['label_name'], yticklabels=classes['label_name'], annot=True, fmt=".2f", cmap=colormap, linewidths=0.5, linecolor='gray', cbar=True)
+else:
+    cma = cm
+    g = sns.heatmap(cma, xticklabels=classes['label_name'], yticklabels=classes['label_name'], annot=True, fmt="d", cmap=colormap, linewidths=0.5, linecolor='gray', cbar=True)
+plt.title("What actions co-occur the most? (Validation), row-wise")
+
+i = 0
+for ytick_label, xtick_label in zip(g.axes.get_yticklabels(), g.axes.get_xticklabels()):
+
+    if i <= 10:
+        ytick_label.set_color("r")
+        xtick_label.set_color("r")
+
+    elif i <= 22:
+        ytick_label.set_color("b")
+        xtick_label.set_color("b")
+    else:
+        ytick_label.set_color("g")
+        xtick_label.set_color("g")
+    i += 1
+plt.show()
+
+cm = coincidence_matrix("occurrenceMatrices/TestLabelsConMatrix.npy")
+if normalize is True:
+    row_sums = cm.sum(axis=1)
+    cma = 1.0 * cm / row_sums[:, np.newaxis]
+    cma = np.round(cma, decimals=2) + np.zeros(cm.shape)
+    cma = np.nan_to_num(cma)
+    g = sns.heatmap(cma, xticklabels=classes['label_name'], yticklabels=classes['label_name'], annot=True, fmt=".2f", cmap=colormap, linewidths=0.5, linecolor='gray', cbar=True)
+else:
+    cma = cm
+    g = sns.heatmap(cma, xticklabels=classes['label_name'], yticklabels=classes['label_name'], annot=True, fmt="d", cmap=colormap, linewidths=0.5, linecolor='gray', cbar=True)
+plt.title("What actions co-occur the most? (Test), row-wise")
+
+i = 0
+for ytick_label, xtick_label in zip(g.axes.get_yticklabels(), g.axes.get_xticklabels()):
+    if i <= 10:
+        ytick_label.set_color("r")
+        xtick_label.set_color("r")
+
+    elif i <= 22:
+        ytick_label.set_color("b")
+        xtick_label.set_color("b")
+    else:
+        ytick_label.set_color("g")
+        xtick_label.set_color("g")
+    i += 1
 plt.show()

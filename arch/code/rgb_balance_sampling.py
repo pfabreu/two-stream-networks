@@ -13,10 +13,12 @@ from rgb_data_aug import load_split, get_AVA_set, get_AVA_labels
 import matplotlib.pyplot as plt
 import seaborn as sns
 import sys
+from itertools import islice
 
 
 def oversampling(classes, root_dir, file):
     sep = "@"
+    repeating_threshold = 60.0
     start_frame = 1
     end_frame = 5
     jump_frames = 1  # Keyframe will be 3
@@ -40,10 +42,10 @@ def oversampling(classes, root_dir, file):
             # print("Class: " + str(i + 1))
             # print("Samples: " + str(types[i]))
             # print("Reps: " + str(math.ceil(avg_samples / types[i])))
-            if math.ceil(avg_samples / types[i]) < 40.0:
+            if math.ceil(avg_samples / types[i]) < repeating_threshold:
                 reps.append(int(math.ceil(avg_samples / types[i])) - 1)
             else:
-                reps.append(int(40.0) - 1)
+                reps.append(int(repeating_threshold) - 1)
             classes_to_rep.append(i + 1)
     print(classes_to_rep)
     print(reps)
@@ -173,6 +175,17 @@ def undersampling(classes, root_dir, file, oversampling_classes):
     return samples, classes_to_remove
 
 
+def labels_to_numpy(labels):
+    nplabels = []
+    for key in labels:
+        nplabels.append(labels[key]['pose'])
+        for a in labels[key]['human-object']:
+            nplabels.append(a)
+        for a in labels[key]['human-human']:
+            nplabels.append(a)
+    return np.array(nplabels)
+
+
 def main():
     # root_dir = '../../../AVA2.1/' # root_dir for the files
     root_dir = '../../data/AVA/files/'
@@ -186,10 +199,11 @@ def main():
     # Parameters for training
     params = {'dim': (224, 224), 'batch_size': 32,
               'n_classes': len(classes['label_id']), 'n_channels': 3,
-              'shuffle': False, 'nb_epochs': 150, 'model': 'resnet50', 'email': True,
+              'shuffle': False, 'nb_epochs': 100, 'model': 'resnet50', 'email': True,
               'freeze_all': True, 'conv_fusion': False, 'train_chunk_size': 2**12,
               'validation_chunk_size': 2**12}
     soft_sigmoid = True
+    augmentation = False
     minValLoss = 9999990.0
 
     # TODO Oversampling
@@ -209,11 +223,48 @@ def main():
     labels_train = get_AVA_labels(classes, partition, "train", filename=root_dir + "AVA_Train_Custom_Corrected.csv", soft_sigmoid=soft_sigmoid)
     labels_val = get_AVA_labels(classes, partition, "validation", filename=root_dir + "AVA_Val_Custom_Corrected.csv", soft_sigmoid=soft_sigmoid)
 
+    y = labels_to_numpy(labels_train)
+
+    penalizing_method = 'weighted_log'
+    mu = 1.0
+    # penalizing_method = 'weighted_log'
+    class_weights = np.zeros(30)
+    for i in y:
+        class_weights[i] += 1
+
+    for i in range(len(class_weights)):
+        if class_weights[i] != 0.0:
+            if penalizing_method == 'balanced':
+                print(str(i) + " " + str(class_weights[i]) + " " + str(len(y) / (class_weights[i])))
+                class_weights[i] = len(y) / (30 * class_weights[i])
+            elif penalizing_method == 'weighted_log':
+                print(str(i) + " " + str(class_weights[i]) + " " + str(math.log(mu * len(y) / (class_weights[i]))))
+                class_weights[i] = math.log(mu * len(y) / (class_weights[i]))
+        else:
+            print(str(i) + " " + str(class_weights[i]) + " inf ")
+            class_weights[i] = 0.0
+    g = sns.barplot(x=[str(i) for i in range(len(class_weights))], y=class_weights)
+    plt.xticks(rotation=-90)
+    plt.title("Class weights " + penalizing_method)
+    plt.grid(True)
+    plt.show()
+
+    class_dictionary = {}
+    print(len(class_weights))
+    for i in range(len(class_weights)):
+        class_dictionary[i] = class_weights[i]
+    print(class_dictionary)
+
+    it = iter(class_weights)
+    seclist = [utils.POSE_CLASSES, utils.OBJ_HUMAN_CLASSES, utils.HUMAN_HUMAN_CLASSES]
+    class_lists = [list(islice(it, 0, i)) for i in seclist]
+    print(class_lists)
+
     partition['train'] = partition['train'] + aug_train
     partition['validation'] = partition['validation'] + aug_val
 
     # Create + compile model, load saved weights if they exist
-    saved_weights = "../models/rgb_augsampling_gauss_resnet50_1809181648.hdf5"
+    saved_weights = "../models/rgb_augsamplingweightsnoaug_gauss_resnet50_1809232204.hdf5"
     # saved_weights = "../models/rgbextra_gauss_resnet50_1807250030.hdf5"
     model, keras_layer_names = rgb_create_model(classes=classes['label_id'], soft_sigmoid=soft_sigmoid, model_name=params['model'], freeze_all=params['freeze_all'], conv_fusion=params['conv_fusion'])
     model = compile_model(model, soft_sigmoid=soft_sigmoid)
@@ -257,9 +308,9 @@ def main():
 
     # TODO Don't forget to change your names :)
     filter_type = "gauss"
-    bestModelPath = "../models/rgb_augsampling_" + filter_type + "_" + params['model'] + "_" + time_str + ".hdf5"
-    traincsvPath = "../loss_acc_plots/rgb_augsampling_train_" + filter_type + "_plot_" + params['model'] + "_" + time_str + ".csv"
-    valcsvPath = "../loss_acc_plots/rgb_augsampling_val_" + filter_type + "_plot_" + params['model'] + "_" + time_str + ".csv"
+    bestModelPath = "../models/rgb_augsamplingweightsnoaug_" + filter_type + "_" + params['model'] + "_" + time_str + ".hdf5"
+    traincsvPath = "../loss_acc_plots/rgb_augsamplingweightsnoaug_train_" + filter_type + "_plot_" + params['model'] + "_" + time_str + ".csv"
+    valcsvPath = "../loss_acc_plots/rgb_augsamplingweightsnoaug_val_" + filter_type + "_plot_" + params['model'] + "_" + time_str + ".csv"
 
     with tf.device('/gpu:0'):  # NOTE Not using multi gpu
         for epoch in range(params['nb_epochs']):
@@ -270,14 +321,14 @@ def main():
                 # -----------------------------------------------------------
                 x_val = y_val_pose = y_val_object = y_val_human = x_train = y_train_pose = y_train_object = y_train_human = None
                 x_train, y_train_pose, y_train_object, y_train_human = load_split(trainIDS, labels_train, params[
-                    'dim'], params['n_channels'], "train", filter_type, soft_sigmoid=soft_sigmoid)
+                    'dim'], params['n_channels'], "train", filter_type, soft_sigmoid=soft_sigmoid, aug=augmentation)
 
                 y_t = []
                 y_t.append(to_categorical(y_train_pose, num_classes=utils.POSE_CLASSES))
                 y_t.append(utils.to_binary_vector(y_train_object, size=utils.OBJ_HUMAN_CLASSES, labeltype='object-human'))
                 y_t.append(utils.to_binary_vector(y_train_human, size=utils.HUMAN_HUMAN_CLASSES, labeltype='human-human'))
 
-                history = model.fit(x_train, y_t, batch_size=params['batch_size'], epochs=1, verbose=0)
+                history = model.fit(x_train, y_t, class_weight=class_lists, batch_size=params['batch_size'], epochs=1, verbose=0)
                 utils.learning_rate_schedule(model, epoch, params['nb_epochs'])
 
                 # ------------------------------------------------------------
@@ -299,7 +350,7 @@ def main():
             for valIDS in val_splits:
                 x_val = y_val_pose = y_val_object = y_val_human = x_train = y_train_pose = y_train_object = y_train_human = None
                 x_val, y_val_pose, y_val_object, y_val_human = load_split(valIDS, labels_val, params[
-                    'dim'], params['n_channels'], "val", filter_type, soft_sigmoid=soft_sigmoid)
+                    'dim'], params['n_channels'], "val", filter_type, soft_sigmoid=soft_sigmoid, aug=augmentation)
                 y_v = []
                 y_v.append(to_categorical(
                     y_val_pose, num_classes=utils.POSE_CLASSES))

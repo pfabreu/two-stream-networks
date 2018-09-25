@@ -1,5 +1,5 @@
 import os
-CPU = True
+CPU = False
 if CPU:
     os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"   # see issue https://stackoverflow.com/questions/40690598/can-keras-with-tensorflow-backend-be-forced-to-use-cpu-or-gpu-at-will
     os.environ["CUDA_VISIBLE_DEVICES"] = ""  # This must be imported before keras
@@ -24,22 +24,27 @@ def main():
     classes = utils.get_AVA_classes(root_dir + 'ava_action_list_custom.csv')
 
     # Parameters for training (batch size 32 is supposed to be the best?)
-    params = {'dim': (224, 224), 'batch_size': 32,
-              'n_classes': len(classes['label_id']), 'n_channels': 20,
-              'shuffle': False, 'nb_epochs': 200, 'model': 'resnet50', 'email': False,
-              'freeze_all': True, 'conv_fusion': False}
-
+    # params = {'dim': (224, 224), 'batch_size': 32,
+    #          'n_classes': len(classes['label_id']), 'n_channels': 20,
+    #          'shuffle': False, 'nb_epochs': 200, 'model': 'resnet50', 'email': False,
+    #          'freeze_all': True, 'conv_fusion': False}
+    params = {'dim': (224, 224), 'batch_size': 64,
+              'n_classes': len(classes['label_id']), 'n_channels': 10,
+              'nb_epochs': 157, 'model': "inceptionv3", 'email': True,
+              'freeze_all': True, 'conv_fusion': False, 'train_chunk_size': 2**10,
+              'validation_chunk_size': 2**10}
+    crop = False  # TODO Use crop flow or not
     # Get validation set from directory
     partition = {}
     partition['test'] = get_AVA_set(classes=classes, filename=root_dir + "AVA_Test_Custom_Corrected.csv", soft_sigmoid=True)
 
     time_str = time.strftime("%y%m%d%H%M", time.localtime())
-    result_csv = "output_test_flowcrop_" + time_str + ".csv"
+    result_csv = "test_outputs/kinetics_init/output_test_flow_kineticsinit_" + time_str + ".csv"
 
     # Load trained model
-    flow_weights = "../models/flowcrop_resnet50_1807180022.hdf5"
-    model = flow_create_model(classes=classes['label_id'], model_name=params[
-        'model'], soft_sigmoid=True, freeze_all=params['freeze_all'], conv_fusion=params['conv_fusion'])
+    # flow_weights = "../models/flowcrop_resnet50_1807180022.hdf5"
+    flow_weights = "../models/flow_kineticsinit_inceptionv3_1808290834.hdf5"
+    model, keras_layer_names = flow_create_model(classes=classes['label_id'], model_name=params['model'], soft_sigmoid=True, image_shape=(224, 224), opt_flow_len=10, freeze_all=params['freeze_all'], conv_fusion=params['conv_fusion'])
     model = compile_model(model, soft_sigmoid=True)
     model.load_weights(flow_weights)
 
@@ -49,7 +54,8 @@ def main():
     test_splits = utils.make_chunks(original_list=partition['test'], size=len(partition['test']), chunk_size=2**10)
 
     # Test directories where pre-processed test files are
-    flow_dir = "/media/pedro/actv-ssd/flowcrop_test/"
+    #flow_dir = "/media/pedro/actv-ssd/flowcrop_test/"
+    flow_dir = "/media/pedro/actv-ssd/flow_test/"
 
     test_chunks_count = 0
 
@@ -67,7 +73,9 @@ def main():
     with tf.device('/gpu:0'):
         for testIDS in test_splits:
             # TODO Technically it shouldnt return labels here (these are ground truth)
-            x_test_flow, y_test_pose, y_test_object, y_test_human = load_split(testIDS, None, params['dim'], params['n_channels'], "test", 10, False, encoding="rgb", soft_sigmoid=True, crop=True)
+
+            #x_test_flow, y_test_pose, y_test_object, y_test_human = load_split(testIDS, None, params['dim'], params['n_channels'], "test", 10, False, encoding="rgb", soft_sigmoid=True, crop=crop)
+            x_test_flow, y_test_pose, y_test_object, y_test_human = load_split(testIDS, None, params['dim'], params['n_channels'], "test", 5, False, encoding="rgb", soft_sigmoid=True, crop=crop)
             print("Predicting on chunk " + str(test_chunks_count) + "/" + str(len(test_splits)))
 
             predictions = model.predict(x_test_flow, batch_size=params['batch_size'], verbose=1)
@@ -111,7 +119,7 @@ def main():
 
     if params['email']:
         utils.sendemail(from_addr='pythonscriptsisr@gmail.com',
-                        to_addr_list=['pedro_abreu95@hotmail.com', 'joaogamartins@gmail.com'],
+                        to_addr_list=['pedro_abreu95@hotmail.com'],
                         subject='Finished prediction for flow (crop)',
                         message='Testing flow with following params: ' + str(params),
                         login='pythonscriptsisr@gmail.com',

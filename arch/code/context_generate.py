@@ -5,9 +5,9 @@ from scipy.spatial import distance
 from keras.utils import to_categorical
 
 NCLASSES = utils.POSE_CLASSES + utils.OBJ_HUMAN_CLASSES + utils.HUMAN_HUMAN_CLASSES
-NUMBEROFNEIGHBORS = 1
-LOOKBACK = 10
-LOOKFORWARD = 10
+NUMBEROFNEIGHBORS = 3
+LOOKBACK = 1
+LOOKFORWARD = 1
 INPATHS = ["AVA_Train_Custom_Corrected.csv", "AVA_Val_Custom_Corrected.csv", "AVA_Test_Custom_Corrected.csv"]
 OUTPATHS = ["XContext_train_tw" + str(LOOKBACK) + "_n" + str(NUMBEROFNEIGHBORS) + ".csv", "XContext_val_tw" + str(LOOKBACK) + "_n" + str(NUMBEROFNEIGHBORS) + ".csv", "XContext_test_tw" + str(LOOKBACK) + "_n" + str(NUMBEROFNEIGHBORS) + ".csv"]
 

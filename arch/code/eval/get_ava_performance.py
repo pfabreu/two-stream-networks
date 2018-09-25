@@ -309,13 +309,56 @@ def run_evaluation(labelmap, groundtruth, exclusions, iou):
     root_dir = '../../../data/AVA/files/'
     test_dir = "../test_outputs/"
     # Make sure not to mess this up
+    experiments_filters = {}
+    experiments_detections = {}
+
+    experiments_filters['pose'] = ['Pose']
+    experiments_detections['pose'] = [open(test_dir + "/rgb_rgb/output_test_rgb.csv", 'rb')]
+
+    experiments_filters['rgb-streams-aug'] = ['RGB', 'Crop', 'Gauss', 'Fovea']
+    experiments_detections['rgb-streams-aug'] = [open(test_dir + "/rgb_rgb/output_test_rgb.csv", 'rb'), open(test_dir + "/rgb_crop/output_test_crop.csv", 'rb'), open(test_dir + "/rgb_gauss/output_test_gauss.csv", 'rb'), open(test_dir + "/rgb_fovea/output_test_fovea.csv", 'rb')]
+
+    experiments_filters['flow vs flowcrop'] = ['Flow', 'Flowcrop']
+    experiments_detections['flow vs flowcrop'] = [open(test_dir + "/flow/output_test_flowcrop.csv", 'rb'), ]
+
+    #all_detections.append(open(test_dir + "/flow/output_test_flow.csv", 'rb'))
+
+    experiments_filters['two-streams'] = ['Two-Stream-RGB', 'Two-Stream-Crop', 'Two-Stream-Gauss', 'Two-Stream-Fovea']
+    experiments_detections['two-streams'] = [open(test_dir + "/rgb_rgb/output_test_rgb.csv", 'rb'), open(test_dir + "/rgb_crop/output_test_crop.csv", 'rb'), open(test_dir + "/rgb_gauss/output_test_gauss.csv", 'rb'), open(test_dir + "/rgb_fovea/output_test_fovea.csv", 'rb')]
+
+    experiments_filters['two-streams-aug'] = ['RGB', 'Crop', 'Gauss', 'Fovea']
+    experiments_detections['two-streams-aug'] = [open(test_dir + "/rgb_rgb/output_test_rgb.csv", 'rb'), open(test_dir + "/rgb_crop/output_test_crop.csv", 'rb'), open(test_dir + "/rgb_gauss/output_test_gauss.csv", 'rb'), open(test_dir + "/rgb_fovea/output_test_fovea.csv", 'rb')]
+
+    experiments_filters['mlp vs lstm'] = ['RGB', 'Crop', 'Gauss', 'Fovea']
+    experiments_detections['mlp vs lstm'] = [open(test_dir + "/rgb_rgb/output_test_rgb.csv", 'rb'), open(test_dir + "/rgb_crop/output_test_crop.csv", 'rb'), open(test_dir + "/rgb_gauss/output_test_gauss.csv", 'rb'), open(test_dir + "/rgb_fovea/output_test_fovea.csv", 'rb')]
+
+    experiments_filters['lstmA vs lstmB'] = ['RGB', 'Crop', 'Gauss', 'Fovea']
+    experiments_detections['lstmA vs lstmB'] = [open(test_dir + "/rgb_rgb/output_test_rgb.csv", 'rb'), open(test_dir + "/rgb_crop/output_test_crop.csv", 'rb'), open(test_dir + "/rgb_gauss/output_test_gauss.csv", 'rb'), open(test_dir + "/rgb_fovea/output_test_fovea.csv", 'rb')]
+
+    experiments_filters['context-fusion mlp vs lstm'] = ['RGB', 'Crop', 'Gauss', 'Fovea']
+    experiments_detections['context-fusion mlp vs lstm'] = [open(test_dir + "/rgb_rgb/output_test_rgb.csv", 'rb'), open(test_dir + "/rgb_crop/output_test_crop.csv", 'rb'), open(test_dir + "/rgb_gauss/output_test_gauss.csv", 'rb'), open(test_dir + "/rgb_fovea/output_test_fovea.csv", 'rb')]
+
+    experiments_filters['balancing sampling'] = ['RGB', 'Crop', 'Gauss', 'Fovea']
+    experiments_detections['balancing sampling'] = [open(test_dir + "/rgb_rgb/output_test_rgb.csv", 'rb'), open(test_dir + "/rgb_crop/output_test_crop.csv", 'rb'), open(test_dir + "/rgb_gauss/output_test_gauss.csv", 'rb'), open(test_dir + "/rgb_fovea/output_test_fovea.csv", 'rb')]
+
+    experiments_filters['balancing weights'] = ['RGB', 'Crop', 'Gauss', 'Fovea']
+    experiments_detections['balancing weights'] = [open(test_dir + "/rgb_rgb/output_test_rgb.csv", 'rb'), open(test_dir + "/rgb_crop/output_test_crop.csv", 'rb'), open(test_dir + "/rgb_gauss/output_test_gauss.csv", 'rb'), open(test_dir + "/rgb_fovea/output_test_fovea.csv", 'rb')]
+
+    experiments_filters['balancing prior'] = ['RGB', 'Crop', 'Gauss', 'Fovea']
+    experiments_detections['balancing prior'] = [open(test_dir + "/rgb_rgb/output_test_rgb.csv", 'rb'), open(test_dir + "/rgb_crop/output_test_crop.csv", 'rb'), open(test_dir + "/rgb_gauss/output_test_gauss.csv", 'rb'), open(test_dir + "/rgb_fovea/output_test_fovea.csv", 'rb')]
+
+    # experiment =
     filters = []
 
     # filters.append("pose")
 
+    # filters.append("rgb-base")
     # filters.append("rgb-prior")
     # filters.append("rgb-sampling")
-    # filters.append("rgb-class")
+    # filters.append("rgb-weights")
+
+    # filters.append("rgb-kinetics")
+    # filters.append("flow-kinetics")
 
     # filters.append("rgb")
     # filters.append("crop")
@@ -326,21 +369,28 @@ def run_evaluation(labelmap, groundtruth, exclusions, iou):
     # filters.append("flow")
 
     # filters.append("MLP")
-    filters.append("LSTM5-A-512")
-    filters.append("LSTM5-B-512")
+    # filters.append("LSTM5-A-512")
+    # filters.append("random")
+    # filters.append("LSTM5-B-512")
     # filters.append("LSTM10")
 
+    # filters.append("2st(rgb)")
     # filters.append("2st(crop)")
     # filters.append("2st(gauss)")
     # filters.append("2st(fovea)")
 
-    # filters.append("2st(crop)")
-    # filters.append("2st(gauss)")
-    # filters.append("2st(fovea)")
+    #filters.append("2st(crop) + flowcrop")
+    #filters.append("2st(gauss) + flowcrop")
+    #filters.append("2st(fovea) + flowcrop")
 
-    # filters.append("2st(fovea) + mlp")
-    # filters.append("2st(crop) + mlp")
-    # filters.append("2st(gauss) + mlp")
+    #filters.append("2st(fovea) + mlp")
+    #filters.append("2st(crop) + mlp")
+    #filters.append("2st(gauss) + mlp")
+
+    filters.append("2stream")
+    filters.append("2stream + lstm")
+    #filters.append("LSTMA 512 5 2")
+    #filters.append("LSTMA 512 5 3")
 
     # filters.append("2st(gauss) + lstm")
     all_detections = []
@@ -349,27 +399,73 @@ def run_evaluation(labelmap, groundtruth, exclusions, iou):
     # all_detections.append(open(test_dir + "output_test_flowcrop.csv", 'rb'))
 
     # Balancing
-
+    #all_detections.append(open(test_dir + "output_test_flowcrop.csv", 'rb'))
+    #all_detections.append(open(test_dir + "/rgb_gauss/output_test_gauss.csv", 'rb'))
+    #all_detections.append(open(test_dir + "/augmentation/predictions_rgb_gauss_1807241628_1000.csv", 'rb'))
+    #all_detections.append(open(test_dir + "/augmentation/output_test_sampling_gauss_1809221859.csv", 'rb'))
+    #all_detections.append(open(test_dir + "/augmentation/output_test_weights_gauss_1809221904.csv", 'rb'))
     # RGB Streams
-
+    #all_detections.append(open(test_dir + "/kinetics_init/output_test_rgb_kineticsinit_gauss_1809220212.csv", 'rb'))
+    #all_detections.append(open(test_dir + "/kinetics_init/output_test_flow_kineticsinit_1809220244.csv", 'rb'))
     # Flow Streams
 
-    # Context
+    # Context (LSTMs)
+    #filters.append("LSTMB 512 3 3")
+    #filters.append("LSTMB 512 3 2")
+    #filters.append("LSTMB 512 3 1")
+
+    #all_detections.append(open(test_dir + "context/lstmB/output_test_ctx_lstm_512_3_1.csv", 'rb'))
+    #all_detections.append(open(test_dir + "context/lstmB/output_test_ctx_lstm_512_3_2.csv", 'rb'))
+    #all_detections.append(open(test_dir + "context/lstmB/output_test_ctx_lstm_512_3_3.csv", 'rb'))
+    #all_detections.append(open(test_dir + "context/lstmA/output_test_ctx_lstm_512_5_1.csv", 'rb'))
+    #all_detections.append(open(test_dir + "context/lstmA/output_test_ctx_lstm_512_5_2.csv", 'rb'))
+    #all_detections.append(open(test_dir + "context/lstmA/output_test_ctx_lstm_512_5_3.csv", 'rb'))
+
+    #all_detections.append(open(test_dir + "context/lstmB/output_test_ctx_lstm_32_3_3.csv", 'rb'))
+    #all_detections.append(open(test_dir + "context/lstmB/output_test_ctx_lstm_32_5_3.csv", 'rb'))
+    #all_detections.append(open(test_dir + "context/lstmB/output_test_ctx_lstm_32_10_3.csv", 'rb'))
 
     #all_detections.append(open(test_dir + "context/mlp/output_test_ctx.csv", 'rb'))
     #all_detections.append(open(test_dir + "context/mlp/output_test_ctx_mlp_1809212356.csv", 'rb'))
-    all_detections.append(open(test_dir + "context/lstmA/output_test_ctx_lstm_512_5_3_1809220010.csv", 'rb'))
-    all_detections.append(open(test_dir + "context/lstmB/output_test_ctx_lstm_512_5_3_1809211924.csv", 'rb'))
+    #all_detections.append(open(test_dir + "context/lstmA/output_test_ctx_lstm_512_5_3_1809220010.csv", 'rb'))
+    #all_detections.append(open(test_dir + "random/output_test_random_1809221552.csv", 'rb'))
+    #all_detections.append(open(test_dir + "context/lstmB/output_test_ctx_lstm_512_5_3_1809211924.csv", 'rb'))
     #all_detections.append(open(test_dir + "context/lstmB/output_test_ctx_lstm_128_10_3_1809211930.csv", 'rb'))
 
-    # 6 2-streams
+    # 6 2-streams + baseline
+    #all_detections.append(open(test_dir + "/two-streams/output_test_2stream_rgb_1809220100.csv", 'rb'))
+    #all_detections.append(open(test_dir + "/two-streams/output_test_2stream_crop.csv", 'rb'))
+    #all_detections.append(open(test_dir + "/two-streams/output_test_2stream_gauss.csv", 'rb'))
+    #all_detections.append(open(test_dir + "/two-streams/output_test_2stream_fovea.csv", 'rb'))
+
+    #all_detections.append(open(test_dir + "/two-streams/output_test_2stream_flowcrop_crop_1809220117.csv", 'rb'))
+    #all_detections.append(open(test_dir + "/two-streams/output_test_2stream_flowcrop_gauss_1809220152.csv", 'rb'))
+    #all_detections.append(open(test_dir + "/two-streams/output_test_2stream_flowcrop_fovea_1809220136.csv", 'rb'))
 
     # Context Fusions
+    # all_detections.append(open(test_dir + "/context_fusion/output_test_3stream_fovea.csv", 'rb'))
+    # all_detections.append(open(test_dir + "/context_fusion/output_test_3stream_crop.csv", 'rb'))
+    # all_detections.append(open(test_dir + "/context_fusion/output_test_3stream_gauss.csv", 'rb'))
+
+    # LSTMs
+    #all_detections.append(open(test_dir + "/two-streams/output_test_2stream_rgb_1809220100.csv", 'rb'))
+    #all_detections.append(open(test_dir + "/two-streams/output_test_2stream_crop.csv", 'rb'))
+    #all_detections.append(open(test_dir + "/two-streams/output_test_2stream_gauss.csv", 'rb'))
+    all_detections.append(open(test_dir + "/two-streams/output_test_2stream_fovea.csv", 'rb'))
+    all_detections.append(open(test_dir + "/context_fusion/output_test_ctx_lstm_fusion_thresh_512_5_3_1809242315.csv", 'rb'))
+    #all_detections.append(open(test_dir + "/context_fusion/output_test_ctx_lstm_512_5_3_1809242252.csv", 'rb'))
+    #all_detections.append(open(test_dir + "/context_fusion/output_test_ctx_lstmavggoodpedro_512_5_3_1809242338.csv", 'rb'))
+
+    # output_test_ctx_lstm_512_5_3_1809242252.csv
+
+    #all_detections.append(open(test_dir + "/two-streams/output_test_2stream_flowcrop_crop_1809220117.csv", 'rb'))
+    #all_detections.append(open(test_dir + "/two-streams/output_test_2stream_flowcrop_gauss_1809220152.csv", 'rb'))
+    #all_detections.append(open(test_dir + "/two-streams/output_test_2stream_flowcrop_fovea_1809220136.csv", 'rb'))
 
     # ---------------------------------
     # New run to compare new flow
-    # all_detections.append(open(test_dir + "output_test_flowcrop.csv", 'rb'))
-    # all_detections.append(open(test_dir + "output_test_flow.csv", 'rb'))
+    #all_detections.append(open(test_dir + "/flow/output_test_flowcrop.csv", 'rb'))
+    #all_detections.append(open(test_dir + "/flow/output_test_flow.csv", 'rb'))
 
     # New 2 and 3 streams
     # all_detections.append(open(test_dir + "output_test_gauss.csv", 'rb'))
@@ -385,10 +481,10 @@ def run_evaluation(labelmap, groundtruth, exclusions, iou):
     #all_detections.append(open(test_dir + "output_test_3stream.csv", 'rb'))
 
     # RGB run
-    # all_detections.append(open(test_dir + "output_test_rgb.csv", 'rb'))
-    # all_detections.append(open(test_dir + "output_test_crop.csv", 'rb'))
-    # all_detections.append(open(test_dir + "output_test_gauss.csv", 'rb'))
-    # all_detections.append(open(test_dir + "output_test_fovea.csv", 'rb'))
+    # all_detections.append(open(test_dir + "/rgb_rgb/output_test_rgb.csv", 'rb'))
+    # all_detections.append(open(test_dir + "/rgb_crop/output_test_crop.csv", 'rb'))
+    # all_detections.append(open(test_dir + "/rgb_gauss/output_test_gauss.csv", 'rb'))
+    # all_detections.append(open(test_dir + "/rgb_fovea/output_test_fovea.csv", 'rb'))
 
     all_gndtruths = []
     for i in range(len(all_detections)):
@@ -526,7 +622,7 @@ def run_evaluation(labelmap, groundtruth, exclusions, iou):
     #                textcoords='offset points')
     # ax.set_ylim(-1, len(y_axis))
     sns.set()
-    ax.tick_params(labelsize=10)
+    ax.tick_params(labelsize=6)
     for p in ax.patches:
         p.set_height(p.get_height() * 3)
         ax.annotate("%.3f" % p.get_width(), (p.get_x() + p.get_width(), p.get_y()),
@@ -539,9 +635,12 @@ def run_evaluation(labelmap, groundtruth, exclusions, iou):
     plt.xticks(rotation=0)
 
     title = ""
+    file = open("results.txt", "w")
     for filter_type, mAP in zip(filters, finalmAPs):
         ft = filter_type + ': mAP@' + str(iou) + 'IOU = ' + str(mAP) + '\n'
         title += ft
+        file.write(ft)
+    file.close()
 
     # ax.figure.tight_layout()
     ax.figure.subplots_adjust(left=0.2)  # change 0.3 to suit your needs.

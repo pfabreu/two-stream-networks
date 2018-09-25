@@ -67,7 +67,7 @@ def main():
 
     # Create + compile model, load saved weights if they exist
     timewindow = 5  # NOTE To the past and to the future
-    neighbours = 3
+    neighbours = 2
     num_classes = len(classes['label_name'])
     n_features = num_classes * neighbours
     context_dim = num_classes * neighbours * (timewindow + 1 + timewindow)
@@ -87,7 +87,8 @@ def main():
         model.load_weights(bestModelPath)
 
         time_str = time.strftime("%y%m%d%H%M", time.localtime())
-        result_csv = "test_outputs/context/" + modelname + "/output_test_ctx_lstm_" + str(NHU1) + "_" + str(timewindow) + "_" + str(neighbours) + "_" + time_str + ".csv"
+        # result_csv = "test_outputs/context/" + modelname + "/output_test_ctx_lstm_" + str(NHU1) + "_" + str(timewindow) + "_" + str(neighbours) + "_" + time_str + ".csv"
+        result_csv = "test_outputs/context/" + modelname + "/output_test_ctx_lstm_" + str(NHU1) + "_" + str(timewindow) + "_" + str(neighbours) + ".csv"
 
         pose_votes = {}
         obj_votes = {}

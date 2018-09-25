@@ -1,5 +1,5 @@
 import os
-CPU = True
+CPU = False
 if CPU:
     os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"   # see issue https://stackoverflow.com/questions/40690598/can-keras-with-tensorflow-backend-be-forced-to-use-cpu-or-gpu-at-will
     os.environ["CUDA_VISIBLE_DEVICES"] = ""  # This must be imported before keras
@@ -8,18 +8,20 @@ import tensorflow as tf
 import utils
 import voting
 from two_stream_model import TwoStreamModel
-from two_stream_data import get_AVA_set, load_split
+from two_stream_data import get_AVA_set
+from fusion_context_data import load_split
 import time
 from keras import backend as K
 import numpy as np
 
 import pickle
-from context_data import load_split, get_AVA_set, get_AVA_labels
+from context_data import get_AVA_labels
 from context_lstm_model import context_create_modelA, context_create_modelB
 from keras.callbacks import ModelCheckpoint
 import itertools
 from keras.layers import concatenate
 import sys
+import csv
 from keras.utils import to_categorical
 from keras.layers import LSTM
 from keras.layers import Dense
@@ -73,16 +75,16 @@ def main():
     partition = {}
     partition['test'] = get_AVA_set(classes=classes, filename=root_dir + "AVA_Test_Custom_Corrected.csv", train=False)
 
-    filter_type = "rgb"
+    filter_type = "fovea"
 
     time_str = time.strftime("%y%m%d%H%M", time.localtime())
-    result_csv = "test_outputs/two-streams/output_" + params['gen_type'] + "_2stream_" + filter_type + "_" + time_str + ".csv"
+    result_csv = "test_outputs/context_fusion/output_" + params['gen_type'] + "_2streamlstm_" + filter_type + "_" + time_str + ".csv"
 
     # Load trained model
-    # rgb_weights = "../models/rgb_fovea_resnet50_1806301953.hdf5"
+    rgb_weights = "../models/rgb_fovea_resnet50_1806301953.hdf5"
     # rgb_weights = "../models/rgb_gauss_resnet50_1806290918.hdf5"
     # rgb_weights = "../models/rgb_crop_resnet50_1806300210.hdf5"
-    rgb_weights = "../models/rgb_rgb_resnet50_1807060914.hdf5"
+    #rgb_weights = "../models/rgb_rgb_resnet50_1807060914.hdf5"
 
     flow_weights = "../models/flow_resnet50_1806281901.hdf5"
     # flow_weights = "../models/flowcrop_resnet50_1807180022.hdf5"
@@ -91,7 +93,7 @@ def main():
     nsmodel.compile_model(soft_sigmoid=True)
     model = nsmodel.model
     # two_stream_weights = "../models/two_stream_fusion_elfovresnet50_1807030015.hdf5"
-    two_stream_weights = "../models/two_stream_fusion_rgbbaseline_rgb_resnet50_1809051930.hdf5"
+    two_stream_weights = "../models/two_stream_fusion_fovea_resnet50_1807030015.hdf5"
     model.load_weights(two_stream_weights)
 
     # Create + compile model, load saved weights if they exist
@@ -100,20 +102,20 @@ def main():
     num_classes = len(classes['label_name'])
     n_features = num_classes * neighbours
     context_dim = num_classes * neighbours * (timewindow + 1 + timewindow)
-    NHU1 = 128
+    NHU1 = 512
     modelname = "lstmB"
     context_weights = "../models/context/" + modelname + "/context_lstm_" + str(NHU1) + "_" + str(timewindow) + "_" + str(neighbours) + ".hdf5"
-    ctx_model = context_create_modelB(timewindow, n_features, NHU1)
+    ctx_model = context_create_modelB(NHU1, NHU1 / 2, timewindow, n_features)
     ctx_model.compile(optimizer='adam', loss=['categorical_crossentropy', 'binary_crossentropy', 'binary_crossentropy'], metrics=['categorical_accuracy'])
     ctx_model.load_weights(context_weights)
 
     time_str = time.strftime("%y%m%d%H%M", time.localtime())
-    result_csv = "test_outputs/context/lstm/output_test_ctx_lstm_" + str(NHU1) + "_" + str(timewindow) + "_" + str(neighbours) + "_" + time_str + ".csv"
+    result_csv = "test_outputs/context_fusion/output_test_ctx_lstmavggoodpedro_" + str(NHU1) + "_" + str(timewindow) + "_" + str(neighbours) + "_" + time_str + ".csv"
 
     print("Test set size: " + str(len(partition['test'])))
 
     print("Building context dictionary from context file (these should be generated)...")
-    Xfilename = root_dir + "context_files/XContext_test_pastfuture.csv"
+    Xfilename = root_dir + "context_files/" + "XContext_test_tw" + str(timewindow) + "_n" + str(neighbours) + ".csv"
     test_context_rows = {}
 
     with open(Xfilename) as csvDataFile:
@@ -152,6 +154,11 @@ def main():
             predictions_twostream = model.predict([x_test_rgb, x_test_flow], batch_size=params['batch_size'], verbose=1)
             x_test_past, x_test_future = reshapeX(x_test_context, (timewindow + 1 + timewindow), n_features)
             predictions_context = ctx_model.predict([x_test_past, x_test_future], batch_size=params['batch_size'], verbose=1)
+            predictions = []
+            print(len(predictions_twostream))
+            for x1, x2 in zip(predictions_twostream, predictions_context):
+                predictions.append((x1 + x2) / 2)
+
             voting.pred2classes(testIDS, predictions, pose_votes, obj_votes, human_votes, thresh=0.4)
             x_test_rgb = None
             x_test_flow = None
@@ -192,7 +199,7 @@ def main():
 
     if params['sendmail']:
         utils.sendemail(from_addr='pythonscriptsisr@gmail.com',
-                        to_addr_list=['pedro_abreu95@hotmail.com', 'joaogamartins@gmail.com'],
+                        to_addr_list=['pedro_abreu95@hotmail.com'],
                         subject='Finished ' + params['gen_type'] + ' prediction for three stream.',
                         message='Testing fusion with following params: ' + str(params),
                         login='pythonscriptsisr@gmail.com',
