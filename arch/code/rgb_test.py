@@ -36,13 +36,14 @@ def main():
     partition['test'] = get_AVA_set(classes=classes, filename=root_dir + "AVA_" + split.title() + "_Custom_Corrected.csv", soft_sigmoid=True)
 
     time_str = time.strftime("%y%m%d%H%M", time.localtime())
-    result_csv = "test_outputs/augmentation/output_test_weights_" + filter_type + "_" + time_str + ".csv"
+    result_csv = "test_outputs/augmentation/output_test_weightsnew_" + filter_type + "_" + time_str + ".csv"
 
     # Load trained model
     # Gauss
     # rgb_weights = "../models/rgb_" + filter_type + "_resnet50_1806290918.hdf5"
     # rgb_weights = "../models/rgbextra_" + filter_type + "_resnet50_1807250030.hdf5"
-    rgb_weights = "../models/rgb_augclassweights_gauss_resnet50_1809220300.hdf5"
+    #rgb_weights = "../models/rgb_augsamplingweightsnoaug_gauss_resnet50_1809242359.hdf5"
+    rgb_weights = "../models/rgb_weightsnew_gauss_resnet50_1809281516.hdf5"
     # Crop
     # rgb_weights = "../models/rgb_" + filter_type + "_resnet50_1806300210.hdf5"
 
@@ -101,7 +102,7 @@ def main():
     if store_predictions is True:
         #tp = np.vstack(test_predictions)
         # print(tp.shape)
-        with open("thresholds/rgb_gauss/predictions_augweights_" + filter_type + "_" + time_str + ".pickle", 'wb') as handle:
+        with open("thresholds/rgb_gauss/predictions_weightsnew_" + filter_type + "_" + time_str + ".pickle", 'wb') as handle:
             pickle.dump(test_predictions, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
     # When you're done getting all the votes, write output csv

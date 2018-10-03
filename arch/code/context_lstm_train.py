@@ -1,5 +1,5 @@
 import os
-CPU = True
+CPU = False
 if CPU:
     os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"   # see issue https://stackoverflow.com/questions/40690598/can-keras-with-tensorflow-backend-be-forced-to-use-cpu-or-gpu-at-will
     os.environ["CUDA_VISIBLE_DEVICES"] = ""  # This must be imported before keras
@@ -56,7 +56,7 @@ def main():
     classes = utils.get_AVA_classes(root_dir + 'ava_action_list_custom.csv')
 
     partition = {}
-    timewindows = [3, 5, 10]
+    timewindows = [10]
     # neighbs = [1, 2, 3]
     # Labels
     # timewindow = 10  # NOTE To the past and to the future
@@ -96,7 +96,7 @@ def main():
         y_t[1] = np.vstack((y_t[1], y_v[1]))
         y_t[2] = np.vstack((y_t[2], y_v[2]))
 
-        modelname = "lstmA"
+        modelname = "lstmB"
         # y_train = np.vstack((y_train, y_val))
         #NHU1V = [32, 64, 128, 256, 512]
         #NHU2V = [16, 32, 64, 128, 256]

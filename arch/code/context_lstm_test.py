@@ -66,14 +66,14 @@ def main():
     labels_test = get_AVA_labels(classes, partition, "test", filename=root_dir + "AVA_Test_Custom_Corrected.csv")
 
     # Create + compile model, load saved weights if they exist
-    timewindow = 5  # NOTE To the past and to the future
-    neighbours = 2
+    timewindow = 3  # NOTE To the past and to the future
+    neighbours = 3
     num_classes = len(classes['label_name'])
     n_features = num_classes * neighbours
     context_dim = num_classes * neighbours * (timewindow + 1 + timewindow)
-    modelname = "lstmA"
-    NHU1V = [32, 64, 128, 256, 512]
-    NHU2V = [16, 32, 64, 128, 256]
+    modelname = "lstmB"
+    NHU1V = [1024, 2048]
+    NHU2V = [512, 1024]
     for i in range(len(NHU1V)):
         NHU1 = NHU1V[i]
         NHU2 = NHU2V[i]

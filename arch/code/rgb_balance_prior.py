@@ -36,7 +36,7 @@ p = np.divide(f, np.sum(f))
 print(p)
 a = np.zeros(30)
 
-partition = get_AVA_set(classes=classes, filename=root_dir + "AVA_Val_Custom_Corrected.csv", soft_sigmoid=True)
+partition = get_AVA_set(classes=classes, filename=root_dir + "AVA_Test_Custom_Corrected.csv", soft_sigmoid=True)
 test_splits = utils.make_chunks(original_list=partition, size=len(partition), chunk_size=2**11)
 # First "test" where all a's are still 0
 # Pick a's: Select random combinations from a set of values for each class, making sure they aren't repeated?

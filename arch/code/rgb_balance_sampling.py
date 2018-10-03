@@ -264,7 +264,7 @@ def main():
     partition['validation'] = partition['validation'] + aug_val
 
     # Create + compile model, load saved weights if they exist
-    saved_weights = "../models/rgb_augsamplingweightsnoaug_gauss_resnet50_1809232204.hdf5"
+    saved_weights = "../models/rgb_gauss_resnet50_1806290918.hdf5"
     # saved_weights = "../models/rgbextra_gauss_resnet50_1807250030.hdf5"
     model, keras_layer_names = rgb_create_model(classes=classes['label_id'], soft_sigmoid=soft_sigmoid, model_name=params['model'], freeze_all=params['freeze_all'], conv_fusion=params['conv_fusion'])
     model = compile_model(model, soft_sigmoid=soft_sigmoid)
@@ -308,9 +308,9 @@ def main():
 
     # TODO Don't forget to change your names :)
     filter_type = "gauss"
-    bestModelPath = "../models/rgb_augsamplingweightsnoaug_" + filter_type + "_" + params['model'] + "_" + time_str + ".hdf5"
-    traincsvPath = "../loss_acc_plots/rgb_augsamplingweightsnoaug_train_" + filter_type + "_plot_" + params['model'] + "_" + time_str + ".csv"
-    valcsvPath = "../loss_acc_plots/rgb_augsamplingweightsnoaug_val_" + filter_type + "_plot_" + params['model'] + "_" + time_str + ".csv"
+    bestModelPath = "../models/rgb_augsamplingnoaug_" + filter_type + "_" + params['model'] + "_" + time_str + ".hdf5"
+    traincsvPath = "../loss_acc_plots/rgb_augsamplingnoaug_train_" + filter_type + "_plot_" + params['model'] + "_" + time_str + ".csv"
+    valcsvPath = "../loss_acc_plots/rgb_augsamplingnoaug_val_" + filter_type + "_plot_" + params['model'] + "_" + time_str + ".csv"
 
     with tf.device('/gpu:0'):  # NOTE Not using multi gpu
         for epoch in range(params['nb_epochs']):
@@ -328,6 +328,7 @@ def main():
                 y_t.append(utils.to_binary_vector(y_train_object, size=utils.OBJ_HUMAN_CLASSES, labeltype='object-human'))
                 y_t.append(utils.to_binary_vector(y_train_human, size=utils.HUMAN_HUMAN_CLASSES, labeltype='human-human'))
 
+                #history = model.fit(x_train, y_t, class_weight=class_lists, batch_size=params['batch_size'], epochs=1, verbose=0)
                 history = model.fit(x_train, y_t, class_weight=class_lists, batch_size=params['batch_size'], epochs=1, verbose=0)
                 utils.learning_rate_schedule(model, epoch, params['nb_epochs'])
 

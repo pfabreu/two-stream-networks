@@ -36,7 +36,7 @@ def coincidence_matrix(file):
     print(cm.shape)
     return cm
 
-
+plt.figure()
 # Show coincidence matrices one at a time
 normalize = True
 classes = get_AVA_classes('files/ava_action_list_custom.csv')
@@ -101,6 +101,8 @@ for ytick_label, xtick_label in zip(g.axes.get_yticklabels(), g.axes.get_xtickla
 plt.show()
 
 cm = coincidence_matrix("occurrenceMatrices/TestLabelsConMatrix.npy")
+cm = cm[1:, 1:]
+classes = get_AVA_classes('files/ava_action_list_custom.csv')
 if normalize is True:
     row_sums = cm.sum(axis=1)
     cma = 1.0 * cm / row_sums[:, np.newaxis]

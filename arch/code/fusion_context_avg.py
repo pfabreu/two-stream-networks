@@ -74,11 +74,9 @@ def main():
     # Get validation set from directory
     partition = {}
     partition['test'] = get_AVA_set(classes=classes, filename=root_dir + "AVA_Test_Custom_Corrected.csv", train=False)
+    #partition['test'] = get_AVA_set(classes=classes, filename=root_dir + "AVA_Val_Custom_Corrected.csv", train=False)
 
     filter_type = "fovea"
-
-    time_str = time.strftime("%y%m%d%H%M", time.localtime())
-    result_csv = "test_outputs/context_fusion/output_" + params['gen_type'] + "_2streamlstm_" + filter_type + "_" + time_str + ".csv"
 
     # Load trained model
     rgb_weights = "../models/rgb_fovea_resnet50_1806301953.hdf5"
@@ -110,12 +108,15 @@ def main():
     ctx_model.load_weights(context_weights)
 
     time_str = time.strftime("%y%m%d%H%M", time.localtime())
-    result_csv = "test_outputs/context_fusion/output_test_ctx_lstmavggoodpedro_" + str(NHU1) + "_" + str(timewindow) + "_" + str(neighbours) + "_" + time_str + ".csv"
+    result_csv = "test_outputs/context_fusion/output_test_ctx_lstmavg_twophase_thresh01_" + str(NHU1) + "_" + str(timewindow) + "_" + str(neighbours) + "_" + time_str + ".csv"
 
     print("Test set size: " + str(len(partition['test'])))
 
     print("Building context dictionary from context file (these should be generated)...")
-    Xfilename = root_dir + "context_files/" + "XContext_test_tw" + str(timewindow) + "_n" + str(neighbours) + ".csv"
+    #Xfilename = root_dir + "context_files/" + "XContext_val_tw" + str(timewindow) + "_n" + str(neighbours) + ".csv"
+    #Xfilename = root_dir + "context_files/" + "XContext_test_tw" + str(timewindow) + "_n" + str(neighbours) + ".csv"
+    Xfilename = root_dir + "context_files/" + "XContext_SecondPass_test_tw" + str(timewindow) + "_n" + str(neighbours) + ".csv"
+    #Xfilename = root_dir + "context_files/" + "XContext_ThirdPass_test_tw" + str(timewindow) + "_n" + str(neighbours) + ".csv"
     test_context_rows = {}
 
     with open(Xfilename) as csvDataFile:
@@ -144,10 +145,12 @@ def main():
         obj_votes[i] = np.zeros(utils.OBJ_HUMAN_CLASSES)
         human_votes[i] = np.zeros(utils.HUMAN_HUMAN_CLASSES)
 
+    store_predictions = False
+    test_predictions = []
     print("Starting testing:")
     with tf.device('/gpu:0'):
         for testIDS in test_splits:
-            x_test_rgb, x_test_flow, x_test_context, y_test_pose, y_test_object, y_test_human = load_split(testIDS, None, params['dim'], params['n_channels'], 10, test_context_rows, rgb_dir, flow_dir, "rgb", "test", train=False)
+            x_test_rgb, x_test_flow, x_test_context, y_test_pose, y_test_object, y_test_human = load_split(testIDS, None, params['dim'], params['n_channels'], 10, test_context_rows, rgb_dir, flow_dir, "rgb", params['gen_type'], train=False)
 
             print("Predicting on chunk " + str(test_chunks_count) + "/" + str(len(test_splits)) + ":")
             # Convert predictions to readable output and perform majority voting
@@ -159,13 +162,26 @@ def main():
             for x1, x2 in zip(predictions_twostream, predictions_context):
                 predictions.append((x1 + x2) / 2)
 
-            voting.pred2classes(testIDS, predictions, pose_votes, obj_votes, human_votes, thresh=0.4)
+            if store_predictions is True:
+                # print(predictions[0][0])
+                # print(predictions[1][0])
+                # print(predictions[2][0])
+
+                # tarr = np.hstack((np.vstack(predictions[0]), np.vstack(predictions[1]), np.vstack(predictions[2])))
+                test_predictions.append(predictions)
+            voting.pred2classes(testIDS, predictions, pose_votes, obj_votes, human_votes, thresh=0.1)
             x_test_rgb = None
             x_test_flow = None
             x_test_context = None
             test_chunks_count += 1
 
     # When you're done getting all the votes, write output csv
+    if store_predictions is True:
+        #tp = np.vstack(test_predictions)
+        # print(tp.shape)
+        with open("thresholds/context_fusion/predictions_fusion_avg_" + filter_type + "_" + time_str + ".pickle", 'wb') as handle:
+            pickle.dump(test_predictions, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
     with open(result_csv, "a") as output_file:
         for key in pose_votes:
             idx = key.split("@")

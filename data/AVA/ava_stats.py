@@ -66,9 +66,11 @@ def dist_barplot(split):
         csvReader = csv.reader(csvDataFile)
         for row in csvReader:
             classes.append(int(row[6]))
+    cls = get_AVA_classes('files/ava_action_list_custom.csv')
     ax = sns.distplot(classes, color="y", bins=range(1, 31))
     plt.xlim(0, 30)
     plt.ylim(0, 0.2)
+
     # plt.yticks(ax.get_yticks(), ax.get_yticks() * 100.0)
     plt.title("Class probability distribution (" + split + ")(%)")
     plt.grid(True)
@@ -109,7 +111,7 @@ def count_barplot(split):
     types = [x[0] for x in trips]
     classes = [cls['label_name'][x[1]] for x in trips]
     colors = [x[2] for x in trips]
-    plt.xticks(rotation=90)
+    plt.xticks(rotation=-90)
 
     ax = sns.barplot(x=classes, y=types, palette=colors)
     plt.grid(True)

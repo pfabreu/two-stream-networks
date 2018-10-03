@@ -5,9 +5,9 @@ import voting
 import pickle
 
 # File with predictions
-stream = "rgb"
-filter_type = "fovea"
-filename = "thresholds/predictions_" + stream + "_" + filter_type + "_1807241635.pickle"
+stream = "fusion"
+filter_type = "avg_fovea"
+filename = "thresholds/context_fusion/predictions_" + stream + "_" + filter_type + "_1809281055.pickle"
 with open(filename, 'rb') as handle:
     predictions = pickle.load(handle)
 

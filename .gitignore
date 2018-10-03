@@ -1,8 +1,8 @@
 # Custom folders or files to ignore
 
 # Ignore helpful stuff
-arch/attention/
-arch/tvl1_flow/
+#arch/attention/
+#arch/tvl1_flow/
 arch/rcnn/faster_rcnn_resnet101_ava_v2.1
 
 # Ignore models

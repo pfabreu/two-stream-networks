@@ -156,12 +156,13 @@ def run_evaluation_threshold(labelmap, groundtruth, exclusions, iou):
     filters.append("0.8")
     filters.append("0.9")
 
-    root_dir = '../../data/AVA/files/'
-    ftype = "gauss"
+    root_dir = '../../../data/AVA/files/'
+    ftype = "fusion"
 
     all_detections = []
+    ts = "1809281055"
     for f in filters:
-        all_detections.append(open("../thresholds/rgb_" + + "predictions_rgb_" + ftype + "_1807241628_" + f + ".csv", 'rb'))
+        all_detections.append(open("../thresholds/context_" + ftype + "/predictions_fusion_avg_fovea_" + ts + "_" + f + ".csv", 'rb'))
 
     all_gndtruths = []
     for i in range(len(filters)):
@@ -292,7 +293,8 @@ def run_evaluation_threshold(labelmap, groundtruth, exclusions, iou):
     plt.ylabel('frame-mAP')
     top = 0.1  # offset a bit so it looks good
     sns.set_style("whitegrid")
-    g = sns.barplot(filters, finalmAPs)
+    clrs = ['blue' if (x < max(finalmAPs)) else 'red' for x in finalmAPs]
+    g = sns.barplot(filters, finalmAPs, palette=clrs)
     ax = g
     # annotate axis = seaborn axis
     for p in ax.patches:
@@ -369,6 +371,14 @@ def run_evaluation(labelmap, groundtruth, exclusions, iou):
     # filters.append("flow")
 
     # filters.append("MLP")
+    #filters.append("best case scenario thresh 0.1")
+    #filters.append("two pass scenario thresh 0.1")
+    filters.append("fovea")
+    filters.append("dense-gt")
+    #filters.append("sampling no aug")
+    filters.append("dense-2pass")
+    #filters.append("weights no aug")
+
     # filters.append("LSTM5-A-512")
     # filters.append("random")
     # filters.append("LSTM5-B-512")
@@ -387,13 +397,28 @@ def run_evaluation(labelmap, groundtruth, exclusions, iou):
     #filters.append("2st(crop) + mlp")
     #filters.append("2st(gauss) + mlp")
 
-    filters.append("2stream")
-    filters.append("2stream + lstm")
+    # filters.append("2stream")
+    #filters.append("2stream + lstm (extra pass)")
+    # filters.append("gauss")
+    #filters.append("gauss aug")
     #filters.append("LSTMA 512 5 2")
     #filters.append("LSTMA 512 5 3")
+    #filters.append("LSTMA 512 5 3")
+    #filters.append("LSTMA 1024 5 3")
+    #filters.append("LSTMA 2048 5 3")
+
+    #filters.append("LSTMB 512 3 3")
+    #filters.append("LSTMB 1024 3 3")
+    #filters.append("LSTMB 2048 3 3")
 
     # filters.append("2st(gauss) + lstm")
     all_detections = []
+    #all_detections.append(open(test_dir + "context/lstmA/output_test_ctx_lstm_512_5_3.csv", 'rb'))
+    #all_detections.append(open(test_dir + "context/lstmA/output_test_ctx_lstm_1024_5_3.csv", 'rb'))
+    #all_detections.append(open(test_dir + "context/lstmA/output_test_ctx_lstm_2048_5_3.csv", 'rb'))
+    #all_detections.append(open(test_dir + "context/lstmB/output_test_ctx_lstm_512_3_3.csv", 'rb'))
+    #all_detections.append(open(test_dir + "context/lstmB/output_test_ctx_lstm_1024_3_3.csv", 'rb'))
+    #all_detections.append(open(test_dir + "context/lstmB/output_test_ctx_lstm_2048_3_3.csv", 'rb'))
 
     # Pose
     # all_detections.append(open(test_dir + "output_test_flowcrop.csv", 'rb'))
@@ -436,7 +461,7 @@ def run_evaluation(labelmap, groundtruth, exclusions, iou):
     #all_detections.append(open(test_dir + "/two-streams/output_test_2stream_rgb_1809220100.csv", 'rb'))
     #all_detections.append(open(test_dir + "/two-streams/output_test_2stream_crop.csv", 'rb'))
     #all_detections.append(open(test_dir + "/two-streams/output_test_2stream_gauss.csv", 'rb'))
-    #all_detections.append(open(test_dir + "/two-streams/output_test_2stream_fovea.csv", 'rb'))
+    all_detections.append(open(test_dir + "/two-streams/output_test_2stream_fovea.csv", 'rb'))
 
     #all_detections.append(open(test_dir + "/two-streams/output_test_2stream_flowcrop_crop_1809220117.csv", 'rb'))
     #all_detections.append(open(test_dir + "/two-streams/output_test_2stream_flowcrop_gauss_1809220152.csv", 'rb'))
@@ -446,16 +471,26 @@ def run_evaluation(labelmap, groundtruth, exclusions, iou):
     # all_detections.append(open(test_dir + "/context_fusion/output_test_3stream_fovea.csv", 'rb'))
     # all_detections.append(open(test_dir + "/context_fusion/output_test_3stream_crop.csv", 'rb'))
     # all_detections.append(open(test_dir + "/context_fusion/output_test_3stream_gauss.csv", 'rb'))
+    all_detections.append(open(test_dir + "/context_fusion/output_test_LSTM_FCfusion_contextGT_gauss_1810011737.csv", 'rb'))
+    all_detections.append(open(test_dir + "/context_fusion/output_test_LSTM_FCfusion_context_secondpass_gauss_1810011754.csv", 'rb'))
 
     # LSTMs
     #all_detections.append(open(test_dir + "/two-streams/output_test_2stream_rgb_1809220100.csv", 'rb'))
     #all_detections.append(open(test_dir + "/two-streams/output_test_2stream_crop.csv", 'rb'))
     #all_detections.append(open(test_dir + "/two-streams/output_test_2stream_gauss.csv", 'rb'))
-    all_detections.append(open(test_dir + "/two-streams/output_test_2stream_fovea.csv", 'rb'))
-    all_detections.append(open(test_dir + "/context_fusion/output_test_ctx_lstm_fusion_thresh_512_5_3_1809242315.csv", 'rb'))
+    #all_detections.append(open(test_dir + "/two-streams/output_test_2stream_fovea.csv", 'rb'))
+    #all_detections.append(open(test_dir + "/context_fusion/output_test_ctx_lstm_fusion_thresh_512_5_3_1809242315.csv", 'rb'))
     #all_detections.append(open(test_dir + "/context_fusion/output_test_ctx_lstm_512_5_3_1809242252.csv", 'rb'))
     #all_detections.append(open(test_dir + "/context_fusion/output_test_ctx_lstmavggoodpedro_512_5_3_1809242338.csv", 'rb'))
-
+    #all_detections.append(open(test_dir + "/context_fusion/output_test_ctx_lstmavg_twophase_thresh02_512_5_3_1809281219.csv", 'rb'))
+    #all_detections.append(open(test_dir + "/context_fusion/output_test_ctx_lstmavg_threephase_512_5_3_1809281317.csv", 'rb'))
+    #all_detections.append(open(test_dir + "/context_fusion/output_test_ctx_lstm_fusion_thresh01_512_5_3_1809281400.csv", 'rb'))
+    #all_detections.append(open(test_dir + "/context_fusion/output_test_ctx_lstmavg_twophase_thresh01_512_5_3_1809281423.csv", 'rb'))
+    #all_detections.append(open(test_dir + "rgb_gauss/output_test_gauss.csv", 'rb'))
+    #all_detections.append(open(test_dir + "augmentation/output_test_sampling_gauss_1809221859.csv", 'rb'))
+    #all_detections.append(open(test_dir + "augmentation/output_test_samplingnoaug_gauss_1809281439.csv", 'rb'))
+    #all_detections.append(open(test_dir + "augmentation/output_test_weightsnew_gauss_1809291104.csv", 'rb'))
+    #all_detections.append(open(test_dir + "augmentation/output_test_weightsaug_gauss_1809261228.csv", 'rb'))
     # output_test_ctx_lstm_512_5_3_1809242252.csv
 
     #all_detections.append(open(test_dir + "/two-streams/output_test_2stream_flowcrop_crop_1809220117.csv", 'rb'))
@@ -485,11 +520,14 @@ def run_evaluation(labelmap, groundtruth, exclusions, iou):
     # all_detections.append(open(test_dir + "/rgb_crop/output_test_crop.csv", 'rb'))
     # all_detections.append(open(test_dir + "/rgb_gauss/output_test_gauss.csv", 'rb'))
     # all_detections.append(open(test_dir + "/rgb_fovea/output_test_fovea.csv", 'rb'))
+    balancing = False
 
     all_gndtruths = []
     for i in range(len(all_detections)):
-        all_gndtruths.append(open(root_dir + "AVA_Test_Custom_Corrected.csv", 'rb'))
-
+        if balancing is False:
+            all_gndtruths.append(open(root_dir + "AVA_Test_Custom_Corrected.csv", 'rb'))
+        else:
+            all_gndtruths.append(open(root_dir + "AVA_Test_Custom_Corrected_Balanced.csv", 'rb'))
     """Runs evaluations given input files.
 
     Args:

@@ -70,12 +70,13 @@ def main():
     class_weights = np.zeros(30)
     for i in y:
         class_weights[i] += 1
-
+    max_class = max(class_weights)
     for i in range(len(class_weights)):
         if class_weights[i] != 0.0:
             if penalizing_method == 'balanced':
                 print(str(i) + " " + str(class_weights[i]) + " " + str(len(y) / (class_weights[i])))
-                class_weights[i] = len(y) / (30 * class_weights[i])
+                #class_weights[i] = len(y) / (class_weights[i])
+                class_weights[i] = max_class / (class_weights[i])
             elif penalizing_method == 'weighted_log':
                 print(str(i) + " " + str(class_weights[i]) + " " + str(math.log(mu * len(y) / (class_weights[i]))))
                 class_weights[i] = math.log(mu * len(y) / (class_weights[i]))
@@ -143,9 +144,9 @@ def main():
 
     # TODO Don't forget to change your names :)
     filter_type = "gauss"
-    bestModelPath = "../models/rgb_augclassweights_balanced_" + filter_type + "_" + params['model'] + "_" + time_str + ".hdf5"
-    traincsvPath = "../loss_acc_plots/rgb_augclassweights_balanced_train_" + filter_type + "_plot_" + params['model'] + "_" + time_str + ".csv"
-    valcsvPath = "../loss_acc_plots/rgb_augclassweights_balanced_val_" + filter_type + "_plot_" + params['model'] + "_" + time_str + ".csv"
+    bestModelPath = "../models/rgb_weightsfinal_" + filter_type + "_" + params['model'] + "_" + time_str + ".hdf5"
+    traincsvPath = "../loss_acc_plots/rgb_weightsfinal_train_" + filter_type + "_plot_" + params['model'] + "_" + time_str + ".csv"
+    valcsvPath = "../loss_acc_plots/rgb_weightsfinal_val_" + filter_type + "_plot_" + params['model'] + "_" + time_str + ".csv"
 
     for epoch in range(params['nb_epochs']):
         epoch_chunks_count = 0
