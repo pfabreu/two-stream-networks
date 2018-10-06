@@ -160,13 +160,12 @@ def run_evaluation(labelmap, groundtruth, exclusions, iou):
     experiments_detections['flow vs flowcrop'] = [open(test_dir + "/flow/output_test_flow.csv", 'rb'), open(test_dir + "/flow/output_test_flowcrop.csv", 'rb'), ]
 
     # Two-streams
-    # experiments_filters['two-streams'] = ['Two-Stream-Crop', 'Two-Stream-GBB', 'Two-Stream-Fovea']
+    #experiments_filters['two-streams'] = ['Two-Stream-Crop', 'Two-Stream-GBB', 'Two-Stream-Fovea']
     # experiments_detections['two-streams'] = [open(test_dir + "/two-streams/output_test_2stream_crop_1807252254.csv", 'rb'),
     #                                         open(test_dir + "/two-streams/output_test_2stream_gauss_1807252309.csv", 'rb'), open(test_dir + "/two-streams/output_test_2stream_fovea.csv", 'rb')]
 
-    experiments_filters['two-streams'] = ['Two-Stream-Crop', 'Two-Stream-GBB', 'Two-Stream-Fovea']
-    experiments_detections['two-streams'] = [open(test_dir + "/two-streams/output_test_2stream_crop_1807252254.csv", 'rb'),
-                                             open(test_dir + "/two-streams/output_test_2stream_gauss_1807252309.csv", 'rb'), open(test_dir + "/two-streams/output_test_2stream_fovea.csv", 'rb')]
+    experiments_filters['two-streams'] = ['Two-Stream-Crop', 'Two-Stream-Fovea']
+    experiments_detections['two-streams'] = [open(test_dir + "/two-streams/output_test_2stream_crop_1807252254.csv", 'rb'), open(test_dir + "/two-streams/output_test_2stream_fovea.csv", 'rb')]
 
     experiments_filters['two-streams-flowcrop'] = ['Two-Stream-Crop (Flowcrop)', 'Two-Stream-Gauss (Flowcrop)', 'Two-Stream-Fovea (Flowcrop)']
     experiments_detections['two-streams-flowcrop'] = [open(test_dir + "/two-streams/output_test_2stream_flowcrop_crop_1809220117.csv", 'rb'),
