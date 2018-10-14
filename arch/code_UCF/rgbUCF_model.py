@@ -24,15 +24,14 @@ def print_params(model):
 
 
 def compile_model(model, soft_sigmoid=True):
-    lw = [1.0, 1.0, 1.0]
 
-    model.compile(optimizer='adam', loss=['categorical_crossentropy', 'binary_crossentropy', 'binary_crossentropy'], metrics=['categorical_accuracy'], loss_weights=lw)
+    model.compile(optimizer='adam', loss=['categorical_crossentropy'], metrics=['categorical_accuracy'])
     return model
 
 keras_layer_names = []
 
 
-def rgb_create_model(classes, soft_sigmoid=True, model_name='inceptionv3', freeze_all=True, conv_fusion=False):
+def rgb_create_model(n_classes, model_name='resnet50', freeze_all=True, conv_fusion=False):
     # TODO Make this multi-GPU
     with tf.device('/gpu:0'):
         if model_name == "resnet50":
@@ -56,17 +55,17 @@ def rgb_create_model(classes, soft_sigmoid=True, model_name='inceptionv3', freez
             for layer in base_model.layers:
                 layer.trainable = False
         else:
-            if model_name == "resnet50":
-                for layer in base_model.layers[:160]:
+            if model_name == "resnet50":  # I want to train the 37 last layers to train my last conv section as well as the FC's at the end
+                # Layers in the model :179
+                # 179-37 = 142
+                for layer in base_model.layers[:142]:
                     layer.trainable = False
-                for layer in base_model.layers[160:]:
+                for layer in base_model.layers[142:]:
                     layer.trainable = True
 
         model = None
-        pred_pose = Dense(utils.POSE_CLASSES, activation='softmax', name='pred_pose')(x)
-        pred_obj_human = Dense(utils.OBJ_HUMAN_CLASSES, activation='sigmoid', name='pred_obj_human')(x)
-        pred_human_human = Dense(utils.HUMAN_HUMAN_CLASSES, activation='sigmoid', name='pred_human_human')(x)
-        model = Model(inputs=base_model.input, outputs=[pred_pose, pred_obj_human, pred_human_human])
+        pred = Dense(n_classes, activation='softmax', name='pred')(x)
+        model = Model(inputs=base_model.input, output=pred)
         print_params(model)
         # print model.summary()
         print("Total number of layers in base model: " + str(len(base_model.layers)))

@@ -84,10 +84,11 @@ def bbs_dist_barplot(split):
     ax = sns.barplot(x=["1", ">1"], y=bbnums, palette='spring')
     for p in ax.patches:
         ax.annotate("%.3f" % p.get_height(), (p.get_x() + p.get_width() / 2., p.get_height()),
-                    ha='center', va='center', fontsize=10, color='gray', rotation=0, xytext=(0, 4),
+                    ha='center', va='center', fontsize=20, color='gray', rotation=0, xytext=(0, 4),
                     textcoords='offset points')
     # plt.yticks(ax.get_yticks(), ax.get_yticks() * 100.0)
-    plt.title("BB dist (" + split + ")(%): Avg BB/timestamp=" + str(1.0 * all_bbs / all_keys))
+    plt.title("BB dist (" + split + ")(%): Avg BB/timestamp=" + str(1.0 * all_bbs / all_keys), fontsize=14)
+    ax.tick_params(labelsize=12)
     plt.grid(True)
 
 

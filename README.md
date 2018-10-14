@@ -11,14 +11,14 @@ Generators to feed data are not used for AVA due to how temporal sampling is don
 ### Prerequisites
 
 * python >= 2.7
-* numpy
-* ffmpeg built with gstreamer
+* numpy (`pip install numpy`)
+* ffmpeg built with gstreamer (`sudo apt install ffmpeg`)
 * OpenCV 2.X or 3.X (build with opencv-contrib and ffmpeg and CUDA support)
-* Pillow
+* Pillow (`pip install Pillow`)
 * CUDA + cuDNN (we used 9 and 7.1, respectively)
 * Tensorflow (for backend GPU) (`pip install tensorflow-gpu`)
 * Keras >= 2.1.6 (`pip install keras`)
-* Pandas  and SciPy (because of dependencies)
+* Pandas (`pip install pandas`) and SciPy (`pip install scipy`) (because of dependencies)
 * Maplotlib + Seaborn (`pip install seaborn`) for plots
 <!--* [imgaug](https://imgaug.readthedocs.io/en/latest/source/examples_basics.html) for augmentation (will use tensorflow tf.image API in the future)-->
 <!--* [gpu-flow](https://github.com/pedro-abreu/gpu_flow) if you want to extract TVL1 Optical Flow (requires OpenCV 2.X)

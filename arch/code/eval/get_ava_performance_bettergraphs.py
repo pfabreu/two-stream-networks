@@ -143,7 +143,7 @@ def run_evaluation(labelmap, groundtruth, exclusions, iou):
     # Make sure not to mess this up
     experiments_filters = {}
     experiments_detections = {}
-    experiment = 'two-streams'
+    experiment = 'balancing'
 
     # Baseline
     experiments_filters['baseline'] = ['RGB', 'Flow', 'RGB+Flow']
@@ -160,12 +160,12 @@ def run_evaluation(labelmap, groundtruth, exclusions, iou):
     experiments_detections['flow vs flowcrop'] = [open(test_dir + "/flow/output_test_flow.csv", 'rb'), open(test_dir + "/flow/output_test_flowcrop.csv", 'rb'), ]
 
     # Two-streams
-    #experiments_filters['two-streams'] = ['Two-Stream-Crop', 'Two-Stream-GBB', 'Two-Stream-Fovea']
-    # experiments_detections['two-streams'] = [open(test_dir + "/two-streams/output_test_2stream_crop_1807252254.csv", 'rb'),
-    #                                         open(test_dir + "/two-streams/output_test_2stream_gauss_1807252309.csv", 'rb'), open(test_dir + "/two-streams/output_test_2stream_fovea.csv", 'rb')]
+    experiments_filters['two-streams'] = ['Two-Stream-Crop', 'Two-Stream-GBB', 'Two-Stream-Fovea']
+    experiments_detections['two-streams'] = [open(test_dir + "/two-streams/output_test_2stream_crop_1807252254.csv", 'rb'),
+                                             open(test_dir + "/two-streams/output_test_2stream_gauss_1807252309.csv", 'rb'), open(test_dir + "/two-streams/output_test_2stream_fovea.csv", 'rb')]
 
-    experiments_filters['two-streams'] = ['Two-Stream-Crop', 'Two-Stream-Fovea']
-    experiments_detections['two-streams'] = [open(test_dir + "/two-streams/output_test_2stream_crop_1807252254.csv", 'rb'), open(test_dir + "/two-streams/output_test_2stream_fovea.csv", 'rb')]
+    #experiments_filters['two-streams'] = ['Two-Stream-Crop', 'Two-Stream-Fovea']
+    #experiments_detections['two-streams'] = [open(test_dir + "/two-streams/output_test_2stream_crop_1807252254.csv", 'rb'), open(test_dir + "/two-streams/output_test_2stream_fovea.csv", 'rb')]
 
     experiments_filters['two-streams-flowcrop'] = ['Two-Stream-Crop (Flowcrop)', 'Two-Stream-Gauss (Flowcrop)', 'Two-Stream-Fovea (Flowcrop)']
     experiments_detections['two-streams-flowcrop'] = [open(test_dir + "/two-streams/output_test_2stream_flowcrop_crop_1809220117.csv", 'rb'),
@@ -211,7 +211,7 @@ def run_evaluation(labelmap, groundtruth, exclusions, iou):
                                                                     open(test_dir + "/context_fusion/output_test_ctx_lstmavg_twophase_thresh01_512_5_3_1809281423.csv", 'rb')]
 
     # Balancing
-    experiments_filters['balancing'] = ['GBB', 'Oversampling']
+    experiments_filters['balancing'] = ['Imbalanced', 'Oversampling']
     experiments_detections['balancing'] = [open(test_dir + "rgb_gauss/output_test_gauss.csv", 'rb'),
                                            open(test_dir + "augmentation/output_test_samplingnoaug_gauss_1809281439.csv", 'rb')]
 
@@ -425,7 +425,7 @@ def run_evaluation(labelmap, groundtruth, exclusions, iou):
             for k in categories:
                 classes.append(k['name'])
             cm = confusion_matrix(all_gndtruths[i - 1], all_detections[i - 1], x_axis)
-            g = sns.heatmap(cm, annot=True, fmt="d", xticklabels=classes[:10], yticklabels=classes[:10], linewidths=0.5, linecolor='black', cbar=True)
+            g = sns.heatmap(cm, annot=True, fmt="d", xticklabels=classes[:10], yticklabels=classes[:10], linewidths=0.5, linecolor='black', cbar=True, vmin=0, vmax=2000)
 
             # t = 0
             # for ytick_label, xtick_label in zip(g.axes.get_yticklabels(), g.axes.get_xticklabels()):
