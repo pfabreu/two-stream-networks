@@ -1,12 +1,23 @@
 # Custom folders or files to ignore
-# These are two other repos
-arch/streams/foveated_yolt/
-arch/streams/gpu_flow/
+
+# Ignore helpful stuff
+#arch/attention/
+#arch/tvl1_flow/
+arch/rcnn/faster_rcnn_resnet101_ava_v2.1
 
 # Ignore models
 arch/models/
 
+data/UCF101-24
+data/AVA/context_files/
+data/AVA/files/
+data/AVA/labelCoMatrices/
+results/
+# data/UCF101/files/
 
+*.pickle
+*.csv
+*.hdf5
 
 
 
