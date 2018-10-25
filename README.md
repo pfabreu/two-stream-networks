@@ -1,12 +1,11 @@
 <!-- # Augmentation of Two Stream CNN architectures via attention, context or pose information -->
-# Two Stream Multi-Label Attention Convolutional Neural Network with Context
+# Two Stream Attention Convolutional Neural Networks
 
-<img src="https://i.imgur.com/ExbBKpu.png" style="width: 100px;"/>
+<!--<img src="https://i.imgur.com/ExbBKpu.png" style="width: 100px;"/>-->
 
 ### Contributions
 
-We provide code for Two Stream Action Detection in Keras and each respective extension. *NOTE* Context only exists in the AVA dataset.
-Generators to feed data are not used for AVA due to how temporal sampling is done. Much of the credit of this repo goes to [@joaogantunes](https://github.com/joaogantunes) and [@ruipimentelfigueiredo](https://github.com/ruipimentelfigueiredo).
+We provide code for Two Stream Action Detection in Keras and each respective extension.  Much of the credit of this repo goes to [@joaogantunes](https://github.com/joaogantunes) and [@ruipimentelfigueiredo](https://github.com/ruipimentelfigueiredo).
 
 ### Prerequisites
 

@@ -3,24 +3,21 @@
 # Ignore helpful stuff
 #arch/attention/
 #arch/tvl1_flow/
-arch/rcnn/faster_rcnn_resnet101_ava_v2.1
+code/rcnn/faster_rcnn_resnet101_ava_v2.1
 
 # Ignore models
-arch/models/
+code/models/
 
 data/UCF101-24
 data/AVA/context_files/
 data/AVA/files/
 data/AVA/labelCoMatrices/
-results/
+# results/
 # data/UCF101/files/
 
 *.pickle
 *.csv
 *.hdf5
-
-
-
 
 
 # Byte-compiled / optimized / DLL files
