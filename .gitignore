@@ -18,6 +18,7 @@ data/AVA/labelCoMatrices/
 *.pickle
 *.csv
 *.hdf5
+*.ipynb
 
 
 # Byte-compiled / optimized / DLL files
