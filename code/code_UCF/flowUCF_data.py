@@ -27,8 +27,8 @@ def load_set(annot_path, setlist, index_path, datadir, dim, n_channels_of, of_le
     keys = []
     for st in setlist:
         keys.append(st.split(' ')[0][:-4])
-    X = np.empty([3000, dim[0], dim[1], n_channels_of])  # overshooting size. will cut to right size at the end of this function.
-    y = np.empty(5000)  # overshooting size. will cut to right size at the end of this function.
+    X = np.empty([1500, dim[0], dim[1], n_channels_of])  # overshooting size. will cut to right size at the end of this function.
+    y = np.empty(1500)  # overshooting size. will cut to right size at the end of this function.
     dataIndex = 0
     for key in keys:
         if key in annots:
@@ -48,6 +48,7 @@ def load_set(annot_path, setlist, index_path, datadir, dim, n_channels_of, of_le
                         uimg_path = udir + "frame" + str(current_frame).zfill(6) + ".jpg"
                         vimg_path = vdir + "frame" + str(current_frame).zfill(6) + ".jpg"
                         if not os.path.exists(uimg_path):
+                            # print(uimg_path)
                             u_img = np.zeros([dim[0], dim[1]])
                         else:
                             u_img = cv2.resize(cv2.imread(uimg_path, cv2.IMREAD_GRAYSCALE), (dim[0], dim[1]))
@@ -62,6 +63,7 @@ def load_set(annot_path, setlist, index_path, datadir, dim, n_channels_of, of_le
                     X[dataIndex, ] = of_volume
                     y[dataIndex] = label
                     dataIndex += 1
+
     # Clip X and y to correct lengths
     X = X[:dataIndex, :, :, :]
     y = y[:dataIndex]

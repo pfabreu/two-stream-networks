@@ -19,7 +19,7 @@ data/AVA/labelCoMatrices/
 *.csv
 *.hdf5
 *.ipynb
-
+*.mat
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

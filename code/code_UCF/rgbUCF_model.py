@@ -31,7 +31,7 @@ def compile_model(model, soft_sigmoid=True):
 keras_layer_names = []
 
 
-def rgb_create_model(n_classes, model_name='resnet50', freeze_all=True, conv_fusion=False):
+def rgb_create_model(n_classes,model_name='resnet50', freeze_all=True, conv_fusion=False):
     # TODO Make this multi-GPU
     with tf.device('/gpu:0'):
         if model_name == "resnet50":
@@ -55,9 +55,9 @@ def rgb_create_model(n_classes, model_name='resnet50', freeze_all=True, conv_fus
             for layer in base_model.layers:
                 layer.trainable = False
         else:
-            if model_name == "resnet50":  # I want to train the 37 last layers to train my last conv section as well as the FC's at the end
-                # Layers in the model :179
-                # 179-37 = 142
+            if model_name == "resnet50": # I want to train the 37 last layers to train my last conv section as well as the FC's at the end
+                #Layers in the model :179
+                #179-37 = 142
                 for layer in base_model.layers:
                     layer.trainable = True
 #                for layer in base_model.layers[100:]:
@@ -65,7 +65,7 @@ def rgb_create_model(n_classes, model_name='resnet50', freeze_all=True, conv_fus
 #
         model = None
         pred = Dense(n_classes, activation='softmax', name='pred')(x)
-        model = Model(inputs=base_model.input, output=pred)
+        model = Model(inputs=base_model.input, output = pred)
         print_params(model)
         # print model.summary()
         print("Total number of layers in base model: " + str(len(base_model.layers)))
@@ -294,4 +294,81 @@ def conv_block(input_tensor, kernel_size, filters, stage, block, strides=(2, 2))
     """A block that has a conv layer at shortcut.
     # Arguments
         input_tensor: input tensor
-        kernel_size: default 3, the kernel ...
+        kernel_size: default 3, the kernel size of middle conv layer at main path
+        filters: list of integers, the filters of 3 conv layer at main path
+        stage: integer, current stage label, used for generating layer names
+        block: 'a','b'..., current block label, used for generating layer names
+        strides: Strides for the first conv layer in the block.
+    # Returns
+        Output tensor for the block.
+    Note that from stage 3,
+    the first conv layer at main path is with strides=(2, 2)
+    And the shortcut should have strides=(2, 2) as well
+    """
+    filters1, filters2, filters3 = filters
+    bn_axis = 3
+
+    conv_name_base = 'res' + str(stage) + block + '_branch'
+    bn_name_base = 'bn' + str(stage) + block + '_branch'
+
+    x = Conv2D(filters1, (1, 1), strides=strides,
+               name=conv_name_base + '2a')(input_tensor)
+    x = BatchNormalization(axis=bn_axis, name=bn_name_base + '2a')(x)
+    x = Activation('relu')(x)
+
+    x = Conv2D(filters2, kernel_size, padding='same',
+               name=conv_name_base + '2b')(x)
+    x = BatchNormalization(axis=bn_axis, name=bn_name_base + '2b')(x)
+    x = Activation('relu')(x)
+
+    x = Conv2D(filters3, (1, 1), name=conv_name_base + '2c')(x)
+    x = BatchNormalization(axis=bn_axis, name=bn_name_base + '2c')(x)
+
+    shortcut = Conv2D(filters3, (1, 1), strides=strides,
+                      name=conv_name_base + '1')(input_tensor)
+    shortcut = BatchNormalization(axis=bn_axis, name=bn_name_base + '1')(shortcut)
+
+    x = add([x, shortcut])
+    x = Activation('relu')(x)
+    return x
+
+
+def resnet50_rgb(input_shape, pooling='avg'):
+    img_input = Input(shape=input_shape)
+
+    x = ZeroPadding2D(padding=(3, 3), name='pad1')(img_input)
+    x = Conv2D(64, (7, 7), strides=(2, 2), padding='valid', name='conv1')(x)
+    x = BatchNormalization(axis=3, name='bn_conv1')(x)
+    x = Activation('relu')(x)
+    x = MaxPooling2D((3, 3), strides=(2, 2))(x)
+
+    x = conv_block(x, 3, [64, 64, 256], stage=2, block='a', strides=(1, 1))
+    x = identity_block(x, 3, [64, 64, 256], stage=2, block='b')
+    x = identity_block(x, 3, [64, 64, 256], stage=2, block='c')
+
+    x = conv_block(x, 3, [128, 128, 512], stage=3, block='a')
+    x = identity_block(x, 3, [128, 128, 512], stage=3, block='b')
+    x = identity_block(x, 3, [128, 128, 512], stage=3, block='c')
+    x = identity_block(x, 3, [128, 128, 512], stage=3, block='d')
+
+    x = conv_block(x, 3, [256, 256, 1024], stage=4, block='a')
+    x = identity_block(x, 3, [256, 256, 1024], stage=4, block='b')
+    x = identity_block(x, 3, [256, 256, 1024], stage=4, block='c')
+    x = identity_block(x, 3, [256, 256, 1024], stage=4, block='d')
+    x = identity_block(x, 3, [256, 256, 1024], stage=4, block='e')
+    x = identity_block(x, 3, [256, 256, 1024], stage=4, block='f')
+
+    x = conv_block(x, 3, [512, 512, 2048], stage=5, block='a')
+    x = identity_block(x, 3, [512, 512, 2048], stage=5, block='b')
+    x = identity_block(x, 3, [512, 512, 2048], stage=5, block='c')
+
+    x = AveragePooling2D((7, 7), name='avg_pool')(x)
+
+    # Top is not included!
+    if pooling == 'avg':
+        x = GlobalAveragePooling2D()(x)
+    elif pooling == 'max':
+        x = GlobalMaxPooling2D()(x)
+
+    model = Model(img_input, x, name='resnet50')
+    return model

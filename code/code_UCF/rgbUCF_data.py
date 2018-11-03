@@ -24,11 +24,13 @@ def load_set(annot_path, setlist_path, datadir, dim, n_channels):
     X = np.zeros([18000, dim[0], dim[1], n_channels])  # overshooting size. will cut to right size at the end of this function.
     y = np.zeros(18000)  # overshooting size. will cut to right size at the end of this function.
     dataIndex = 0
+    print(len(keys))
     for key in keys:
         if key in annots:
             dirinfo = key.split('/')
             for BB in range(len(annots[key]['annotations'])):
-                if datadir == "../../../UCF_rgb/":
+
+                if datadir == "/media/pedro/actv-ssd/UCF101-24/UCF_rgb/":
                     frame_path = dirinfo[1] + "/"
                 else:
                     frame_path = dirinfo[1] + "_BB_" + str(BB) + "/"
@@ -36,6 +38,7 @@ def load_set(annot_path, setlist_path, datadir, dim, n_channels):
                 for img_number in range(1, 6):
                     # Load the 5 images!
                     img_path = datadir + frame_path + "frame" + str(img_number) + ".jpg"
+
                     if not os.path.exists(img_path):
                         print(img_path)
                         print("[Error] File does not exist!")
