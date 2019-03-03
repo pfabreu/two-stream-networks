@@ -1,0 +1,2 @@
+RGB Gauss (Softsigmoid): mAP@0.5IOU = 0.05629315089259183
+RGB Gauss (Non-softsigmoid): mAP@0.5IOU = 0.05013477372185885

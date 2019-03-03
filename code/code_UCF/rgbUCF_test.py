@@ -38,7 +38,7 @@ def main():
                        "crop": root_dir_data + "UCF_crop/",
                        "fovea": root_dir_data + "UCF_fovea/",
                        "gauss": root_dir_data + "UCF_gauss/"}
-    filter_type = "RGB"
+    filter_type = "crop"
     # Load X and Y for Testing set
     print("Now loading the Testing Set.\n")
     X_test, y_test = load_set(annot_path, testlist_path, data_paths_dict[filter_type], params["dim"], params["n_channels"])

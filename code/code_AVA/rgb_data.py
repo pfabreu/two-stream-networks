@@ -1,6 +1,3 @@
-"""
-Class for managing our data.
-"""
 import csv
 import numpy as np
 import cv2
@@ -18,7 +15,7 @@ def load_split(ids, labels, dim, n_channels, gen_type, filter_type, soft_sigmoid
     resize = False
     sep = "@"
     X = np.zeros([len(ids), dim[0], dim[1], n_channels])
-    rgb_dir = "/media/pedro/actv-ssd/"
+    rgb_dir = "/media/pedro/actv-ssd/miniAVA/"
     # rgb_dir = ""
     ypose = np.empty(len(ids))
     yobject = []
@@ -56,7 +53,7 @@ def load_split(ids, labels, dim, n_channels, gen_type, filter_type, soft_sigmoid
     return X, ypose, yobject, yhuman
 
 
-def get_AVA_set(classes, filename, soft_sigmoid=False):
+def get_AVA_set(classes, filename):
     sep = "@"
     id_list = []
     start_frame = 1

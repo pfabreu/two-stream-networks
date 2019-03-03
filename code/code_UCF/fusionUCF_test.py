@@ -22,7 +22,7 @@ def main():
     K.clear_session()
 
     sendmail = True
-    attention_type = "RGB"
+    attention_type = "crop"
 
     # Load list of action classes and separate them
     with open(root_dir_info + "classInd.txt") as f:

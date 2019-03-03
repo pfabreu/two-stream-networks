@@ -7,13 +7,6 @@ import numpy as np
 import utils
 
 
-def weighted_binary_crossentropy(y_true, y_pred, weight=1.):
-    y_true = K.clip(y_true, K.epsilon(), 1)
-    y_pred = K.clip(y_pred, K.epsilon(), 1)
-    logloss = -(y_true * K.log(y_pred) * weight + (1 - y_true) * K.log(1 - y_pred))
-    return K.mean(logloss, axis=-1)
-
-
 def print_params(model):
     trainable_count = int(np.sum([K.count_params(p) for p in set(model.trainable_weights)]))
     non_trainable_count = int(np.sum([K.count_params(p) for p in set(model.non_trainable_weights)]))
@@ -25,8 +18,10 @@ def print_params(model):
 
 def compile_model(model, soft_sigmoid=True):
     lw = [1.0, 1.0, 1.0]
-
-    model.compile(optimizer='adam', loss=['categorical_crossentropy', 'binary_crossentropy', 'binary_crossentropy'], metrics=['categorical_accuracy'], loss_weights=lw)
+    if soft_sigmoid is True:
+        model.compile(optimizer='adam', loss=['categorical_crossentropy', 'binary_crossentropy', 'binary_crossentropy'], metrics=['categorical_accuracy'], loss_weights=lw)
+    else:
+        model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['categorical_accuracy'])
     return model
 
 keras_layer_names = []
@@ -63,10 +58,14 @@ def rgb_create_model(classes, soft_sigmoid=True, model_name='inceptionv3', freez
                     layer.trainable = True
 
         model = None
-        pred_pose = Dense(utils.POSE_CLASSES, activation='softmax', name='pred_pose')(x)
-        pred_obj_human = Dense(utils.OBJ_HUMAN_CLASSES, activation='sigmoid', name='pred_obj_human')(x)
-        pred_human_human = Dense(utils.HUMAN_HUMAN_CLASSES, activation='sigmoid', name='pred_human_human')(x)
-        model = Model(inputs=base_model.input, outputs=[pred_pose, pred_obj_human, pred_human_human])
+        if soft_sigmoid is True:
+            pred_pose = Dense(utils.POSE_CLASSES, activation='softmax', name='pred_pose')(x)
+            pred_obj_human = Dense(utils.OBJ_HUMAN_CLASSES, activation='sigmoid', name='pred_obj_human')(x)
+            pred_human_human = Dense(utils.HUMAN_HUMAN_CLASSES, activation='sigmoid', name='pred_human_human')(x)
+            model = Model(inputs=base_model.input, outputs=[pred_pose, pred_obj_human, pred_human_human])
+        else:
+            pred = Dense(utils.POSE_CLASSES + utils.OBJ_HUMAN_CLASSES + utils.HUMAN_HUMAN_CLASSES, activation='sigmoid', name='preds')(x)
+            model = Model(inputs=base_model.input, outputs=pred)
         print_params(model)
         # print model.summary()
         print("Total number of layers in base model: " + str(len(base_model.layers)))

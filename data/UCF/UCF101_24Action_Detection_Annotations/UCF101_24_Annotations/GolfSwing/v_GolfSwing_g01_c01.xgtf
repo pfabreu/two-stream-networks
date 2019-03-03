@@ -1,0 +1,383 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<viper xmlns="http://lamp.cfar.umd.edu/viper#" xmlns:data="http://lamp.cfar.umd.edu/viperdata#">
+    <config>
+        <descriptor name="Information" type="FILE">
+            <attribute dynamic="false" name="SOURCETYPE" type="http://lamp.cfar.umd.edu/viperdata#lvalue">
+                <data:lvalue-possibles>
+                    <data:lvalue-enum value="SEQUENCE"/>
+                    <data:lvalue-enum value="FRAMES"/>
+                </data:lvalue-possibles>
+            </attribute>
+            <attribute dynamic="false" name="NUMFRAMES" type="http://lamp.cfar.umd.edu/viperdata#dvalue"/>
+            <attribute dynamic="false" name="FRAMERATE" type="http://lamp.cfar.umd.edu/viperdata#fvalue"/>
+            <attribute dynamic="false" name="H-FRAME-SIZE" type="http://lamp.cfar.umd.edu/viperdata#dvalue"/>
+            <attribute dynamic="false" name="V-FRAME-SIZE" type="http://lamp.cfar.umd.edu/viperdata#dvalue"/>
+            <attribute dynamic="false" name="START TIME" type="http://lamp.cfar.umd.edu/viperdata#fvalue"/>
+        </descriptor>
+        <descriptor name="PERSON" type="OBJECT">
+            <attribute dynamic="true" name="Location" type="http://lamp.cfar.umd.edu/viperdata#bbox"/>
+            <attribute dynamic="true" name="basketball_shooting" type="http://lamp.cfar.umd.edu/viperdata#bvalue">
+                <default>
+                    <data:bvalue value="false"/>
+                </default>
+            </attribute>
+            <attribute dynamic="true" name="biking" type="http://lamp.cfar.umd.edu/viperdata#bvalue">
+                <default>
+                    <data:bvalue value="false"/>
+                </default>
+            </attribute>
+            <attribute dynamic="true" name="diving" type="http://lamp.cfar.umd.edu/viperdata#bvalue">
+                <default>
+                    <data:bvalue value="false"/>
+                </default>
+            </attribute>
+            <attribute dynamic="true" name="golf_swing" type="http://lamp.cfar.umd.edu/viperdata#bvalue">
+                <default>
+                    <data:bvalue value="false"/>
+                </default>
+            </attribute>
+            <attribute dynamic="true" name="horse_riding" type="http://lamp.cfar.umd.edu/viperdata#bvalue">
+                <default>
+                    <data:bvalue value="false"/>
+                </default>
+            </attribute>
+            <attribute dynamic="true" name="soccer_juggling" type="http://lamp.cfar.umd.edu/viperdata#bvalue">
+                <default>
+                    <data:bvalue value="false"/>
+                </default>
+            </attribute>
+            <attribute dynamic="true" name="swing" type="http://lamp.cfar.umd.edu/viperdata#bvalue">
+                <default>
+                    <data:bvalue value="false"/>
+                </default>
+            </attribute>
+            <attribute dynamic="true" name="tennis_swing" type="http://lamp.cfar.umd.edu/viperdata#bvalue">
+                <default>
+                    <data:bvalue value="false"/>
+                </default>
+            </attribute>
+            <attribute dynamic="true" name="trampoline_jumping" type="http://lamp.cfar.umd.edu/viperdata#bvalue">
+                <default>
+                    <data:bvalue value="false"/>
+                </default>
+            </attribute>
+            <attribute dynamic="true" name="volleyball_spiking" type="http://lamp.cfar.umd.edu/viperdata#bvalue">
+                <default>
+                    <data:bvalue value="false"/>
+                </default>
+            </attribute>
+            <attribute dynamic="true" name="walking" type="http://lamp.cfar.umd.edu/viperdata#bvalue">
+                <default>
+                    <data:bvalue value="false"/>
+                </default>
+            </attribute>
+        </descriptor>
+        <descriptor name="VEHICLE" type="OBJECT">
+            <attribute dynamic="true" name="Location" type="http://lamp.cfar.umd.edu/viperdata#bbox"/>
+            <attribute dynamic="true"
+                name="Environment-Related Occlusion" type="http://lamp.cfar.umd.edu/viperdata#fvalue">
+                <default>
+                    <data:fvalue value="0.0"/>
+                </default>
+            </attribute>
+            <attribute dynamic="true" name="Event-Related Occlusion" type="http://lamp.cfar.umd.edu/viperdata#fvalue">
+                <default>
+                    <data:fvalue value="0.0"/>
+                </default>
+            </attribute>
+            <attribute dynamic="true" name="Turning" type="http://lamp.cfar.umd.edu/viperdata#bvalue">
+                <default>
+                    <data:bvalue value="false"/>
+                </default>
+            </attribute>
+            <attribute dynamic="true" name="Starting" type="http://lamp.cfar.umd.edu/viperdata#bvalue">
+                <default>
+                    <data:bvalue value="false"/>
+                </default>
+            </attribute>
+            <attribute dynamic="true" name="Stopping" type="http://lamp.cfar.umd.edu/viperdata#bvalue">
+                <default>
+                    <data:bvalue value="false"/>
+                </default>
+            </attribute>
+            <attribute dynamic="true" name="U-Turn" type="http://lamp.cfar.umd.edu/viperdata#bvalue">
+                <default>
+                    <data:bvalue value="false"/>
+                </default>
+            </attribute>
+            <attribute dynamic="true" name="Maintaining Distance" type="http://lamp.cfar.umd.edu/viperdata#bvalue">
+                <default>
+                    <data:bvalue value="false"/>
+                </default>
+            </attribute>
+            <attribute dynamic="true" name="No. Vehicle" type="http://lamp.cfar.umd.edu/viperdata#fvalue">
+                <default>
+                    <data:fvalue value="2.0"/>
+                </default>
+            </attribute>
+            <attribute dynamic="true" name="Not Scored" type="http://lamp.cfar.umd.edu/viperdata#bvalue">
+                <default>
+                    <data:bvalue value="false"/>
+                </default>
+            </attribute>
+        </descriptor>
+    </config>
+    <data>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_01/v_golf_01_01/v_golf_01_01.info">
+            <file id="0" name="Information">
+                <attribute name="SOURCETYPE"/>
+                <attribute name="NUMFRAMES">
+                    <data:dvalue value="172"/>
+                </attribute>
+                <attribute name="FRAMERATE">
+                    <data:fvalue value="1.0"/>
+                </attribute>
+                <attribute name="H-FRAME-SIZE"/>
+                <attribute name="V-FRAME-SIZE"/>
+                <attribute name="START TIME"/>
+            </file>
+            <object framespan="1:172" id="0" name="PERSON">
+                <attribute name="Location">
+                    <data:bbox framespan="1:47" height="150" width="74"
+                        x="98" y="75"/>
+                    <data:bbox framespan="48:171" height="171"
+                        width="74" x="98" y="54"/>
+                    <data:bbox framespan="172:172" height="171"
+                        width="74" x="102" y="54"/>
+                </attribute>
+                <attribute name="basketball_shooting">
+                    <data:bvalue framespan="1:172" value="false"/>
+                </attribute>
+                <attribute name="biking">
+                    <data:bvalue framespan="1:172" value="false"/>
+                </attribute>
+                <attribute name="diving">
+                    <data:bvalue framespan="1:172" value="false"/>
+                </attribute>
+                <attribute name="golf_swing">
+                    <data:bvalue framespan="1:17" value="false"/>
+                    <data:bvalue framespan="18:130" value="true"/>
+                    <data:bvalue framespan="131:172" value="false"/>
+                </attribute>
+                <attribute name="horse_riding">
+                    <data:bvalue framespan="1:172" value="false"/>
+                </attribute>
+                <attribute name="soccer_juggling">
+                    <data:bvalue framespan="1:172" value="false"/>
+                </attribute>
+                <attribute name="swing">
+                    <data:bvalue framespan="1:172" value="false"/>
+                </attribute>
+                <attribute name="tennis_swing">
+                    <data:bvalue framespan="1:172" value="false"/>
+                </attribute>
+                <attribute name="trampoline_jumping">
+                    <data:bvalue framespan="1:172" value="false"/>
+                </attribute>
+                <attribute name="volleyball_spiking">
+                    <data:bvalue framespan="1:172" value="false"/>
+                </attribute>
+                <attribute name="walking">
+                    <data:bvalue framespan="1:172" value="false"/>
+                </attribute>
+            </object>
+        </sourcefile>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_01/v_golf_01_02/v_golf_01_02.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_01/v_golf_01_03/v_golf_01_03.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_01/v_golf_01_04/v_golf_01_04.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_01/v_golf_01_05/v_golf_01_05.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_01/v_golf_01_06/v_golf_01_06.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_02/v_golf_02_01/v_golf_02_01.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_02/v_golf_02_02/v_golf_02_02.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_02/v_golf_02_03/v_golf_02_03.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_02/v_golf_02_04/v_golf_02_04.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_03/v_golf_03_01/v_golf_03_01.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_03/v_golf_03_02/v_golf_03_02.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_03/v_golf_03_03/v_golf_03_03.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_03/v_golf_03_04/v_golf_03_04.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_03/v_golf_03_05/v_golf_03_05.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_03/v_golf_03_06/v_golf_03_06.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_03/v_golf_03_07/v_golf_03_07.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_04/v_golf_04_01/v_golf_04_01.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_04/v_golf_04_02/v_golf_04_02.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_04/v_golf_04_03/v_golf_04_03.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_04/v_golf_04_04/v_golf_04_04.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_04/v_golf_04_05/v_golf_04_05.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_04/v_golf_04_06/v_golf_04_06.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_05/v_golf_05_01/v_golf_05_01.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_05/v_golf_05_02/v_golf_05_02.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_05/v_golf_05_03/v_golf_05_03.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_05/v_golf_05_04/v_golf_05_04.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_05/v_golf_05_05/v_golf_05_05.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_05/v_golf_05_06/v_golf_05_06.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_05/v_golf_05_07/v_golf_05_07.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_05/v_golf_05_08/v_golf_05_08.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_06/v_golf_06_01/v_golf_06_01.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_06/v_golf_06_02/v_golf_06_02.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_06/v_golf_06_03/v_golf_06_03.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_06/v_golf_06_04/v_golf_06_04.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_07/v_golf_07_01/v_golf_07_01.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_07/v_golf_07_02/v_golf_07_02.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_07/v_golf_07_03/v_golf_07_03.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_07/v_golf_07_04/v_golf_07_04.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_07/v_golf_07_05/v_golf_07_05.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_08/v_golf_08_01/v_golf_08_01.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_08/v_golf_08_02/v_golf_08_02.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_08/v_golf_08_03/v_golf_08_03.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_08/v_golf_08_04/v_golf_08_04.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_08/v_golf_08_05/v_golf_08_05.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_08/v_golf_08_06/v_golf_08_06.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_09/v_golf_09_01/v_golf_09_01.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_09/v_golf_09_02/v_golf_09_02.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_09/v_golf_09_03/v_golf_09_03.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_09/v_golf_09_04/v_golf_09_04.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_10/v_golf_10_01/v_golf_10_01.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_10/v_golf_10_02/v_golf_10_02.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_10/v_golf_10_03/v_golf_10_03.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_10/v_golf_10_04/v_golf_10_04.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_11/v_golf_11_01/v_golf_11_01.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_11/v_golf_11_02/v_golf_11_02.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_11/v_golf_11_03/v_golf_11_03.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_11/v_golf_11_04/v_golf_11_04.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_11/v_golf_11_05/v_golf_11_05.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_11/v_golf_11_06/v_golf_11_06.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_11/v_golf_11_07/v_golf_11_07.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_12/v_golf_12_01/v_golf_12_01.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_12/v_golf_12_02/v_golf_12_02.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_12/v_golf_12_03/v_golf_12_03.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_12/v_golf_12_04/v_golf_12_04.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_13/v_golf_13_01/v_golf_13_01.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_13/v_golf_13_02/v_golf_13_02.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_13/v_golf_13_03/v_golf_13_03.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_13/v_golf_13_04/v_golf_13_04.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_14/v_golf_14_01/v_golf_14_01.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_14/v_golf_14_02/v_golf_14_02.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_14/v_golf_14_03/v_golf_14_03.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_14/v_golf_14_04/v_golf_14_04.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_15/v_golf_15_01/v_golf_15_01.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_15/v_golf_15_02/v_golf_15_02.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_15/v_golf_15_03/v_golf_15_03.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_15/v_golf_15_04/v_golf_15_04.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_16/v_golf_16_01/v_golf_16_01.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_16/v_golf_16_02/v_golf_16_02.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_16/v_golf_16_03/v_golf_16_03.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_16/v_golf_16_04/v_golf_16_04.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_17/v_golf_17_01/v_golf_17_01.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_17/v_golf_17_02/v_golf_17_02.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_17/v_golf_17_03/v_golf_17_03.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_17/v_golf_17_04/v_golf_17_04.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_17/v_golf_17_05/v_golf_17_05.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_17/v_golf_17_06/v_golf_17_06.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_17/v_golf_17_07/v_golf_17_07.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_17/v_golf_17_08/v_golf_17_08.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_18/v_golf_18_01/v_golf_18_01.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_18/v_golf_18_02/v_golf_18_02.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_18/v_golf_18_03/v_golf_18_03.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_18/v_golf_18_04/v_golf_18_04.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_18/v_golf_18_05/v_golf_18_05.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_18/v_golf_18_06/v_golf_18_06.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_19/v_golf_19_01/v_golf_19_01.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_19/v_golf_19_02/v_golf_19_02.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_19/v_golf_19_03/v_golf_19_03.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_19/v_golf_19_04/v_golf_19_04.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_19/v_golf_19_05/v_golf_19_05.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_19/v_golf_19_06/v_golf_19_06.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_20/v_golf_20_01/v_golf_20_01.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_20/v_golf_20_02/v_golf_20_02.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_20/v_golf_20_03/v_golf_20_03.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_20/v_golf_20_04/v_golf_20_04.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_20/v_golf_20_05/v_golf_20_05.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_20/v_golf_20_06/v_golf_20_06.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_20/v_golf_20_07/v_golf_20_07.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_21/v_golf_21_01/v_golf_21_01.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_21/v_golf_21_02/v_golf_21_02.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_21/v_golf_21_03/v_golf_21_03.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_21/v_golf_21_04/v_golf_21_04.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_21/v_golf_21_05/v_golf_21_05.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_21/v_golf_21_06/v_golf_21_06.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_22/v_golf_22_01/v_golf_22_01.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_22/v_golf_22_02/v_golf_22_02.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_22/v_golf_22_03/v_golf_22_03.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_22/v_golf_22_04/v_golf_22_04.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_22/v_golf_22_05/v_golf_22_05.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_22/v_golf_22_06/v_golf_22_06.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_23/v_golf_23_01/v_golf_23_01.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_23/v_golf_23_02/v_golf_23_02.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_23/v_golf_23_03/v_golf_23_03.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_23/v_golf_23_04/v_golf_23_04.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_23/v_golf_23_05/v_golf_23_05.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_23/v_golf_23_06/v_golf_23_06.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_23/v_golf_23_07/v_golf_23_07.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_23/v_golf_23_08/v_golf_23_08.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_24/v_golf_24_01/v_golf_24_01.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_24/v_golf_24_02/v_golf_24_02.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_24/v_golf_24_03/v_golf_24_03.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_24/v_golf_24_04/v_golf_24_04.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_24/v_golf_24_05/v_golf_24_05.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_24/v_golf_24_06/v_golf_24_06.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_24/v_golf_24_07/v_golf_24_07.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_25/v_golf_25_01/v_golf_25_01.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_25/v_golf_25_02/v_golf_25_02.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_25/v_golf_25_03/v_golf_25_03.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_25/v_golf_25_04/v_golf_25_04.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_25/v_golf_25_05/v_golf_25_05.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_25/v_golf_25_06/v_golf_25_06.info"/>
+        <sourcefile filename="file:/C:/Users/Ada%20Brewton/Downloads/YouTube_DataSet_Annotated/action_youtube_naudio/golf_swing/v_golf_25/v_golf_25_07/v_golf_25_07.info"/>
+        <sourcefile filename="file:/C:/Users/User/Desktop/Converted/Golf/01/v_golf_01_01.mpg">
+            <file id="0" name="Information">
+                <attribute name="SOURCETYPE"/>
+                <attribute name="NUMFRAMES">
+                    <data:dvalue value="172"/>
+                </attribute>
+                <attribute name="FRAMERATE">
+                    <data:fvalue value="1.0"/>
+                </attribute>
+                <attribute name="H-FRAME-SIZE"/>
+                <attribute name="V-FRAME-SIZE"/>
+                <attribute name="START TIME"/>
+            </file>
+            <object framespan="1:172" id="0" name="PERSON">
+                <attribute name="Location">
+                    <data:bbox framespan="1:60" height="155" width="75"
+                        x="99" y="72"/>
+                    <data:bbox framespan="61:172" height="172"
+                        width="75" x="99" y="55"/>
+                </attribute>
+                <attribute name="basketball_shooting">
+                    <data:bvalue framespan="1:171" value="false"/>
+                </attribute>
+                <attribute name="biking">
+                    <data:bvalue framespan="1:171" value="false"/>
+                </attribute>
+                <attribute name="diving">
+                    <data:bvalue framespan="1:171" value="false"/>
+                </attribute>
+                <attribute name="golf_swing">
+                    <data:bvalue framespan="1:165" value="true"/>
+                    <data:bvalue framespan="166:171" value="false"/>
+                </attribute>
+                <attribute name="horse_riding">
+                    <data:bvalue framespan="1:171" value="false"/>
+                </attribute>
+                <attribute name="soccer_juggling">
+                    <data:bvalue framespan="1:171" value="false"/>
+                </attribute>
+                <attribute name="swing">
+                    <data:bvalue framespan="1:171" value="false"/>
+                </attribute>
+                <attribute name="tennis_swing">
+                    <data:bvalue framespan="1:171" value="false"/>
+                </attribute>
+                <attribute name="trampoline_jumping">
+                    <data:bvalue framespan="1:171" value="false"/>
+                </attribute>
+                <attribute name="volleyball_spiking">
+                    <data:bvalue framespan="1:171" value="false"/>
+                </attribute>
+                <attribute name="walking">
+                    <data:bvalue framespan="1:171" value="false"/>
+                </attribute>
+            </object>
+        </sourcefile>
+    </data>
+</viper>

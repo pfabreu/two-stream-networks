@@ -143,7 +143,12 @@ def run_evaluation(labelmap, groundtruth, exclusions, iou):
     # Make sure not to mess this up
     experiments_filters = {}
     experiments_detections = {}
-    experiment = 'balancing'
+    experiment = 'ss'
+
+    # Softsigmoid
+    experiments_filters['ss'] = ['RGB Gauss (Softsigmoid)', 'RGB Gauss (Non-softsigmoid)']
+    experiments_detections['ss'] = [open(test_dir + "/rgb_gauss/output_test_gauss.csv", 'rb'),
+                                    open(test_dir + "/sigmoids/output_test_sigmoids_gauss_1811121241.csv", 'rb')]
 
     # Baseline
     experiments_filters['baseline'] = ['RGB', 'Flow', 'RGB+Flow']

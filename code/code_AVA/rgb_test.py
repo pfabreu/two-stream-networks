@@ -30,20 +30,20 @@ def main():
 
     filter_type = "gauss"
     split = "test"
+    soft_sigmoid = False
 
     # Get validation set from directory
     partition = {}
-    partition['test'] = get_AVA_set(classes=classes, filename=root_dir + "AVA_" + split.title() + "_Custom_Corrected.csv", soft_sigmoid=True)
+    partition['test'] = get_AVA_set(classes=classes, filename=root_dir + "AVA_" + split.title() + "_Custom_Corrected.csv")
 
     time_str = time.strftime("%y%m%d%H%M", time.localtime())
-    result_csv = "test_outputs/augmentation/output_test_weightsnew_" + filter_type + "_" + time_str + ".csv"
+    result_csv = "test_outputs/augmentation/output_test_sigmoids_" + filter_type + "_" + time_str + ".csv"
 
     # Load trained model
-    # Gauss
     # rgb_weights = "../models/rgb_" + filter_type + "_resnet50_1806290918.hdf5"
     # rgb_weights = "../models/rgbextra_" + filter_type + "_resnet50_1807250030.hdf5"
-    #rgb_weights = "../models/rgb_augsamplingweightsnoaug_gauss_resnet50_1809242359.hdf5"
-    rgb_weights = "../models/rgb_weightsnew_gauss_resnet50_1809281516.hdf5"
+    # rgb_weights = "../models/rgb_augsamplingweightsnoaug_gauss_resnet50_1809242359.hdf5"
+    rgb_weights = "../models/rgb_sigmoid_gauss_resnet50_1811111303.hdf5"
     # Crop
     # rgb_weights = "../models/rgb_" + filter_type + "_resnet50_1806300210.hdf5"
 
@@ -53,8 +53,8 @@ def main():
     # RGB only
     # rgb_weights = "../models/rgb_" + filter_type + "_resnet50_1807060914.hdf5"
 
-    model, keras_layer_names = rgb_create_model(classes=classes['label_id'], soft_sigmoid=True, model_name=params['model'], freeze_all=params['freeze_all'], conv_fusion=params['conv_fusion'])
-    model = compile_model(model, soft_sigmoid=True)
+    model, keras_layer_names = rgb_create_model(classes=classes['label_id'], soft_sigmoid=soft_sigmoid, model_name=params['model'], freeze_all=params['freeze_all'], conv_fusion=params['conv_fusion'])
+    model = compile_model(model, soft_sigmoid=soft_sigmoid)
     model.load_weights(rgb_weights)
 
     print("Test set size: " + str(len(partition['test'])))
@@ -83,10 +83,16 @@ def main():
     with tf.device('/gpu:0'):
         for testIDS in test_splits:
             # TODO Technically it shouldnt return labels here (these are ground truth)
-            x_test_rgb, y_test_pose, y_test_object, y_test_human = load_split(testIDS, None, params['dim'], params['n_channels'], split, filter_type, soft_sigmoid=True, train=False)
+            x_test_rgb, y_test_pose, y_test_object, y_test_human = load_split(testIDS, None, params['dim'], params['n_channels'], split, filter_type, soft_sigmoid=soft_sigmoid, train=False)
             print("Predicting on chunk " + str(test_chunks_count) + "/" + str(len(test_splits)))
 
             predictions = model.predict(x_test_rgb, batch_size=params['batch_size'], verbose=1)
+            if soft_sigmoid is False:
+                predictions = np.split(predictions, [utils.POSE_CLASSES, utils.POSE_CLASSES + utils.OBJ_HUMAN_CLASSES], axis=1)
+                print(len(predictions))
+                print(predictions[0].shape)
+                print(predictions[1].shape)
+                print(predictions[2].shape)
             if store_predictions is True:
                 # print(predictions[0][0])
                 # print(predictions[1][0])
@@ -102,7 +108,7 @@ def main():
     if store_predictions is True:
         #tp = np.vstack(test_predictions)
         # print(tp.shape)
-        with open("thresholds/rgb_gauss/predictions_weightsnew_" + filter_type + "_" + time_str + ".pickle", 'wb') as handle:
+        with open("thresholds/rgb_gauss/predictions_sigmoids_" + filter_type + "_" + time_str + ".pickle", 'wb') as handle:
             pickle.dump(test_predictions, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
     # When you're done getting all the votes, write output csv
