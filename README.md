@@ -21,7 +21,8 @@ We provide code for Two Stream Action Detection in Keras and each respective ext
 * Maplotlib + Seaborn (`pip install seaborn`) for plots
 <!--* [imgaug](https://imgaug.readthedocs.io/en/latest/source/examples_basics.html) for augmentation (will use tensorflow tf.image API in the future)-->
 <!--* [gpu-flow](https://github.com/pedro-abreu/gpu_flow) if you want to extract TVL1 Optical Flow (requires OpenCV 2.X)
-* [foveated-yolt](https://github.com/pedro-abreu/foveated_yolt) if you want to apply attention filters (requires python2)-->
+
+<!---* [foveated-yolt](https://github.com/pedro-abreu/foveated_yolt) if you want to apply attention filters (requires python2)-->
 <!--* (Optional) Caffe 1.0 ([This](https://github.com/yjxiong/caffe) version if you wish to convert networks trained with yjxiong's version of Caffe (i.e TSN) to Keras). Note that we had to convert from this custom Caffe to Keras and as such, slightly modify the default InceptionV3 architecture to use pre-trained Kinetics weights (explained in the thesis). To understand the subtle (and low-level) differences in converting models from Caffe to Keras see [this](https://flyyufelix.github.io/2017/03/23/caffe-to-keras.html) great link.-->
 <!--* (Optional) OpenPose 1.3.0 if you wish to extract poses (most recent one as of writing, and thus Caffe (all dependencies) + OpenCV, can be the previous one)-->
 * (Optional) To use Keras to draw models you need graphviz and pydot.
